@@ -9,6 +9,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Onboarding step
@@ -226,7 +228,7 @@ func (m OnboardingModel) View() string {
 
 		s.WriteString(headerStyle.Render("Enter Your API Key") + "\n\n")
 
-		providerLabel := accentStyle.Render(strings.Title(p.name))
+		providerLabel := accentStyle.Render(cases.Title(language.English).String(p.name))
 		s.WriteString(fmt.Sprintf("Provider: %s\n\n", providerLabel))
 
 		// API key input
@@ -271,7 +273,7 @@ func (m OnboardingModel) View() string {
 		s.WriteString(headerStyle.Render("You're All Set!") + "\n\n")
 
 		p := providers[m.providerIdx]
-		s.WriteString(subtitleStyle.Render(fmt.Sprintf("API key for %s has been saved.\n", strings.Title(p.name))))
+		s.WriteString(subtitleStyle.Render(fmt.Sprintf("API key for %s has been saved.\n", cases.Title(language.English).String(p.name))))
 		s.WriteString(subtitleStyle.Render("You're ready to generate tests for your code.") + "\n\n\n")
 
 		s.WriteString("     " + buttonStyle.Render(" Start Using TestGen ") + "\n\n")
