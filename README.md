@@ -6,7 +6,7 @@
 
 **AI-Powered Multi-Language Test Generation CLI**
 
-TestGen automatically generates production-ready tests for source code across JavaScript/TypeScript, Python, Go, and Rust using LLM APIs (Anthropic Claude, OpenAI GPT, Google Gemini, Groq).
+TestGen automatically generates production-ready tests for source code across JavaScript/TypeScript, Python, Go, Rust, and Java using LLM APIs (Anthropic Claude, OpenAI GPT, Google Gemini, Groq).
 
 ```
  ████████╗███████╗███████╗████████╗ ██████╗ ███████╗███╗   ██╗
@@ -22,9 +22,9 @@ TestGen automatically generates production-ready tests for source code across Ja
 ## Features
 
 - 🖥️ **Interactive TUI Mode**: Full terminal UI with visual forms and live progress
-- 🌍 **Multi-Language Support**: JavaScript/TypeScript, Python, Go, Rust
+- 🌍 **Multi-Language Support**: JavaScript/TypeScript, Python, Go, Rust, Java
 - 🧪 **Multiple Test Types**: Unit, edge-cases, negative, table-driven, integration
-- 🔌 **Framework Aware**: Jest, Vitest, pytest, Go testing, cargo test
+- 🔌 **Framework Aware**: Jest, Vitest, pytest, Go testing, cargo test, JUnit
 - 💰 **Cost Optimized**: Semantic caching, request batching
 - 🔧 **CI/CD Ready**: JSON output, meaningful exit codes, quiet mode
 - 🏗️ **Clean Architecture**: Extensible adapter pattern
@@ -260,6 +260,7 @@ languages:
 | Python | `.py` | pytest | unit, edge-cases, negative |
 | Go | `.go` | testing + testify | unit, table-driven, edge-cases, negative |
 | Rust | `.rs` | cargo test | unit, edge-cases, negative |
+| Java | `.java` | JUnit 5 | unit, edge-cases, negative |
 
 ## Exit Codes
 
@@ -284,7 +285,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25.7'
       - name: Install TestGen
         run: go install github.com/princepal9120/testgen-cli@latest
       - name: Generate tests
@@ -308,7 +309,25 @@ go build -o testgen .
 
 # Run linter
 golangci-lint run
+
+# Run local CI quality checks
+make ci
 ```
+
+## Community and Governance
+
+- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Support channels: [SUPPORT.md](SUPPORT.md)
+- Roadmap: [ROADMAP.md](ROADMAP.md)
+
+## Engineering Quality
+
+Quality and release standards are documented in:
+
+- [QUALITY.md](QUALITY.md)
+- [docs/TESTING_STRATEGY.md](docs/TESTING_STRATEGY.md)
 
 ## License
 

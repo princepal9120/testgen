@@ -56,7 +56,7 @@ TestGen follows **Clean Architecture** principles with clear separation between 
 
 ### `internal/adapters/`
 - `LanguageAdapter` interface
-- Language-specific implementations (Go, Python, JS, Rust)
+- Language-specific implementations (Go, Python, JavaScript/TypeScript, Rust, Java)
 - Parsing, prompts, formatting
 
 ### `internal/llm/`

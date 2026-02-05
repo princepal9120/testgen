@@ -72,8 +72,8 @@ coverage.html
 *.txt
 *.json
 
-# Cobra generated docs
-docs/
+# Cobra generated docs (if generated in a separate folder)
+docs/generated/
 
 # Docker
 docker-compose.override.yml

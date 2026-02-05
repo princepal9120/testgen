@@ -1,0 +1,10 @@
+# Default ownership
+* @princepal9120
+
+# CI and repository governance
+/.github/ @princepal9120
+
+# Core application layers
+/cmd/ @princepal9120
+/internal/ @princepal9120
+/docs/ @princepal9120

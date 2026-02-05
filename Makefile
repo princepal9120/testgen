@@ -1,4 +1,4 @@
-.PHONY: build test clean install lint run help
+.PHONY: build test clean install lint run help security-audit ci coverage-check
 
 # Binary name
 BINARY_NAME=testgen
@@ -14,6 +14,8 @@ GOFMT=gofmt
 
 # Build flags
 LDFLAGS=-ldflags "-s -w"
+COVERAGE_MIN=15.0
+SECURITY_TOOLCHAIN=go1.25.7
 
 ## help: Show this help message
 help:
@@ -50,10 +52,24 @@ test-coverage:
 	$(GOTEST) -v -cover -coverprofile=coverage.out ./...
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
 
+## coverage-check: Fail if coverage is below the minimum threshold
+coverage-check:
+	@coverage=$$($(GOCMD) tool cover -func=coverage.out | awk '/^total:/ {gsub("%","",$$3); print $$3}'); \
+	if [ -z "$$coverage" ]; then \
+		echo "Could not read coverage from coverage.out"; \
+		exit 1; \
+	fi; \
+	echo "Total coverage: $$coverage% (minimum: $(COVERAGE_MIN)%)"; \
+	awk -v cov="$$coverage" -v min="$(COVERAGE_MIN)" 'BEGIN { if (cov+0 < min+0) { printf "Coverage %.2f%% is below %.2f%%\n", cov, min; exit 1 } }'
+
 ## lint: Run linters
 lint:
 	$(GOVET) ./...
 	$(GOFMT) -l -s .
+
+## security-audit: Run vulnerability scan
+security-audit:
+	GOTOOLCHAIN=$(SECURITY_TOOLCHAIN) govulncheck ./...
 
 ## fmt: Format code
 fmt:
@@ -80,3 +96,6 @@ demo: build
 ## analyze: Analyze the examples directory
 analyze: build
 	./$(BINARY_NAME) analyze --path=./examples --cost-estimate --recursive
+
+## ci: Run the local CI quality suite
+ci: fmt lint test-coverage coverage-check security-audit

@@ -181,9 +181,9 @@ func (m OnboardingModel) View() string {
 
 		// Provider list with descriptions
 		providerDetails := []struct {
-			name   string
-			desc   string
-			badge  string
+			name  string
+			desc  string
+			badge string
 		}{
 			{"Groq", "Ultra-fast inference, generous free tier", "RECOMMENDED"},
 			{"Anthropic Claude", "Highest quality, best for complex code", "PREMIUM"},
@@ -241,7 +241,7 @@ func (m OnboardingModel) View() string {
 		// Error
 		if m.err != nil {
 			errStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
-			s.WriteString(errStyle.Render("✗ " + m.err.Error()) + "\n\n")
+			s.WriteString(errStyle.Render("✗ "+m.err.Error()) + "\n\n")
 		}
 
 		// Instructions

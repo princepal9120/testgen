@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a new feature or improvement.
+title: "[Feature] "
+labels:
+  - enhancement
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share the problem first, then propose the solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What limitation are you facing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe behavior, CLI shape, and output expectations.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and tradeoffs
+      description: Mention backward compatibility or migration concerns.
+    validations:
+      required: false

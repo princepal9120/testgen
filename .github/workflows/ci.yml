@@ -8,7 +8,8 @@ on:
     branches: [main]
 
 env:
-  GO_VERSION: "1.24"
+  GO_VERSION: "1.25.7"
+  MIN_COVERAGE: "15.0"
 
 jobs:
   lint:
@@ -62,7 +63,24 @@ jobs:
       # Use bash shell for cross-platform consistency
       - name: Run tests with coverage
         shell: bash
-        run: go test -v -race -coverprofile=coverage.out -timeout=5m ./...
+        run: go test -v -race -covermode=atomic -coverprofile=coverage.out -timeout=5m ./...
+
+      - name: Enforce minimum coverage
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          coverage=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%","",$3); print $3}')
+          if [ -z "$coverage" ]; then
+            echo "Unable to read total coverage from coverage.out"
+            exit 1
+          fi
+          echo "Total coverage: ${coverage}% (minimum: ${MIN_COVERAGE}%)"
+          awk -v cov="$coverage" -v min="${MIN_COVERAGE}" 'BEGIN {
+            if (cov+0 < min+0) {
+              printf "Coverage %.2f%% is below %.2f%%\n", cov, min
+              exit 1
+            }
+          }'
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && success()
