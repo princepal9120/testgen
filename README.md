@@ -132,7 +132,9 @@ TestGen now exposes a shared machine-readable contract for agent wrappers.
 
 - Codex example skill: `.codex/skills/testgen/SKILL.md`
 - Claude Code command: `.claude/commands/testgen.md`
+- OpenCode command: `.opencode/commands/testgen.md`
 - OpenCode notes: `docs/integrations/opencode.md`
+- MCP server notes: `docs/integrations/mcp.md`
 
 Recommended safe mode for agents:
 
@@ -144,6 +146,32 @@ Experimental MCP server:
 
 ```bash
 testgen mcp
+```
+
+This means TestGen is now usable in three ways:
+
+1. **Codex / oh-my-codex**
+   - add or vendor `.codex/skills/testgen/SKILL.md`
+   - invoke TestGen through the shared JSON CLI contract
+
+2. **Claude Code**
+   - use `.claude/commands/testgen.md`
+   - run review-first dry-run generation by default
+
+3. **OpenCode**
+   - use `.opencode/commands/testgen.md`
+   - or connect through `testgen mcp`
+
+Install those wrappers into another repo:
+
+```bash
+./scripts/install-agent-integrations.sh /path/to/target-repo copy
+```
+
+Print an MCP client config snippet:
+
+```bash
+./scripts/print-mcp-config.sh testgen
 ```
 
 ## Commands

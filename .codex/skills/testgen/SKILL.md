@@ -1,3 +1,8 @@
+---
+name: testgen
+description: Generate tests with TestGen using the shared JSON contract
+---
+
 # TestGen skill
 
 Use TestGen when you need repo-local test generation from source files.

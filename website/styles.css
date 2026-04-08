@@ -811,3 +811,231 @@ h6 {
         font-size: 2.5rem;
     }
 }
+.nav-logo-text {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    margin-left: 10px;
+    color: var(--text-primary);
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid rgba(79, 70, 229, 0.14);
+    background: rgba(79, 70, 229, 0.06);
+    color: var(--accent-primary);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.hero-subtitle.wide {
+    max-width: 760px;
+}
+
+.agent-badges {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 36px;
+}
+
+.agent-badge {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.terminal-window .window-body {
+    padding: 32px;
+}
+
+.command-line {
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 16px 18px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+}
+
+.result-grid,
+.integrations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.result-card,
+.integration-card,
+.panel-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.result-label,
+.panel-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.result-value,
+.integration-card p,
+.panel-card pre,
+.panel-card code {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.section-heading {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto 48px;
+}
+
+.section-heading h2 {
+    font-size: 2.8rem;
+    margin-bottom: 16px;
+}
+
+.section-heading p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.integrations-section {
+    padding-top: 80px;
+}
+
+.integration-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+
+.integration-card code,
+.workflow-step code,
+.panel-card code {
+    font-family: var(--font-mono);
+    background: #f8fafc;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.workflow-section {
+    align-items: flex-start;
+}
+
+.workflow-steps {
+    display: grid;
+    gap: 14px;
+}
+
+.workflow-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    color: var(--text-secondary);
+}
+
+.workflow-step span {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(79, 70, 229, 0.12);
+    color: var(--accent-primary);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.install-panel {
+    display: grid;
+    gap: 16px;
+}
+
+.panel-card pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+
+.panel-card.subtle {
+    background: #f8fafc;
+}
+
+.compact-grid {
+    gap: 32px;
+}
+
+.footer-links a {
+    margin: 0 12px;
+    color: var(--text-secondary);
+}
+
+.footer-links a:hover {
+    color: var(--accent-primary);
+}
+
+@media (max-width: 900px) {
+    .hero h1,
+    .section-heading h2,
+    .split-content h2 {
+        font-size: 2.5rem;
+    }
+
+    .result-grid,
+    .integrations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .split-section {
+        flex-direction: column;
+        padding: 72px 0;
+    }
+
+    .nav-links {
+        gap: 14px;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero {
+        padding-top: 110px;
+    }
+
+    .hero-cta,
+    .agent-badges {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nav-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

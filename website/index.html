@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestGen - AI-Powered Test Methodologies</title>
+    <title>TestGen - Agent-ready test generation for Codex, Claude Code, OpenCode, and MCP</title>
     <meta name="description"
-        content="Generate production-ready tests for JavaScript, Python, Go, and Rust with AI. Save hours of manual test writing.">
+        content="TestGen is an agent-ready test generation platform with repo-local skills for Codex, Claude Code, OpenCode, and an experimental MCP server.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -17,7 +17,6 @@
 </head>
 
 <body>
-    <!-- Navigation -->
     <nav class="nav">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
@@ -25,51 +24,60 @@
                 <span class="nav-logo-text">TestGen</span>
             </a>
             <div class="nav-links">
-                <a href="index.html">Home</a>
+                <a href="#integrations">Integrations</a>
+                <a href="#workflow">Workflow</a>
                 <a href="docs.html">Docs</a>
-                <a href="https://github.com/princepal9120/testgen-cli" target="_blank">GitHub</a>
+                <a href="https://github.com/princepal9120/testgen" target="_blank" rel="noreferrer">GitHub</a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="hero">
         <div class="container">
+            <div class="eyebrow">Agent-ready test generation</div>
             <h1>
-                Your Test Suite,
-                <span class="highlight">Automated.</span>
+                One test engine,
+                <span class="highlight">four agent surfaces.</span>
             </h1>
-            <p class="hero-subtitle">
-                Transform your codebase with intelligent test generation that understands your logic.
+            <p class="hero-subtitle wide">
+                TestGen now ships repo-local wrappers for Codex, Claude Code, OpenCode, and an experimental MCP server.
+                Generate tests in dry-run mode first, inspect JSON artifacts and patch operations, then write files only when you mean it.
             </p>
+            <div class="agent-badges">
+                <span class="agent-badge">Codex</span>
+                <span class="agent-badge">Claude Code</span>
+                <span class="agent-badge">OpenCode</span>
+                <span class="agent-badge">MCP</span>
+            </div>
             <div class="hero-cta">
-                <a href="docs.html#installation" class="btn btn-primary">Start Generating</a>
-                <a href="docs.html" class="btn btn-secondary">Read Docs</a>
+                <a href="docs.html#installation" class="btn btn-primary">Install TestGen</a>
+                <a href="#integrations" class="btn btn-secondary">See Integrations</a>
             </div>
 
-            <!-- Window Mockup -->
-            <div class="window-mockup">
+            <div class="window-mockup terminal-window">
                 <div class="window-header">
                     <div class="dot red"></div>
                     <div class="dot yellow"></div>
                     <div class="dot green"></div>
                 </div>
                 <div class="window-body">
-                    <div class="git-viz">
-                        <div class="git-item">
-                            <div class="git-title">✓ Analyzed src/utils.py</div>
-                            <div class="git-desc">Found 5 functions, 0 existing tests</div>
+                    <div class="command-line">$ testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --output-format json</div>
+                    <div class="result-grid">
+                        <div class="result-card">
+                            <div class="result-label">results</div>
+                            <div class="result-value">per-file generation status</div>
                         </div>
-                        <div class="git-item">
-                            <div class="git-title">✓ Generated src/tests/test_utils.py</div>
-                            <div class="git-desc">Created 12 unit tests covering edge cases</div>
+                        <div class="result-card">
+                            <div class="result-label">artifacts</div>
+                            <div class="result-value">generated test path + code</div>
                         </div>
-                        <div class="git-item">
-                            <div class="git-title">✓ Verified Coverage</div>
-                            <div class="git-desc">100% line coverage achieved</div>
+                        <div class="result-card">
+                            <div class="result-label">patches</div>
+                            <div class="result-value">structured write operations for agents</div>
                         </div>
-                        <div class="git-item" style="border-left: none;">
-                            <div class="git-title" style="color: var(--accent-primary);">⚡ Ready to merge</div>
+                        <div class="result-card">
+                            <div class="result-label">mcp</div>
+                            <div class="result-value">stdio server via <code>testgen mcp</code></div>
                         </div>
                     </div>
                 </div>
@@ -77,36 +85,45 @@
         </div>
     </header>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
+    <section id="integrations" class="features integrations-section">
         <div class="container">
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Quick to Start</h3>
-                    <p>Install via curl or npm and start generating tests immediately. Zero complicated config required
-                        to get value.</p>
+            <div class="section-heading">
+                <h2>Drop TestGen into the tools your team already uses.</h2>
+                <p>
+                    Keep wrappers thin. Keep the generation logic in one place. Use the shared JSON contract everywhere.
+                </p>
+            </div>
+            <div class="integrations-grid">
+                <div class="integration-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Codex / oh-my-codex</h3>
+                    <p>Use the repo-local skill at <code>.codex/skills/testgen/SKILL.md</code> and call TestGen in review-first dry-run mode.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Local-First Privacy</h3>
-                    <p>Your code stays secure. We use API keys you control, and transient processing ensures no data
-                        retention.</p>
+                <div class="integration-card">
+                    <div class="feature-icon">✍️</div>
+                    <h3>Claude Code</h3>
+                    <p>Ship the command at <code>.claude/commands/testgen.md</code> so Claude can request dry-run artifacts before writing tests.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">🌐</div>
-                    <h3>Multi-Language</h3>
-                    <p>Full support for TypeScript, Python, Go, and Rust. One tool to rule your entire polyglot stack.
-                    </p>
+                <div class="integration-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>OpenCode</h3>
+                    <p>Use <code>.opencode/commands/testgen.md</code> or connect through MCP if your setup prefers tool calling over local commands.</p>
+                </div>
+                <div class="integration-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>MCP clients</h3>
+                    <p>Run <code>testgen mcp</code> and expose <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code> over stdio.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Supported Languages -->
     <section class="languages">
         <div class="container">
-            <h2>Supported Languages</h2>
+            <div class="section-heading">
+                <h2>Still the same multi-language core.</h2>
+                <p>One engine, one app layer, adapters per language. No duplicated business logic across wrappers.</p>
+            </div>
             <div class="lang-grid">
                 <div class="lang-card">
                     <div class="lang-icon">
@@ -124,7 +141,7 @@
                 <div class="lang-card">
                     <div class="lang-icon"><img src="images/go.svg" alt="Go"></div>
                     <h4>Go</h4>
-                    <p>testing</p>
+                    <p>testing, testify</p>
                 </div>
                 <div class="lang-card">
                     <div class="lang-icon"><img src="images/rust.svg" alt="Rust"></div>
@@ -135,49 +152,85 @@
         </div>
     </section>
 
-    <!-- Split Section: Stop Writing -->
-    <section class="container">
-        <div class="split-section">
+    <section id="workflow" class="container">
+        <div class="split-section workflow-section">
             <div class="split-content">
-                <h2>Stop Writing, <br>Start <span>Reviewing.</span></h2>
-                <p>Don't waste hours on boilerplate. Let AI handle the structure, assertions, and mocks while you focus
-                    on the logic.</p>
-                <a href="#start" class="btn btn-secondary">See How It Works</a>
+                <div class="eyebrow">Review-first workflow</div>
+                <h2>Review first. <br>Write later.</h2>
+                <p>
+                    The safest flow for agents is simple. Generate in dry-run mode, inspect machine-readable artifacts,
+                    decide whether the patch is good enough, then materialize files with validation turned on.
+                </p>
+                <div class="workflow-steps">
+                    <div class="workflow-step"><span>1</span> Generate artifacts with <code>--dry-run --emit-patch --output-format json</code></div>
+                    <div class="workflow-step"><span>2</span> Inspect <code>results</code>, <code>artifacts</code>, and <code>patches</code></div>
+                    <div class="workflow-step"><span>3</span> Re-run with <code>--validate</code> when you want files written</div>
+                </div>
             </div>
-            <div class="split-visual">
-                <div class="chat-bubble">
-                    <div class="chat-text"><strong>User:</strong> Write tests for this payment calculator.</div>
+            <div class="split-visual install-panel">
+                <div class="panel-card">
+                    <div class="panel-title">Install wrappers into another repo</div>
+                    <pre><code>./scripts/install-agent-integrations.sh /path/to/repo copy</code></pre>
                 </div>
-                <div class="chat-bubble right">
-                    <div class="chat-text" style="color: var(--accent-primary);"><strong>TestGen:</strong> I've
-                        generated 8 tests covering standard fees, currency conversion, and error states for invalid
-                        inputs.</div>
+                <div class="panel-card">
+                    <div class="panel-title">Print MCP client config</div>
+                    <pre><code>./scripts/print-mcp-config.sh testgen</code></pre>
                 </div>
-                <div class="chat-bubble right">
-                    <div class="chat-text">Running validation... All tests passed.</div>
+                <div class="panel-card subtle">
+                    <div class="panel-title">Experimental MCP server</div>
+                    <pre><code>testgen mcp</code></pre>
                 </div>
             </div>
         </div>
     </section>
 
- 
+    <section class="features proof-section">
+        <div class="container">
+            <div class="section-heading">
+                <h2>What changed in the architecture</h2>
+                <p>The landing page should say what the product actually is now, not what it used to be.</p>
+            </div>
+            <div class="features-grid compact-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📦</div>
+                    <h3>Shared app layer</h3>
+                    <p>CLI, TUI, wrappers, and MCP all call the same orchestration path.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🧾</div>
+                    <h3>Structured JSON contract</h3>
+                    <p>Agents get deterministic fields instead of scraping terminal text.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🩹</div>
+                    <h3>Patch operations</h3>
+                    <p>Dry-run mode can return structured write operations before touching the repo.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🛠️</div>
+                    <h3>Distribution helpers</h3>
+                    <p>Install wrapper files into another repo and print MCP config snippets with one command.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-logo">
                 <img src="images/logo.png" alt="TestGen Logo">
             </div>
-            <h4>Crafted by TestGen Team</h4>
-            <p>Building tools for the next generation of engineers.</p>
+            <h4>Test generation for agents that ship code</h4>
+            <p>Codex. Claude Code. OpenCode. MCP. One shared engine underneath.</p>
 
             <div class="footer-links">
-                <a href="#">Terms of Service</a>
-                <a href="#">Privacy Policy</a>
-                <a href="#">GitHub</a>
+                <a href="docs.html">Docs</a>
+                <a href="#integrations">Integrations</a>
+                <a href="https://github.com/princepal9120/testgen" target="_blank" rel="noreferrer">GitHub</a>
             </div>
         </div>
     </footer>
+    <script src="script.js"></script>
 </body>
 
 </html>

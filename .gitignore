@@ -77,3 +77,4 @@ docs/generated/
 
 # Docker
 docker-compose.override.yml
+.omx/
