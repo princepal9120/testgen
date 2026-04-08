@@ -1,14 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/princepal9120/testgen-cli/internal/scanner"
+	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/spf13/cobra"
 )
 
@@ -55,143 +55,31 @@ func init() {
 	analyzeCmd.Flags().StringVar(&anaOutputFormat, "output-format", "text", "output format: text, json")
 }
 
-type AnalysisResult struct {
-	Path            string               `json:"path"`
-	TotalFiles      int                  `json:"total_files"`
-	TotalFunctions  int                  `json:"total_functions"`
-	TotalLines      int                  `json:"total_lines"`
-	ByLanguage      map[string]LangStats `json:"by_language"`
-	EstimatedTokens int                  `json:"estimated_tokens,omitempty"`
-	EstimatedCost   float64              `json:"estimated_cost_usd,omitempty"`
-	Files           []FileAnalysis       `json:"files,omitempty"`
-}
-
-type LangStats struct {
-	Files     int `json:"files"`
-	Lines     int `json:"lines"`
-	Functions int `json:"functions"`
-}
-
-type FileAnalysis struct {
-	Path      string `json:"path"`
-	Language  string `json:"language"`
-	Lines     int    `json:"lines"`
-	Functions int    `json:"functions"`
-	Tokens    int    `json:"estimated_tokens,omitempty"`
-}
-
 func runAnalyze(cmd *cobra.Command, args []string) error {
 	log := GetLogger()
 
-	// Make path absolute
-	absPath, err := filepath.Abs(anaPath)
-	if err != nil {
-		return fmt.Errorf("failed to resolve path: %w", err)
-	}
-
 	log.Info("analyzing codebase",
-		slog.String("path", absPath),
+		slog.String("path", anaPath),
 		slog.Bool("cost-estimate", anaCostEstimate),
 		slog.String("detail", anaDetail),
 	)
 
-	// Scan for source files
-	s := scanner.New(scanner.Options{
-		Recursive: anaRecursive,
+	service := app.NewService()
+	result, err := service.Analyze(context.Background(), app.AnalyzeRequest{
+		Path:         anaPath,
+		Recursive:    anaRecursive,
+		CostEstimate: anaCostEstimate,
+		Detail:       anaDetail,
 	})
-
-	sourceFiles, err := s.Scan(absPath)
 	if err != nil {
-		return fmt.Errorf("failed to scan path: %w", err)
-	}
-
-	// Analyze
-	result := analyzeFiles(sourceFiles, absPath)
-
-	// Add cost estimation if requested
-	if anaCostEstimate {
-		estimateCosts(result)
+		return err
 	}
 
 	// Output results
 	return outputAnalysisResults(result, anaOutputFormat, anaDetail)
 }
 
-func analyzeFiles(files []*scanner.SourceFile, basePath string) *AnalysisResult {
-	result := &AnalysisResult{
-		Path:       basePath,
-		ByLanguage: make(map[string]LangStats),
-		Files:      make([]FileAnalysis, 0),
-	}
-
-	for _, f := range files {
-		// Read file to count lines
-		content, err := os.ReadFile(f.Path)
-		if err != nil {
-			continue
-		}
-
-		lines := len(strings.Split(string(content), "\n"))
-		// Rough estimate: 1 function per 20 lines on average
-		estimatedFunctions := max(1, lines/20)
-
-		result.TotalFiles++
-		result.TotalLines += lines
-		result.TotalFunctions += estimatedFunctions
-
-		// Update language stats
-		lang := f.Language
-		stats := result.ByLanguage[lang]
-		stats.Files++
-		stats.Lines += lines
-		stats.Functions += estimatedFunctions
-		result.ByLanguage[lang] = stats
-
-		// Add file analysis
-		relPath, _ := filepath.Rel(basePath, f.Path)
-		result.Files = append(result.Files, FileAnalysis{
-			Path:      relPath,
-			Language:  lang,
-			Lines:     lines,
-			Functions: estimatedFunctions,
-		})
-	}
-
-	return result
-}
-
-func estimateCosts(result *AnalysisResult) {
-	// Rough token estimation:
-	// - Average 4 chars per token
-	// - Source code: ~50 tokens per function for context
-	// - Generated test: ~100 tokens per function
-	// - System prompt overhead: ~500 tokens per request
-
-	tokensPerFunction := 150 // input context
-	outputPerFunction := 200 // generated test
-	batchSize := 5
-	systemPromptTokens := 500
-
-	totalInputTokens := (result.TotalFunctions * tokensPerFunction) +
-		((result.TotalFunctions / batchSize) * systemPromptTokens)
-	totalOutputTokens := result.TotalFunctions * outputPerFunction
-
-	result.EstimatedTokens = totalInputTokens + totalOutputTokens
-
-	// Claude 3.5 Sonnet pricing (as of late 2024):
-	// Input: $3.00 per 1M tokens
-	// Output: $15.00 per 1M tokens
-	inputCost := float64(totalInputTokens) * 3.00 / 1_000_000
-	outputCost := float64(totalOutputTokens) * 15.00 / 1_000_000
-	result.EstimatedCost = inputCost + outputCost
-}
-
-func outputAnalysisResults(result *AnalysisResult, format, detail string) error {
-	// Filter files if not detailed
-	if detail == "summary" {
-		result.Files = nil
-	}
-
+func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) error {
 	switch strings.ToLower(format) {
 	case "json":
 		encoder := json.NewEncoder(os.Stdout)
@@ -229,11 +117,4 @@ func outputAnalysisResults(result *AnalysisResult, format, detail string) error 
 		fmt.Println()
 		return nil
 	}
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

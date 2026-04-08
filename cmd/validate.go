@@ -1,14 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/princepal9120/testgen-cli/internal/scanner"
+	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/princepal9120/testgen-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
@@ -64,40 +64,24 @@ func init() {
 func runValidate(cmd *cobra.Command, args []string) error {
 	log := GetLogger()
 
-	// Make path absolute
-	absPath, err := filepath.Abs(valPath)
-	if err != nil {
-		return fmt.Errorf("failed to resolve path: %w", err)
-	}
-
 	log.Info("validating tests",
-		slog.String("path", absPath),
+		slog.String("path", valPath),
 		slog.Float64("min-coverage", valMinCoverage),
 		slog.Bool("recursive", valRecursive),
 	)
 
-	// Scan for source files
-	s := scanner.New(scanner.Options{
-		Recursive: valRecursive,
-	})
-
-	sourceFiles, err := s.Scan(absPath)
-	if err != nil {
-		return fmt.Errorf("failed to scan path: %w", err)
-	}
-
-	// Create validator
-	validator := validation.NewValidator(validation.Config{
+	service := app.NewService()
+	response, err := service.Validate(context.Background(), app.ValidateRequest{
+		Path:          valPath,
+		Recursive:     valRecursive,
 		MinCoverage:   valMinCoverage,
 		FailOnMissing: valFailOnMissing,
 		ReportGaps:    valReportGaps,
 	})
-
-	// Run validation
-	result, err := validator.Validate(absPath, sourceFiles)
 	if err != nil {
-		return fmt.Errorf("validation failed: %w", err)
+		return err
 	}
+	result := response.Result
 
 	// Output results
 	if err := outputValidationResults(result, valOutputFormat); err != nil {

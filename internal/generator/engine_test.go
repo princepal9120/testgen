@@ -1,9 +1,13 @@
 package generator
 
 import (
+	"log/slog"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/princepal9120/testgen-cli/internal/adapters"
 	"github.com/princepal9120/testgen-cli/pkg/models"
 )
 
@@ -100,5 +104,36 @@ func TestPostProcess_GoPreservesExistingPackageDeclaration(t *testing.T) {
 
 	if result != code {
 		t.Fatalf("expected code to be unchanged when package exists, got:\n%s", result)
+	}
+}
+
+func TestMaterializeResultWritesFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	testPath := filepath.Join(dir, "math_test.go")
+	engine := &Engine{
+		config: EngineConfig{Validate: false},
+		logger: slog.Default(),
+	}
+	result := &models.GenerationResult{
+		SourceFile: &models.SourceFile{
+			Path:     filepath.Join(dir, "math.go"),
+			Language: "go",
+		},
+		TestPath: testPath,
+		TestCode: "package math_test\n\nfunc TestAdd(t *testing.T) {}\n",
+	}
+
+	if err := engine.MaterializeResult(result, adapters.NewGoAdapter()); err != nil {
+		t.Fatalf("materialize returned error: %v", err)
+	}
+
+	content, err := os.ReadFile(testPath)
+	if err != nil {
+		t.Fatalf("expected test file to be written: %v", err)
+	}
+	if !strings.Contains(string(content), "TestAdd") {
+		t.Fatalf("expected written file to contain test code, got:\n%s", string(content))
 	}
 }

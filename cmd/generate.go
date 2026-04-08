@@ -1,18 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/princepal9120/testgen-cli/internal/adapters"
-	"github.com/princepal9120/testgen-cli/internal/generator"
-	"github.com/princepal9120/testgen-cli/internal/scanner"
+	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/princepal9120/testgen-cli/internal/ui"
 	"github.com/princepal9120/testgen-cli/pkg/models"
 	"github.com/spf13/cobra"
@@ -45,6 +43,7 @@ var (
 	genBatchSize      int
 	genReportUsage    bool
 	genInteractive    bool
+	genEmitPatch      bool
 )
 
 // generateCmd represents the generate command
@@ -100,6 +99,7 @@ func init() {
 	generateCmd.Flags().BoolVar(&genDryRun, "dry-run", false, "preview output without writing files")
 	generateCmd.Flags().BoolVar(&genValidate, "validate", false, "run generated tests after creation")
 	generateCmd.Flags().StringVar(&genOutputFormat, "output-format", "text", "output format: text, json")
+	generateCmd.Flags().BoolVar(&genEmitPatch, "emit-patch", false, "include structured patch operations in shared/json output")
 
 	// Filtering options
 	generateCmd.Flags().StringVar(&genIncludePattern, "include-pattern", "", "glob pattern for files to include")
@@ -154,57 +154,32 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		slog.Bool("dry-run", genDryRun),
 	)
 
-	// Initialize scanner
-	scannerOpts := scanner.Options{
+	service := app.NewService()
+	response, err := service.Generate(context.Background(), app.GenerateRequest{
+		Path:           genPath,
+		File:           genFile,
 		Recursive:      genRecursive,
 		IncludePattern: genIncludePattern,
 		ExcludePattern: genExcludePattern,
-	}
-
-	s := scanner.New(scannerOpts)
-
-	// Scan for source files
-	sourceFiles, err := s.Scan(absPath)
-	if err != nil {
-		return fmt.Errorf("failed to scan path: %w", err)
-	}
-
-	if len(sourceFiles) == 0 {
-		log.Warn("no source files found", slog.String("path", absPath))
-		return nil
-	}
-
-	log.Info("found source files",
-		slog.Int("count", len(sourceFiles)),
-		slog.String("path", absPath),
-	)
-
-	// Group files by language for statistics
-	langCounts := make(map[string]int)
-	for _, f := range sourceFiles {
-		langCounts[f.Language]++
-	}
-	for lang, count := range langCounts {
-		log.Debug("files by language", slog.String("language", lang), slog.Int("count", count))
-	}
-
-	// Initialize the generator engine
-	engine, err := generator.NewEngine(generator.EngineConfig{
-		DryRun:      genDryRun,
-		Validate:    genValidate,
-		OutputDir:   genOutput,
-		TestTypes:   genTypes,
-		Framework:   genFramework,
-		BatchSize:   genBatchSize,
-		Parallelism: genParallel,
-		Provider:    viper.GetString("llm.provider"),
+		TestTypes:      genTypes,
+		Framework:      genFramework,
+		OutputDir:      genOutput,
+		DryRun:         genDryRun,
+		Validate:       genValidate,
+		BatchSize:      genBatchSize,
+		Parallelism:    genParallel,
+		Provider:       viper.GetString("llm.provider"),
+		EmitPatch:      genEmitPatch,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to initialize generator: %w", err)
+		return err
 	}
+	results := response.Results
 
-	// Process files
-	results := processFiles(sourceFiles, engine, log)
+	log.Info("found source files",
+		slog.Int("count", len(response.SourceFiles)),
+		slog.String("path", response.TargetPath),
+	)
 
 	// Show interactive results or text output
 	if genInteractive && !genDryRun && genOutputFormat != "json" {
@@ -213,20 +188,13 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output results
-	if err := outputResults(results, genOutputFormat, genDryRun); err != nil {
+	if err := outputResults(response, genOutputFormat, genDryRun); err != nil {
 		return fmt.Errorf("failed to output results: %w", err)
 	}
 
 	// Summary
-	successCount := 0
-	errorCount := 0
-	for _, r := range results {
-		if r.Error != nil {
-			errorCount++
-		} else {
-			successCount++
-		}
-	}
+	successCount := response.SuccessCount
+	errorCount := response.ErrorCount
 
 	log.Info("generation complete",
 		slog.Int("success", successCount),
@@ -263,96 +231,19 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func processFiles(files []*models.SourceFile, engine *generator.Engine, log *slog.Logger) []*models.GenerationResult {
-	results := make([]*models.GenerationResult, 0, len(files))
-	var mu sync.Mutex
-
-	// Get adapter registry
-	registry := adapters.DefaultRegistry()
-
-	// Start spinner for interactive mode
-	var spinner *ui.StatusSpinner
-	if !quiet && genOutputFormat != "json" {
-		spinner = ui.NewStatusSpinner(fmt.Sprintf("Generating tests for %d file(s)...", len(files)))
-		spinner.Start()
-	}
-
-	// Process files (parallel processing will be added later)
-	for i, file := range files {
-		log.Debug("processing file", slog.String("path", file.Path), slog.String("language", file.Language))
-
-		// Get appropriate adapter
-		adapter := registry.GetAdapter(file.Language)
-		if adapter == nil {
-			mu.Lock()
-			results = append(results, &models.GenerationResult{
-				SourceFile: file,
-				Error:      fmt.Errorf("no adapter for language: %s", file.Language),
-			})
-			mu.Unlock()
-			continue
-		}
-
-		// Generate tests
-		result, err := engine.Generate(file, adapter)
-		if err != nil {
-			mu.Lock()
-			results = append(results, &models.GenerationResult{
-				SourceFile: file,
-				Error:      err,
-			})
-			mu.Unlock()
-			continue
-		}
-
-		mu.Lock()
-		results = append(results, result)
-		mu.Unlock()
-
-		// Update status for non-quiet mode
-		if !quiet && genOutputFormat != "json" {
-			fmt.Printf("\r  %s [%d/%d] %s\n", successMark, i+1, len(files), filepath.Base(file.Path))
-		}
-	}
-
-	// Stop spinner
-	if spinner != nil {
-		spinner.Stop()
-	}
-
-	return results
-}
-
-func outputResults(results []*models.GenerationResult, format string, dryRun bool) error {
+func outputResults(response *app.GenerateResponse, format string, dryRun bool) error {
 	switch strings.ToLower(format) {
 	case "json":
-		return outputJSON(results)
+		return outputJSON(response)
 	default:
-		return outputText(results, dryRun)
+		return outputText(response.Results, dryRun)
 	}
 }
 
-func outputJSON(results []*models.GenerationResult) error {
-	output := make([]map[string]interface{}, 0, len(results))
-	for _, r := range results {
-		item := map[string]interface{}{
-			"source_file": r.SourceFile.Path,
-			"language":    r.SourceFile.Language,
-			"success":     r.Error == nil,
-		}
-		if r.Error != nil {
-			item["error"] = r.Error.Error()
-		}
-		if r.TestCode != "" {
-			item["test_file"] = r.TestPath
-			item["functions_tested"] = len(r.FunctionsTested)
-		}
-		output = append(output, item)
-	}
-
+func outputJSON(response *app.GenerateResponse) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
-	return encoder.Encode(output)
+	return encoder.Encode(response)
 }
 
 func outputText(results []*models.GenerationResult, dryRun bool) error {

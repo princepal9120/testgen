@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/princepal9120/testgen-cli/pkg/models"
 )
 
@@ -161,7 +162,19 @@ func (m ResultsModel) analyzeResultsView() string {
 	b.WriteString(titleStyle.Render("✔ Analysis Complete"))
 	b.WriteString("\n\n")
 
-	if result, ok := m.analysis.(map[string]interface{}); ok {
+	if result, ok := m.analysis.(*app.AnalyzeResponse); ok {
+		lines := []string{
+			fmt.Sprintf("  Path:         %s", result.Path),
+			fmt.Sprintf("  Total Files:  %d", result.TotalFiles),
+			fmt.Sprintf("  Total Lines:  %d", result.TotalLines),
+			fmt.Sprintf("  Functions:    %d", result.TotalFunctions),
+		}
+		if result.EstimatedTokens > 0 {
+			lines = append(lines, fmt.Sprintf("  Tokens:       %d", result.EstimatedTokens))
+			lines = append(lines, fmt.Sprintf("  Cost:         $%.2f", result.EstimatedCost))
+		}
+		b.WriteString(boxStyle.Render(strings.Join(lines, "\n")))
+	} else if result, ok := m.analysis.(map[string]interface{}); ok {
 		lines := []string{}
 		if path, ok := result["path"].(string); ok {
 			lines = append(lines, fmt.Sprintf("  Path:         %s", path))

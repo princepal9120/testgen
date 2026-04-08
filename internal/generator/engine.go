@@ -65,6 +65,7 @@ func NewEngine(config EngineConfig) (*Engine, error) {
 		// Not configured, will fail on actual generation
 		logger.Warn("LLM provider not configured", slog.String("error", err.Error()))
 	}
+	provider = llm.NewReliableProvider(provider)
 
 	return &Engine{
 		config:   config,
@@ -74,8 +75,8 @@ func NewEngine(config EngineConfig) (*Engine, error) {
 	}, nil
 }
 
-// Generate generates tests for a source file
-func (e *Engine) Generate(sourceFile *models.SourceFile, adapter adapters.LanguageAdapter) (*models.GenerationResult, error) {
+// GenerateArtifact generates test artifacts for a source file without writing them.
+func (e *Engine) GenerateArtifact(sourceFile *models.SourceFile, adapter adapters.LanguageAdapter) (*models.GenerationResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
@@ -156,19 +157,41 @@ func (e *Engine) Generate(sourceFile *models.SourceFile, adapter adapters.Langua
 	testPath := adapter.GenerateTestPath(sourceFile.Path, e.config.OutputDir)
 	result.TestPath = testPath
 
-	// Write file if not dry-run
-	if !e.config.DryRun {
-		if err := e.writeTestFile(testPath, formattedCode); err != nil {
-			return nil, fmt.Errorf("failed to write test file: %w", err)
-		}
-		e.logger.Info("wrote test file", slog.String("path", testPath))
+	return result, nil
+}
+
+// MaterializeResult writes and validates a generated result according to engine config.
+func (e *Engine) MaterializeResult(result *models.GenerationResult, adapter adapters.LanguageAdapter) error {
+	if result == nil || result.TestPath == "" || result.TestCode == "" {
+		return nil
 	}
 
-	// Validate if requested
-	if e.config.Validate && !e.config.DryRun {
-		if err := adapter.ValidateTests(formattedCode, testPath); err != nil {
+	if err := e.writeTestFile(result.TestPath, result.TestCode); err != nil {
+		return fmt.Errorf("failed to write test file: %w", err)
+	}
+	e.logger.Info("wrote test file", slog.String("path", result.TestPath))
+
+	if e.config.Validate {
+		if err := adapter.ValidateTests(result.TestCode, result.TestPath); err != nil {
 			result.Error = fmt.Errorf("validation failed: %w", err)
+			result.ErrorMessage = result.Error.Error()
 			e.logger.Warn("test validation failed", slog.String("error", err.Error()))
+		}
+	}
+
+	return nil
+}
+
+// Generate generates tests for a source file and materializes them when configured.
+func (e *Engine) Generate(sourceFile *models.SourceFile, adapter adapters.LanguageAdapter) (*models.GenerationResult, error) {
+	result, err := e.GenerateArtifact(sourceFile, adapter)
+	if err != nil {
+		return nil, err
+	}
+
+	if !e.config.DryRun {
+		if err := e.MaterializeResult(result, adapter); err != nil {
+			return nil, err
 		}
 	}
 

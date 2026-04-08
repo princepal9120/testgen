@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -153,6 +154,36 @@ def subtract(a, b):
 	combined := stdout + stderr
 	if !strings.Contains(combined, "sample.py") && !strings.Contains(combined, "API") && !strings.Contains(combined, "dry") {
 		t.Logf("Output: %s", combined)
+	}
+}
+
+func TestGenerateDryRunJSONOutput(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testgen-json-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	sampleFile := filepath.Join(dir, "sample.py")
+	content := `# intentionally no function definitions
+VALUE = 1
+`
+	if err := os.WriteFile(sampleFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write sample file: %v", err)
+	}
+
+	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--emit-patch", "--output-format=json")
+	if err != nil {
+		t.Fatalf("Expected JSON dry-run to succeed, got error: %v stderr=%s", err, stderr)
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
+		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+
+	if _, ok := payload["results"]; !ok {
+		t.Fatalf("Expected JSON payload to contain results, got: %s", stdout)
 	}
 }
 

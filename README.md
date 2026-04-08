@@ -27,6 +27,7 @@ TestGen automatically generates production-ready tests for source code across Ja
 - 🔌 **Framework Aware**: Jest, Vitest, pytest, Go testing, cargo test, JUnit
 - 💰 **Cost Optimized**: Semantic caching, request batching
 - 🔧 **CI/CD Ready**: JSON output, meaningful exit codes, quiet mode
+- 🤖 **Agent Ready**: Shared JSON contract with structured artifacts and patch operations
 - 🏗️ **Clean Architecture**: Extensible adapter pattern
 
 ## Installation
@@ -118,8 +119,31 @@ testgen generate --path=./src --recursive --type=unit,edge-cases
 # Preview without writing files
 testgen generate --path=./src --dry-run
 
+# Preview with structured agent-friendly patch output
+testgen generate --path=./src --dry-run --emit-patch --output-format json
+
 # Analyze cost before generation
 testgen analyze --path=./src --cost-estimate
+```
+
+## Agent integrations
+
+TestGen now exposes a shared machine-readable contract for agent wrappers.
+
+- Codex example skill: `.codex/skills/testgen/SKILL.md`
+- Claude Code command: `.claude/commands/testgen.md`
+- OpenCode notes: `docs/integrations/opencode.md`
+
+Recommended safe mode for agents:
+
+```bash
+testgen generate --file=./src/utils.py --type=unit --dry-run --emit-patch --output-format json
+```
+
+Experimental MCP server:
+
+```bash
+testgen mcp
 ```
 
 ## Commands

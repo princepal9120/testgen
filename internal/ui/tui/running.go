@@ -3,16 +3,12 @@ package tui
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/princepal9120/testgen-cli/internal/adapters"
-	"github.com/princepal9120/testgen-cli/internal/generator"
-	"github.com/princepal9120/testgen-cli/internal/scanner"
-	"github.com/princepal9120/testgen-cli/pkg/models"
+	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/spf13/viper"
 )
 
@@ -147,31 +143,14 @@ func (m *RunningModel) runGenerate() tea.Msg {
 	m.cancel = cancel
 	defer cancel()
 
-	// Resolve path
-	absPath, err := filepath.Abs(m.config.Path)
-	if err != nil {
-		return GenerateCompleteMsg{Err: err}
-	}
-
-	// Scan files
-	s := scanner.New(scanner.Options{
-		Recursive: m.config.Recursive,
-	})
-
-	sourceFiles, err := s.Scan(absPath)
-	if err != nil {
-		return GenerateCompleteMsg{Err: err}
-	}
-
-	if len(sourceFiles) == 0 {
-		return GenerateCompleteMsg{Err: fmt.Errorf("no source files found")}
-	}
-
-	// Initialize engine
-	engine, err := generator.NewEngine(generator.EngineConfig{
+	service := app.NewService()
+	response, err := service.Generate(ctx, app.GenerateRequest{
+		Path:        m.config.Path,
+		File:        m.config.File,
+		Recursive:   m.config.Recursive,
+		TestTypes:   m.config.Types,
 		DryRun:      m.config.DryRun,
 		Validate:    m.config.Validate,
-		TestTypes:   m.config.Types,
 		Parallelism: m.config.Parallel,
 		Provider:    viper.GetString("llm.provider"),
 	})
@@ -179,58 +158,19 @@ func (m *RunningModel) runGenerate() tea.Msg {
 		return GenerateCompleteMsg{Err: err}
 	}
 
-	// Get adapter registry
-	registry := adapters.DefaultRegistry()
-
-	// Process files
-	var results []*models.GenerationResult
-	for _, file := range sourceFiles {
-		select {
-		case <-ctx.Done():
-			return GenerateCompleteMsg{Err: ctx.Err()}
-		default:
-		}
-
-		adapter := registry.GetAdapter(file.Language)
-		if adapter == nil {
-			continue
-		}
-
-		result, err := engine.Generate(file, adapter)
-		if err != nil {
-			results = append(results, &models.GenerationResult{
-				SourceFile: file,
-				Error:      err,
-			})
-			continue
-		}
-		results = append(results, result)
-	}
-
-	return GenerateCompleteMsg{Results: results}
+	return GenerateCompleteMsg{Results: response.Results}
 }
 
 func (m *RunningModel) runAnalyze() tea.Msg {
-	// Resolve path
-	absPath, err := filepath.Abs(m.config.Path)
-	if err != nil {
-		return AnalyzeCompleteMsg{Err: err}
-	}
-
-	// Scan files
-	s := scanner.New(scanner.Options{
-		Recursive: m.config.Recursive,
+	service := app.NewService()
+	result, err := service.Analyze(context.Background(), app.AnalyzeRequest{
+		Path:         m.config.Path,
+		Recursive:    m.config.Recursive,
+		CostEstimate: m.config.CostEst,
+		Detail:       m.config.Detail,
 	})
-
-	sourceFiles, err := s.Scan(absPath)
 	if err != nil {
 		return AnalyzeCompleteMsg{Err: err}
-	}
-
-	// Basic analysis
-	result := map[string]interface{}{
-		"path":        absPath,
-		"total_files": len(sourceFiles),
 	}
 
 	return AnalyzeCompleteMsg{Result: result}

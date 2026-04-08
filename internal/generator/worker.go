@@ -57,7 +57,7 @@ func (wp *WorkerPool) worker(ctx context.Context) {
 			if !ok {
 				return
 			}
-			result, err := wp.engine.Generate(j.file, j.adapter)
+			result, err := wp.engine.GenerateArtifact(j.file, j.adapter)
 			if err != nil {
 				result = &models.GenerationResult{
 					SourceFile:   j.file,
@@ -112,7 +112,8 @@ func (wp *WorkerPool) ProcessFiles(ctx context.Context, files []*models.SourceFi
 		case r := <-wp.results:
 			results = append(results, r)
 		case <-ctx.Done():
-			break
+			wp.wg.Wait()
+			return results
 		}
 	}
 

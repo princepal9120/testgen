@@ -2,23 +2,25 @@
 
 ## Overview
 
-TestGen follows **Clean Architecture** principles with clear separation between CLI/TUI, business logic, and external services.
+TestGen follows a layered architecture with a shared application service between human UIs and future agent wrappers.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│               Presentation Layer                     │
-│  ┌─────────────────────┐  ┌─────────────────────┐   │
-│  │   CLI (cmd/)        │  │   TUI (internal/    │   │
-│  │   Cobra commands    │  │   ui/tui/)          │   │
-│  │   flags, user I/O   │  │   Bubble Tea models │   │
-│  └──────────┬──────────┘  └──────────┬──────────┘   │
-└─────────────┼────────────────────────┼──────────────┘
-              │                        │
-              └───────────┬────────────┘
-                          ▼
+│            Presentation / Wrapper Layer             │
+│ ┌──────────┐ ┌──────────┐ ┌──────────────┐          │
+│ │ CLI      │ │ TUI      │ │ Agent skills │          │
+│ └────┬─────┘ └────┬─────┘ └──────┬───────┘          │
+└──────┼────────────┼──────────────┼──────────────────┘
+       └────────────┴───────┬──────┘
+                            ▼
+┌─────────────────────────────────────────────────────┐
+│          Application Service (internal/app/)         │
+│  Shared generate / analyze / validate orchestration │
+└──────────────────────┬──────────────────────────────┘
+                       ▼
 ┌─────────────────────────────────────────────────────┐
 │              Core Engine (internal/generator/)       │
-│         Orchestrates adapters, LLM, output          │
+│     Generates artifacts, then materializes writes   │
 └──────────────────────┬──────────────────────────────┘
                        │
        ┌───────────────┼───────────────┐
@@ -36,8 +38,13 @@ TestGen follows **Clean Architecture** principles with clear separation between 
 ### `cmd/`
 - Cobra command definitions
 - Flag parsing and validation
-- Calls `internal/` packages
-- **No business logic**
+- Calls `internal/app`
+- **Minimal business logic**
+
+### `internal/app/`
+- Shared application-layer request/response contracts
+- Generate/analyze/validate orchestration
+- Shared machine-readable output for CLI, TUI, and agent wrappers
 
 ### `internal/ui/tui/`
 - Bubble Tea TUI application
@@ -106,15 +113,16 @@ type Provider interface {
 ## Data Flow
 
 ```
-Source File → Scanner → Adapter.Parse → Engine → LLM → Adapter.Format → Output
+Caller → App Service → Scanner → Adapter.Parse → Engine → LLM → Adapter.Format → Artifact → Write/Validate
 ```
 
-1. **Scanner** discovers source files
-2. **Adapter** parses file into AST
-3. **Engine** builds prompts using adapter templates
-4. **LLM** generates test code
-5. **Adapter** formats and validates output
-6. **Engine** writes test files
+1. **App service** resolves the request shape
+2. **Scanner** discovers source files
+3. **Adapter** parses file into AST
+4. **Engine** builds prompts using adapter templates
+5. **LLM** generates test code
+6. **Engine** returns artifacts first
+7. **App service / engine** writes and validates when requested
 
 ---
 
