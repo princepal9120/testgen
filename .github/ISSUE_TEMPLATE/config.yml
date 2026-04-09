@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Support Question
-    url: https://github.com/princepal9120/testgen-cli/discussions
+    url: https://github.com/princepal9120/testgen/discussions
     about: Ask usage questions in discussions.
   - name: Security Report
     url: mailto:security@testgen.dev

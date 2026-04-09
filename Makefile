@@ -15,7 +15,7 @@ GOFMT=gofmt
 # Build flags
 LDFLAGS=-ldflags "-s -w"
 COVERAGE_MIN=15.0
-SECURITY_TOOLCHAIN=go1.25.7
+SECURITY_TOOLCHAIN=go1.25.9
 
 ## help: Show this help message
 help:

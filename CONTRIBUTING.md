@@ -11,7 +11,7 @@ Thank you for contributing to TestGen. This project welcomes code changes, bug r
 
 ## Development Setup
 
-1. Install Go 1.25.7 or newer.
+1. Install Go 1.25.9 or newer.
 2. Fork and clone the repository.
 3. Create a branch with the `codex/` prefix for feature work.
 4. Install tools:

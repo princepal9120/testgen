@@ -33,6 +33,8 @@ testgen generate [flags]
 | `--recursive` | `-r` | Process recursively | `false` |
 | `--parallel` | `-j` | Number of workers | `2` |
 | `--dry-run` | | Preview without writing | `false` |
+| `--emit-patch` | | Include structured patch operations in JSON output | `false` |
+| `--interactive` | `-i` | Show interactive results view after generation | `false` |
 | `--validate` | | Run tests after generation | `false` |
 | `--output-format` | | Output format (text/json) | `text` |
 | `--include-pattern` | | Glob pattern to include | - |
@@ -57,7 +59,26 @@ testgen generate --path=./src -r --type=unit,edge-cases
 
 # Dry run with JSON output
 testgen generate --path=./src -r --dry-run --output-format=json
+
+# Dry run with agent-ready patch output
+testgen generate --path=./src -r --dry-run --emit-patch --output-format=json
 ```
+
+---
+
+## `testgen tui`
+
+Launch the interactive terminal UI.
+
+### Usage
+```bash
+testgen tui
+```
+
+### Notes
+- Guided keyboard-driven flow for generate/analyze actions
+- Shows config forms, command preview, live progress, and results
+- Good default for first-time human users
 
 ---
 
@@ -124,6 +145,26 @@ testgen analyze --path=./src --cost-estimate
 # Detailed per-file analysis
 testgen analyze --path=./src --detail=per-file --output-format=json
 ```
+
+---
+
+## `testgen mcp`
+
+Run TestGen as an MCP server over stdio.
+
+### Usage
+```bash
+testgen mcp
+```
+
+### Exposed tools
+- `testgen_generate`
+- `testgen_analyze`
+- `testgen_validate`
+
+### Notes
+- Uses the same orchestration path as the CLI/TUI
+- Safe dry-run generation is the recommended default for agent clients
 
 ---
 

@@ -1,7 +1,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$Repo = "princepal9120/testgen-cli"
+$Repo = "princepal9120/testgen"
 $BinaryName = "testgen.exe"
 $InstallDir = "$env:USERPROFILE\.local\bin"
 

@@ -37,21 +37,21 @@ TestGen automatically generates production-ready tests for source code across Ja
 **macOS / Linux:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-irm https://raw.githubusercontent.com/princepal9120/testgen-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/princepal9120/testgen/main/install.ps1 | iex
 ```
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/princepal9120/testgen-cli.git
-cd testgen-cli
+git clone https://github.com/princepal9120/testgen.git
+cd testgen
 
 # Build
 go build -o testgen .
@@ -62,12 +62,14 @@ go install .
 
 ### Binary Releases
 
-Download pre-built binaries from [GitHub Releases](https://github.com/princepal9120/testgen-cli/releases).
+Download pre-built binaries from [GitHub Releases](https://github.com/princepal9120/testgen/releases).
 
 Supported platforms:
 - **Linux**: x86_64, aarch64
 - **macOS**: x86_64, aarch64 (Apple Silicon)
 - **Windows**: x86_64
+
+> Source, installers, and release artifacts live in [`princepal9120/testgen`](https://github.com/princepal9120/testgen). The Go module path remains `github.com/princepal9120/testgen-cli`, so `go install github.com/princepal9120/testgen-cli@latest` is still the correct Go-based install command.
 
 ## Quick Start
 
@@ -126,6 +128,43 @@ testgen generate --path=./src --dry-run --emit-patch --output-format json
 testgen analyze --path=./src --cost-estimate
 ```
 
+### Choose how you want to use TestGen
+
+You can use TestGen in four practical ways:
+
+1. **Interactive TUI**
+   - Run `testgen tui`
+   - Best when you want guided prompts, keyboard navigation, and live progress
+
+2. **Direct CLI commands**
+   - Run `testgen generate`, `testgen analyze`, and `testgen validate`
+   - Best for local development, scripts, and CI
+
+3. **Agent wrappers**
+   - Use the repo-local Codex, Claude Code, or OpenCode wrappers
+   - Best when an AI coding agent should inspect dry-run artifacts before writing files
+
+4. **MCP server**
+   - Run `testgen mcp`
+   - Best when your MCP client prefers tool calling over shelling out directly
+
+Recommended first run:
+
+```bash
+# Inspect a codebase before spending tokens
+testgen analyze --path=./examples --cost-estimate --recursive
+
+# Generate review-first artifacts without writing files
+testgen generate --file=./examples/python/calculator.py \
+  --type=unit \
+  --dry-run \
+  --emit-patch \
+  --output-format json
+
+# Write files only when you want validation feedback
+testgen generate --path=./src --recursive --type=unit --validate
+```
+
 ## Agent integrations
 
 TestGen now exposes a shared machine-readable contract for agent wrappers.
@@ -148,7 +187,7 @@ Experimental MCP server:
 testgen mcp
 ```
 
-This means TestGen is now usable in three ways:
+Agent integration surfaces:
 
 1. **Codex / oh-my-codex**
    - add or vendor `.codex/skills/testgen/SKILL.md`
@@ -161,6 +200,10 @@ This means TestGen is now usable in three ways:
 3. **OpenCode**
    - use `.opencode/commands/testgen.md`
    - or connect through `testgen mcp`
+
+4. **Direct MCP clients**
+   - run `testgen mcp`
+   - call `testgen_generate`, `testgen_analyze`, and `testgen_validate` over stdio
 
 Install those wrappers into another repo:
 
@@ -337,7 +380,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25.7'
+          go-version: '1.25.9'
       - name: Install TestGen
         run: go install github.com/princepal9120/testgen-cli@latest
       - name: Generate tests

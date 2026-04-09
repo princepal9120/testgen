@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestGen - Agent-ready test generation for Codex, Claude Code, OpenCode, and MCP</title>
+    <title>TestGen - AI test generation for people, agents, and MCP clients</title>
     <meta name="description"
-        content="TestGen is an agent-ready test generation platform with repo-local skills for Codex, Claude Code, OpenCode, and an experimental MCP server.">
+        content="TestGen is an AI-powered test generation tool you can use from the TUI, CLI, agent wrappers, or an experimental MCP server.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -34,14 +34,15 @@
 
     <header class="hero">
         <div class="container">
-            <div class="eyebrow">Agent-ready test generation</div>
+            <div class="eyebrow">AI-powered test generation</div>
             <h1>
                 One test engine,
-                <span class="highlight">four agent surfaces.</span>
+                <span class="highlight">for people and agents.</span>
             </h1>
             <p class="hero-subtitle wide">
-                TestGen now ships repo-local wrappers for Codex, Claude Code, OpenCode, and an experimental MCP server.
-                Generate tests in dry-run mode first, inspect JSON artifacts and patch operations, then write files only when you mean it.
+                Use TestGen from the interactive TUI, direct CLI commands, repo-local agent wrappers, or an
+                experimental MCP server. Start with dry-run output, inspect structured artifacts, then write files only
+                when you mean it.
             </p>
             <div class="agent-badges">
                 <span class="agent-badge">Codex</span>
@@ -51,7 +52,7 @@
             </div>
             <div class="hero-cta">
                 <a href="docs.html#installation" class="btn btn-primary">Install TestGen</a>
-                <a href="#integrations" class="btn btn-secondary">See Integrations</a>
+                <a href="docs.html#quick-start" class="btn btn-secondary">Quick Start</a>
             </div>
 
             <div class="window-mockup terminal-window">
@@ -84,6 +85,37 @@
             </div>
         </div>
     </header>
+
+    <section class="features">
+        <div class="container">
+            <div class="section-heading">
+                <h2>Use TestGen the way your team already works.</h2>
+                <p>Start simple in the TUI or CLI, then wire the same engine into agent and MCP workflows.</p>
+            </div>
+            <div class="features-grid compact-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🖥️</div>
+                    <h3>TUI</h3>
+                    <p>Run <code>testgen tui</code> for a guided, keyboard-friendly workflow.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⌨️</div>
+                    <h3>CLI</h3>
+                    <p>Use <code>generate</code>, <code>analyze</code>, and <code>validate</code> in scripts and CI.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🤖</div>
+                    <h3>Agent wrappers</h3>
+                    <p>Codex, Claude Code, and OpenCode can inspect dry-run JSON before applying writes.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔌</div>
+                    <h3>MCP</h3>
+                    <p>Run <code>testgen mcp</code> when your client prefers tool calls over shell commands.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section id="integrations" class="features integrations-section">
         <div class="container">

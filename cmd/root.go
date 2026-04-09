@@ -43,6 +43,13 @@ Supported languages:
   • Python (pytest, unittest)
   • Go (testing + testify)
   • Rust (cargo test)
+  • Java (JUnit 5)
+
+Ways to use TestGen:
+  • Interactive TUI for guided generation
+  • Direct CLI commands for scripts and CI
+  • Repo-local wrappers for Codex, Claude Code, and OpenCode
+  • MCP stdio server via "testgen mcp"
 
 Examples:
   # Generate unit tests for a single file
@@ -55,7 +62,10 @@ Examples:
   testgen analyze --path=./src --cost-estimate
 
   # Validate tests and check coverage
-  testgen validate --path=./src --min-coverage=80`,
+  testgen validate --path=./src --min-coverage=80
+
+  # Agent-safe dry run with JSON patch operations
+  testgen generate --file=./src/utils.py --type=unit --dry-run --emit-patch --output-format=json`,
 	Version: Version,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return initConfig()

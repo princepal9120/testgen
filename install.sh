@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="princepal9120/testgen-cli"
+REPO="princepal9120/testgen"
 INSTALL_DIR="${HOME}/.local/bin"
 BINARY_NAME="testgen"
 

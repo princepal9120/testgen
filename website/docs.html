@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentation - TestGen</title>
+    <title>Docs - TestGen</title>
+    <meta name="description"
+        content="Install TestGen, configure an LLM provider, run generate/analyze/validate, and use the same engine from the TUI, CLI, agent wrappers, or MCP.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -15,7 +17,6 @@
 </head>
 
 <body class="docs-page">
-    <!-- Navigation -->
     <nav class="nav">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
@@ -25,13 +26,12 @@
             <div class="nav-links">
                 <a href="index.html">Home</a>
                 <a href="docs.html" class="active">Docs</a>
-                <a href="https://github.com/princepal9120/testgen-cli" target="_blank">GitHub</a>
+                <a href="https://github.com/princepal9120/testgen" target="_blank" rel="noreferrer">GitHub</a>
             </div>
         </div>
     </nav>
 
     <div class="container docs-container">
-        <!-- Sidebar -->
         <aside class="docs-sidebar">
             <div class="sidebar-group">
                 <h3>Getting Started</h3>
@@ -39,40 +39,46 @@
                     <li><a href="#introduction" class="active">Introduction</a></li>
                     <li><a href="#installation">Installation</a></li>
                     <li><a href="#configuration">Configuration</a></li>
+                    <li><a href="#quick-start">Quick Start</a></li>
                 </ul>
             </div>
             <div class="sidebar-group">
-                <h3>Usage</h3>
+                <h3>Ways to Use It</h3>
                 <ul>
-                    <li><a href="#tui-mode">TUI Mode</a></li>
-                    <li><a href="#generating-tests">Generating Tests</a></li>
+                    <li><a href="#usage-modes">Usage Modes</a></li>
+                    <li><a href="#agent-integrations">Agent Integrations</a></li>
+                    <li><a href="#commands">Core Commands</a></li>
                     <li><a href="#supported-languages">Supported Languages</a></li>
                 </ul>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="docs-content">
             <section id="introduction">
                 <h1>Documentation</h1>
-                <p>TestGen is an AI-powered CLI tool that automatically generates production-ready unit tests for your
-                    code. It supports JavaScript, TypeScript, Python, Go, and Rust.</p>
+                <p>
+                    TestGen is a multi-language AI test generation tool with one shared engine behind every surface:
+                    the interactive TUI, direct CLI commands, repo-local agent wrappers, and an experimental MCP server.
+                </p>
+                <p>
+                    The safest default workflow is review-first: generate dry-run output, inspect structured artifacts and
+                    patch operations, then write files only when you are ready.
+                </p>
             </section>
 
             <section id="installation">
                 <h2>Installation</h2>
-                <p>Install testgen on your local machine. It comes as a single binary with zero dependencies.</p>
+                <p>Install TestGen locally as a binary, or install from source using the Go module path.</p>
 
-                <!-- Tabs -->
                 <div class="docs-tabs">
-                    <button class="docs-tab active" onclick="switchTab('unix')">macOS / Linux</button>
-                    <button class="docs-tab" onclick="switchTab('windows')">Windows</button>
-                    <button class="docs-tab" onclick="switchTab('source')">From Source</button>
+                    <button class="docs-tab active" onclick="switchTab('unix', this)">macOS / Linux</button>
+                    <button class="docs-tab" onclick="switchTab('windows', this)">Windows</button>
+                    <button class="docs-tab" onclick="switchTab('source', this)">From Source</button>
                 </div>
 
                 <div id="unix" class="tab-content active">
                     <div class="code-block-minimal">
-                        <pre><code>curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen-cli/main/install.sh | bash</code></pre>
+                        <pre><code>curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash</code></pre>
                         <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -86,7 +92,7 @@
 
                 <div id="windows" class="tab-content">
                     <div class="code-block-minimal">
-                        <pre><code>irm https://raw.githubusercontent.com/princepal9120/testgen-cli/main/install.ps1 | iex</code></pre>
+                        <pre><code>irm https://raw.githubusercontent.com/princepal9120/testgen/main/install.ps1 | iex</code></pre>
                         <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -111,153 +117,169 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="code-block">
+                    <pre><code>Compatibility note:
+- GitHub repo: github.com/princepal9120/testgen
+- Go module:  github.com/princepal9120/testgen-cli</code></pre>
+                </div>
             </section>
 
             <section id="configuration">
                 <h2>Configuration</h2>
-                <p>You need an API key from Anthropic (recommended) or OpenAI to use TestGen.</p>
+                <p>Set one provider API key before generating tests. TestGen currently supports Anthropic, OpenAI, Gemini, and Groq.</p>
 
                 <div class="code-block">
-                    <pre><code># Add to your ~/.zshrc or ~/.bashrc
+                    <pre><code># Choose one provider
 export ANTHROPIC_API_KEY="sk-ant-..."
-
-# Or for OpenAI
-export OPENAI_API_KEY="sk-..."</code></pre>
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="AIza..."
+export GROQ_API_KEY="gsk_..."</code></pre>
                 </div>
+
+                <ul>
+                    <li><strong>Anthropic Claude:</strong> best default quality for many repos</li>
+                    <li><strong>OpenAI:</strong> popular general-purpose option</li>
+                    <li><strong>Gemini:</strong> useful when you want a Google-hosted option</li>
+                    <li><strong>Groq:</strong> good when low latency matters</li>
+                </ul>
             </section>
 
-            <section id="tui-mode">
-                <h2>TUI Mode ✨</h2>
-                <p>TestGen includes a full interactive Terminal User Interface (TUI) for a visual, keyboard-driven
-                    experience.</p>
+            <section id="quick-start">
+                <h2>Quick Start</h2>
+                <p>Start with analysis, then preview generation, then write files only when you want validation feedback.</p>
 
-                <h3>Launch TUI</h3>
+                <h3>1. Inspect a codebase</h3>
+                <div class="code-block">
+                    <pre><code>testgen analyze --path=./examples --cost-estimate --recursive</code></pre>
+                </div>
+
+                <h3>2. Preview generated tests without writing</h3>
+                <div class="code-block">
+                    <pre><code>testgen generate --file=./examples/python/calculator.py \
+  --type=unit \
+  --dry-run \
+  --emit-patch \
+  --output-format json</code></pre>
+                </div>
+
+                <h3>3. Generate and validate when ready</h3>
+                <div class="code-block">
+                    <pre><code>testgen generate --path=./src --recursive --type=unit --validate</code></pre>
+                </div>
+
+                <h3>4. Prefer the guided UI?</h3>
                 <div class="code-block">
                     <pre><code>testgen tui</code></pre>
                 </div>
+            </section>
 
-                <h3>Features</h3>
+            <section id="usage-modes">
+                <h2>Usage Modes</h2>
+                <p>People can use TestGen in four practical ways today:</p>
                 <ul>
-                    <li><strong>Home Screen:</strong> Choose between Generate Tests or Analyze Codebase</li>
-                    <li><strong>Config Forms:</strong> Interactive forms for all options (path, types, parallel, etc.)
-                    </li>
-                    <li><strong>Command Preview:</strong> See the exact CLI command before running</li>
-                    <li><strong>Live Progress:</strong> Spinner and progress updates during generation</li>
-                    <li><strong>Results Summary:</strong> Beautiful summary with stats and generated file paths</li>
+                    <li><strong>TUI:</strong> best for first-time human users who want a guided keyboard flow</li>
+                    <li><strong>CLI:</strong> best for local development, scripting, and CI automation</li>
+                    <li><strong>Agent wrappers:</strong> best when Codex, Claude Code, or OpenCode should inspect dry-run artifacts first</li>
+                    <li><strong>MCP:</strong> best when your client prefers tool calls over shell execution</li>
+                </ul>
+            </section>
+
+            <section id="agent-integrations">
+                <h2>Agent Integrations</h2>
+                <p>TestGen ships repo-local integration surfaces that all call the same app layer underneath.</p>
+
+                <ul>
+                    <li><strong>Codex / oh-my-codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
+                    <li><strong>Claude Code:</strong> <code>.claude/commands/testgen.md</code></li>
+                    <li><strong>OpenCode:</strong> <code>.opencode/commands/testgen.md</code></li>
+                    <li><strong>MCP:</strong> <code>testgen mcp</code> exposes <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code></li>
                 </ul>
 
-                <h3>Keyboard Controls</h3>
+                <h3>Recommended safe mode for agents</h3>
                 <div class="code-block">
-                    <pre><code>Tab / Shift+Tab    Navigate between fields
-Space              Toggle checkboxes
-Enter              Confirm / Select
-Esc                Go back
-q / Ctrl+C         Quit
-Ctrl+X             Cancel running operation</code></pre>
+                    <pre><code>testgen generate --file=./src/utils.py --type=unit --dry-run --emit-patch --output-format json</code></pre>
                 </div>
 
-                <h3>Screen Flow</h3>
+                <h3>Install wrappers into another repo</h3>
                 <div class="code-block">
-                    <pre><code>Home → Config → Preview → Running → Results
-  ↑                                    │
-  └────────────────────────────────────┘</code></pre>
+                    <pre><code>./scripts/install-agent-integrations.sh /path/to/target-repo copy</code></pre>
+                </div>
+
+                <h3>Print an MCP config snippet</h3>
+                <div class="code-block">
+                    <pre><code>./scripts/print-mcp-config.sh testgen</code></pre>
                 </div>
             </section>
 
-            <section id="generating-tests">
-                <h2>Generating Tests</h2>
-                <p>TestGen provides several commands for generating tests. Here are the most common use cases:</p>
+            <section id="commands">
+                <h2>Core Commands</h2>
 
-                <h3>Single File</h3>
-                <p>Generate tests for a single source file:</p>
+                <h3>Generate tests</h3>
                 <div class="code-block">
-                    <pre><code>testgen generate --file=./src/utils.py --type=unit</code></pre>
+                    <pre><code>testgen generate --path=./src --recursive --type=unit,edge-cases
+
+# Important flags:
+#   --dry-run
+#   --emit-patch
+#   --validate
+#   --output-format json
+#   --parallel 4
+#   --interactive</code></pre>
                 </div>
 
-                <h3>Entire Directory</h3>
-                <p>Process all files in a directory recursively:</p>
+                <h3>Analyze cost and complexity</h3>
                 <div class="code-block">
-                    <pre><code>testgen generate --path=./src --recursive --type=unit,edge-cases</code></pre>
+                    <pre><code>testgen analyze --path=./src --cost-estimate --detail=per-file --output-format json</code></pre>
                 </div>
 
-                <h3>Dry Run (Preview)</h3>
-                <p>Preview what tests would be generated without writing files:</p>
+                <h3>Validate existing tests and coverage</h3>
                 <div class="code-block">
-                    <pre><code>testgen generate --path=./src --dry-run --output-format=json</code></pre>
+                    <pre><code>testgen validate --path=./src --min-coverage=80 --fail-on-missing-tests</code></pre>
                 </div>
 
-                <h3>With Validation</h3>
-                <p>Generate tests and validate they compile/run:</p>
+                <h3>Run as an MCP server</h3>
                 <div class="code-block">
-                    <pre><code>testgen generate --path=./src --validate --parallel=4</code></pre>
-                </div>
-
-                <h3>Cost Estimation</h3>
-                <p>Estimate the API cost before generating:</p>
-                <div class="code-block">
-                    <pre><code>testgen analyze --path=./src --cost-estimate
-
-# Output:
-# === Codebase Analysis ===
-# Total files:     24
-# Total lines:     3,456
-# Est. functions:  89
-#
-# Estimated tokens: 45,000
-# Estimated cost:   $0.38 USD</code></pre>
+                    <pre><code>testgen mcp</code></pre>
                 </div>
             </section>
 
             <section id="supported-languages">
                 <h2>Supported Languages</h2>
-                <p>TestGen supports multiple programming languages and their popular testing frameworks:</p>
+                <p>TestGen currently detects and generates tests for these languages:</p>
 
-                <h3>JavaScript / TypeScript</h3>
                 <ul>
-                    <li><strong>Frameworks:</strong> Jest, Vitest, Mocha</li>
-                    <li><strong>Extensions:</strong> .js, .jsx, .ts, .tsx</li>
-                </ul>
-
-                <h3>Python</h3>
-                <ul>
-                    <li><strong>Frameworks:</strong> pytest, unittest</li>
-                    <li><strong>Extensions:</strong> .py</li>
-                </ul>
-
-                <h3>Go</h3>
-                <ul>
-                    <li><strong>Frameworks:</strong> testing (standard library), testify</li>
-                    <li><strong>Extensions:</strong> .go</li>
-                </ul>
-
-                <h3>Rust</h3>
-                <ul>
-                    <li><strong>Frameworks:</strong> cargo test (built-in)</li>
-                    <li><strong>Extensions:</strong> .rs</li>
+                    <li><strong>JavaScript / TypeScript:</strong> Jest, Vitest, Mocha</li>
+                    <li><strong>Python:</strong> pytest, unittest</li>
+                    <li><strong>Go:</strong> testing, testify</li>
+                    <li><strong>Rust:</strong> cargo test</li>
+                    <li><strong>Java:</strong> JUnit 5-oriented generation via the Java adapter</li>
                 </ul>
             </section>
         </main>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-logo">
                 <img src="images/logo.png" alt="TestGen Logo">
             </div>
-            <p>TestGen CLI - Documentation</p>
+            <p>TestGen docs — CLI, TUI, agent wrappers, and MCP on one shared engine.</p>
         </div>
     </footer>
 
     <script>
-        function switchTab(os) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        function switchTab(os, button) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.style.display = 'none';
+                el.classList.remove('active');
+            });
             document.querySelectorAll('.docs-tab').forEach(el => el.classList.remove('active'));
 
-            // Show selected
-            document.getElementById(os).style.display = 'block';
-            event.target.classList.add('active');
+            const selected = document.getElementById(os);
+            selected.style.display = 'block';
+            selected.classList.add('active');
+            button.classList.add('active');
         }
 
         function copyCode(btn) {
@@ -266,8 +288,6 @@ Ctrl+X             Cancel running operation</code></pre>
 
             navigator.clipboard.writeText(text).then(() => {
                 btn.classList.add('copied');
-
-                // Change icon to checkmark temporarily
                 const originalSvg = btn.innerHTML;
                 btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
