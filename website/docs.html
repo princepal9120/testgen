@@ -206,6 +206,28 @@ export GROQ_API_KEY="gsk_..."</code></pre>
                     <pre><code>./scripts/install-agent-integrations.sh /path/to/target-repo copy</code></pre>
                 </div>
 
+                <p>This installs the files each agent tool expects:</p>
+                <ul>
+                    <li><strong>Codex / oh-my-codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
+                    <li><strong>Claude Code:</strong> <code>.claude/commands/testgen.md</code></li>
+                    <li><strong>OpenCode:</strong> <code>.opencode/commands/testgen.md</code></li>
+                </ul>
+
+                <h3>Manual install for one agent only</h3>
+                <div class="code-block">
+                    <pre><code># Codex
+mkdir -p /path/to/repo/.codex/skills/testgen
+cp .codex/skills/testgen/SKILL.md /path/to/repo/.codex/skills/testgen/SKILL.md
+
+# Claude Code
+mkdir -p /path/to/repo/.claude/commands
+cp .claude/commands/testgen.md /path/to/repo/.claude/commands/testgen.md
+
+# OpenCode
+mkdir -p /path/to/repo/.opencode/commands
+cp .opencode/commands/testgen.md /path/to/repo/.opencode/commands/testgen.md</code></pre>
+                </div>
+
                 <h3>Print an MCP config snippet</h3>
                 <div class="code-block">
                     <pre><code>./scripts/print-mcp-config.sh testgen</code></pre>

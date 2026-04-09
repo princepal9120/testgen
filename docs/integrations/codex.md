@@ -4,6 +4,23 @@ TestGen ships a repo-local Codex skill:
 
 - `.codex/skills/testgen/SKILL.md`
 
+## Install into another repo
+
+### Automatic install
+
+```bash
+./scripts/install-agent-integrations.sh /path/to/target-repo copy
+```
+
+### Manual install
+
+```bash
+mkdir -p /path/to/target-repo/.codex/skills/testgen
+cp .codex/skills/testgen/SKILL.md /path/to/target-repo/.codex/skills/testgen/SKILL.md
+```
+
+After that, invoke the repo-local `testgen` skill from Codex / oh-my-codex inside the target repo.
+
 ## Recommended usage
 
 Safe review-first mode:

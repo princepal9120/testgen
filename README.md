@@ -211,6 +211,28 @@ Install those wrappers into another repo:
 ./scripts/install-agent-integrations.sh /path/to/target-repo copy
 ```
 
+That installs the exact files each agent surface expects:
+
+- **Codex / oh-my-codex** → `.codex/skills/testgen/SKILL.md`
+- **Claude Code** → `.claude/commands/testgen.md`
+- **OpenCode** → `.opencode/commands/testgen.md`
+
+Manual install also works if you only want one surface:
+
+```bash
+# Codex
+mkdir -p /path/to/repo/.codex/skills/testgen
+cp .codex/skills/testgen/SKILL.md /path/to/repo/.codex/skills/testgen/SKILL.md
+
+# Claude Code
+mkdir -p /path/to/repo/.claude/commands
+cp .claude/commands/testgen.md /path/to/repo/.claude/commands/testgen.md
+
+# OpenCode
+mkdir -p /path/to/repo/.opencode/commands
+cp .opencode/commands/testgen.md /path/to/repo/.opencode/commands/testgen.md
+```
+
 Print an MCP client config snippet:
 
 ```bash

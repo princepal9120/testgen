@@ -4,6 +4,23 @@ TestGen ships a repo-local Claude Code command:
 
 - `.claude/commands/testgen.md`
 
+## Install into another repo
+
+### Automatic install
+
+```bash
+./scripts/install-agent-integrations.sh /path/to/target-repo copy
+```
+
+### Manual install
+
+```bash
+mkdir -p /path/to/target-repo/.claude/commands
+cp .claude/commands/testgen.md /path/to/target-repo/.claude/commands/testgen.md
+```
+
+After that, Claude Code can use the repo-local `/testgen` command from inside the target repo.
+
 ## Recommended usage
 
 Default safe mode:
