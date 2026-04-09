@@ -1,5 +1,7 @@
 # Contributing to TestGen
 
+**Scope:** This document is the contributor workflow guide for TestGen. Use [`README.md`](README.md) for product onboarding and [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md) for end-user command details.
+
 Thank you for contributing to TestGen. This project welcomes code changes, bug reports, documentation improvements, and design feedback.
 
 ## Ground Rules
@@ -11,7 +13,7 @@ Thank you for contributing to TestGen. This project welcomes code changes, bug r
 
 ## Development Setup
 
-1. Install Go 1.25.9 or newer.
+1. Install Go 1.25.9 or newer for local development. CI currently uses Go 1.25.9, while `go.mod` declares the module minimum.
 2. Fork and clone the repository.
 3. Create a branch with the `codex/` prefix for feature work.
 4. Install tools:
@@ -54,6 +56,14 @@ make ci
 - Add regression tests for every bug fix.
 - Prefer unit tests for parser, adapter, and generation logic.
 - Use integration tests for CLI behavior and workflows.
+
+## Documentation Expectations
+
+- If onboarding or positioning changes, update `README.md`.
+- If commands, flags, output, or config behavior change, update `docs/CLI_REFERENCE.md`.
+- If architecture boundaries change, update `docs/ARCHITECTURE.md`.
+- If integration surfaces change, update the relevant file under `docs/integrations/`.
+- Do not present `PRD-TestGen.md` or `TechSpec-TestGen.md` as current implementation truth unless they are fully synchronized.
 
 ## Commit and PR Guidance
 

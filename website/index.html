@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestGen - AI test generation for people, agents, and MCP clients</title>
+    <title>TestGen - High-level AI test generation for people, CI, and coding agents</title>
     <meta name="description"
-        content="TestGen is an AI-powered test generation tool you can use from the TUI, CLI, agent wrappers, or an experimental MCP server.">
+        content="TestGen is a multi-language test generation tool for the TUI, CLI, CI, and coding agents. Analyze first, review dry-run output, then write files when ready.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -24,7 +24,7 @@
                 <span class="nav-logo-text">TestGen</span>
             </a>
             <div class="nav-links">
-                <a href="#integrations">Integrations</a>
+                <a href="#ways">Ways to use it</a>
                 <a href="#workflow">Workflow</a>
                 <a href="docs.html">Docs</a>
                 <a href="https://github.com/princepal9120/testgen" target="_blank" rel="noreferrer">GitHub</a>
@@ -37,22 +37,24 @@
             <div class="eyebrow">AI-powered test generation</div>
             <h1>
                 One test engine,
-                <span class="highlight">for people and agents.</span>
+                <span class="highlight">for people, CI, and coding agents.</span>
             </h1>
             <p class="hero-subtitle wide">
-                Use TestGen from the interactive TUI, direct CLI commands, repo-local agent wrappers, or an
-                experimental MCP server. Start with dry-run output, inspect structured artifacts, then write files only
-                when you mean it.
+                TestGen is a multi-language tool for inspecting code, generating tests, validating coverage,
+                and fitting cleanly into terminal workflows, automation, and agent tooling. Start with analysis,
+                preview dry-run artifacts, then write files only when you are ready.
             </p>
             <div class="agent-badges">
+                <span class="agent-badge">TUI</span>
+                <span class="agent-badge">CLI</span>
                 <span class="agent-badge">Codex</span>
                 <span class="agent-badge">Claude Code</span>
                 <span class="agent-badge">OpenCode</span>
                 <span class="agent-badge">MCP</span>
             </div>
             <div class="hero-cta">
-                <a href="docs.html#installation" class="btn btn-primary">Install TestGen</a>
-                <a href="docs.html#quick-start" class="btn btn-secondary">Quick Start</a>
+                <a href="docs.html#quick-start" class="btn btn-primary">Start with Quick Start</a>
+                <a href="docs.html#docs-guide" class="btn btn-secondary">Read the docs guide</a>
             </div>
 
             <div class="window-mockup terminal-window">
@@ -74,11 +76,11 @@
                         </div>
                         <div class="result-card">
                             <div class="result-label">patches</div>
-                            <div class="result-value">structured write operations for agents</div>
+                            <div class="result-value">structured write operations for review-first flows</div>
                         </div>
                         <div class="result-card">
-                            <div class="result-label">mcp</div>
-                            <div class="result-value">stdio server via <code>testgen mcp</code></div>
+                            <div class="result-label">validate</div>
+                            <div class="result-value">write files later with validation when ready</div>
                         </div>
                     </div>
                 </div>
@@ -86,65 +88,65 @@
         </div>
     </header>
 
-    <section class="features">
+    <section id="ways" class="features">
         <div class="container">
             <div class="section-heading">
-                <h2>Use TestGen the way your team already works.</h2>
-                <p>Start simple in the TUI or CLI, then wire the same engine into agent and MCP workflows.</p>
+                <h2>Choose the surface that fits the job.</h2>
+                <p>TestGen stays high-level and predictable: one engine underneath, multiple ways to use it.</p>
             </div>
             <div class="features-grid compact-grid">
                 <div class="feature-item">
                     <div class="feature-icon">🖥️</div>
                     <h3>TUI</h3>
-                    <p>Run <code>testgen tui</code> for a guided, keyboard-friendly workflow.</p>
+                    <p>Use <code>testgen tui</code> when you want a guided, keyboard-friendly flow.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">⌨️</div>
                     <h3>CLI</h3>
-                    <p>Use <code>generate</code>, <code>analyze</code>, and <code>validate</code> in scripts and CI.</p>
+                    <p>Use <code>analyze</code>, <code>generate</code>, and <code>validate</code> in scripts, local workflows, and CI.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">🤖</div>
                     <h3>Agent wrappers</h3>
-                    <p>Codex, Claude Code, and OpenCode can inspect dry-run JSON before applying writes.</p>
+                    <p>Let coding agents inspect dry-run JSON and patch artifacts before writing tests.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">🔌</div>
                     <h3>MCP</h3>
-                    <p>Run <code>testgen mcp</code> when your client prefers tool calls over shell commands.</p>
+                    <p>Run <code>testgen mcp</code> when your client prefers tool calls over shell execution.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="integrations" class="features integrations-section">
+    <section class="features integrations-section">
         <div class="container">
             <div class="section-heading">
-                <h2>Drop TestGen into the tools your team already uses.</h2>
+                <h2>One shared model behind every integration.</h2>
                 <p>
-                    Keep wrappers thin. Keep the generation logic in one place. Use the shared JSON contract everywhere.
+                    Keep wrappers thin. Keep orchestration in TestGen. Use the same review-first JSON contract across tools.
                 </p>
             </div>
             <div class="integrations-grid">
                 <div class="integration-card">
                     <div class="feature-icon">🧠</div>
                     <h3>Codex / oh-my-codex</h3>
-                    <p>Use the repo-local skill at <code>.codex/skills/testgen/SKILL.md</code> and call TestGen in review-first dry-run mode.</p>
+                    <p>Use the repo-local skill and keep TestGen as the source of truth for scanning, generation, and validation.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">✍️</div>
                     <h3>Claude Code</h3>
-                    <p>Ship the command at <code>.claude/commands/testgen.md</code> so Claude can request dry-run artifacts before writing tests.</p>
+                    <p>Ship the repo-local command so Claude can review structured dry-run artifacts before materializing tests.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">⚙️</div>
                     <h3>OpenCode</h3>
-                    <p>Use <code>.opencode/commands/testgen.md</code> or connect through MCP if your setup prefers tool calling over local commands.</p>
+                    <p>Use the command wrapper or connect through MCP when your setup prefers tool calling.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">🔌</div>
                     <h3>MCP clients</h3>
-                    <p>Run <code>testgen mcp</code> and expose <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code> over stdio.</p>
+                    <p>Expose <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code> over stdio.</p>
                 </div>
             </div>
         </div>
@@ -153,8 +155,8 @@
     <section class="languages">
         <div class="container">
             <div class="section-heading">
-                <h2>Still the same multi-language core.</h2>
-                <p>One engine, one app layer, adapters per language. No duplicated business logic across wrappers.</p>
+                <h2>Multi-language by default.</h2>
+                <p>TestGen currently supports JavaScript/TypeScript, Python, Go, Rust, and Java.</p>
             </div>
             <div class="lang-grid">
                 <div class="lang-card">
@@ -188,28 +190,28 @@
         <div class="split-section workflow-section">
             <div class="split-content">
                 <div class="eyebrow">Review-first workflow</div>
-                <h2>Review first. <br>Write later.</h2>
+                <h2>Inspect first. <br>Write later.</h2>
                 <p>
-                    The safest flow for agents is simple. Generate in dry-run mode, inspect machine-readable artifacts,
-                    decide whether the patch is good enough, then materialize files with validation turned on.
+                    The clearest workflow is also the safest one. Analyze the codebase, generate dry-run output,
+                    inspect the structured results, then write files with validation only when the output looks right.
                 </p>
                 <div class="workflow-steps">
-                    <div class="workflow-step"><span>1</span> Generate artifacts with <code>--dry-run --emit-patch --output-format json</code></div>
-                    <div class="workflow-step"><span>2</span> Inspect <code>results</code>, <code>artifacts</code>, and <code>patches</code></div>
+                    <div class="workflow-step"><span>1</span> Run <code>testgen analyze</code> to inspect scope and estimate cost</div>
+                    <div class="workflow-step"><span>2</span> Generate dry-run artifacts with <code>--dry-run --emit-patch --output-format json</code></div>
                     <div class="workflow-step"><span>3</span> Re-run with <code>--validate</code> when you want files written</div>
                 </div>
             </div>
             <div class="split-visual install-panel">
                 <div class="panel-card">
-                    <div class="panel-title">Install wrappers into another repo</div>
-                    <pre><code>./scripts/install-agent-integrations.sh /path/to/repo copy</code></pre>
+                    <div class="panel-title">Install TestGen</div>
+                    <pre><code>curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash</code></pre>
                 </div>
                 <div class="panel-card">
-                    <div class="panel-title">Print MCP client config</div>
-                    <pre><code>./scripts/print-mcp-config.sh testgen</code></pre>
+                    <div class="panel-title">Install agent wrappers into another repo</div>
+                    <pre><code>./scripts/install-agent-integrations.sh /path/to/repo copy</code></pre>
                 </div>
                 <div class="panel-card subtle">
-                    <div class="panel-title">Experimental MCP server</div>
+                    <div class="panel-title">Run the MCP server</div>
                     <pre><code>testgen mcp</code></pre>
                 </div>
             </div>
@@ -219,29 +221,29 @@
     <section class="features proof-section">
         <div class="container">
             <div class="section-heading">
-                <h2>What changed in the architecture</h2>
-                <p>The landing page should say what the product actually is now, not what it used to be.</p>
+                <h2>Know where to go next.</h2>
+                <p>The website stays high level. The docs explain which source to read for which job.</p>
             </div>
             <div class="features-grid compact-grid">
                 <div class="feature-item">
-                    <div class="feature-icon">📦</div>
-                    <h3>Shared app layer</h3>
-                    <p>CLI, TUI, wrappers, and MCP all call the same orchestration path.</p>
+                    <div class="feature-icon">🧭</div>
+                    <h3>Docs overview</h3>
+                    <p>Use <a href="docs.html#docs-guide">docs.html</a> as the high-level guide to installation, workflow, and doc ownership.</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">🧾</div>
-                    <h3>Structured JSON contract</h3>
-                    <p>Agents get deterministic fields instead of scraping terminal text.</p>
+                    <div class="feature-icon">📘</div>
+                    <h3>Current docs</h3>
+                    <p>The current sources of truth live in the repo README, CLI reference, integrations docs, and architecture docs.</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">🩹</div>
-                    <h3>Patch operations</h3>
-                    <p>Dry-run mode can return structured write operations before touching the repo.</p>
+                    <div class="feature-icon">🗂️</div>
+                    <h3>Historical docs</h3>
+                    <p>Older PRD and tech-spec documents are preserved for context, not for day-to-day implementation truth.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">🛠️</div>
-                    <h3>Distribution helpers</h3>
-                    <p>Install wrapper files into another repo and print MCP config snippets with one command.</p>
+                    <h3>Contributors</h3>
+                    <p>Contributors get a cleaner split between onboarding, references, architecture, integrations, and maintenance docs.</p>
                 </div>
             </div>
         </div>
@@ -252,12 +254,12 @@
             <div class="footer-logo">
                 <img src="images/logo.png" alt="TestGen Logo">
             </div>
-            <h4>Test generation for agents that ship code</h4>
-            <p>Codex. Claude Code. OpenCode. MCP. One shared engine underneath.</p>
+            <h4>High-level docs on the site. Detailed docs in the repo.</h4>
+            <p>One shared engine underneath TUI, CLI, agents, and MCP.</p>
 
             <div class="footer-links">
                 <a href="docs.html">Docs</a>
-                <a href="#integrations">Integrations</a>
+                <a href="#ways">Ways to use it</a>
                 <a href="https://github.com/princepal9120/testgen" target="_blank" rel="noreferrer">GitHub</a>
             </div>
         </div>

@@ -1,5 +1,7 @@
 # TestGen CLI Reference
 
+**Scope:** This document is the current reference for TestGen commands, flags, configuration entry points, and environment variables. Use [`README.md`](../README.md) for the high-level overview and [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) for implementation details.
+
 Complete reference for all TestGen commands and options.
 
 ## Global Flags
@@ -165,6 +167,41 @@ testgen mcp
 ### Notes
 - Uses the same orchestration path as the CLI/TUI
 - Safe dry-run generation is the recommended default for agent clients
+
+---
+
+## Configuration
+
+Use `--config` to point at a specific config file, or keep project defaults in `.testgen.yaml`.
+
+Example:
+
+```yaml
+llm:
+  provider: anthropic
+  model: claude-3-5-sonnet-20241022
+  temperature: 0.3
+
+generation:
+  batch_size: 5
+  parallel_workers: 4
+  timeout_seconds: 30
+
+output:
+  format: text
+  include_coverage: true
+```
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `ANTHROPIC_API_KEY` | Anthropic Claude API key |
+| `OPENAI_API_KEY` | OpenAI GPT API key |
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `GROQ_API_KEY` | Groq Cloud API key |
+| `TESTGEN_LLM_PROVIDER` | Default LLM provider |
+| `TESTGEN_LLM_MODEL` | Default model |
 
 ---
 

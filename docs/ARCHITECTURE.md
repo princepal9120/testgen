@@ -1,8 +1,10 @@
 # TestGen Architecture
 
+**Scope:** This document explains the implementation architecture of TestGen. Use [`README.md`](../README.md) for the high-level product overview and [`docs/CLI_REFERENCE.md`](./CLI_REFERENCE.md) for command usage.
+
 ## Overview
 
-TestGen follows a layered architecture with a shared application service between human UIs and future agent wrappers.
+TestGen follows a layered architecture with a shared application service between human UIs and agent-facing wrappers.
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -14,12 +16,12 @@ TestGen follows a layered architecture with a shared application service between
        └────────────┴───────┬──────┘
                             ▼
 ┌─────────────────────────────────────────────────────┐
-│          Application Service (internal/app/)         │
+│          Application Service (internal/app/)        │
 │  Shared generate / analyze / validate orchestration │
 └──────────────────────┬──────────────────────────────┘
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│              Core Engine (internal/generator/)       │
+│              Core Engine (internal/generator/)      │
 │     Generates artifacts, then materializes writes   │
 └──────────────────────┬──────────────────────────────┘
                        │
@@ -135,4 +137,4 @@ Caller → App Service → Scanner → Adapter.Parse → Engine → LLM → Adap
    defaultRegistry.Register(NewRubyAdapter())
    ```
 
-No changes needed in CLI, Engine, or LLM layers.
+No changes needed in CLI, engine, or LLM layers.

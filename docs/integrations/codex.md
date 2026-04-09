@@ -1,5 +1,7 @@
 # Codex / oh-my-codex integration
 
+**Scope:** This page covers Codex-specific setup. For the shared integration model and safe defaults, start with the [integrations index](./README.md).
+
 TestGen ships a repo-local Codex skill:
 
 - `.codex/skills/testgen/SKILL.md`

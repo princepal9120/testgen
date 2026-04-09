@@ -1,5 +1,7 @@
 # Claude Code integration
 
+**Scope:** This page covers Claude Code-specific setup. For the shared integration model and safe defaults, start with the [integrations index](./README.md).
+
 TestGen ships a repo-local Claude Code command:
 
 - `.claude/commands/testgen.md`

@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docs - TestGen</title>
+    <title>TestGen Docs Overview</title>
     <meta name="description"
-        content="Install TestGen, configure an LLM provider, run generate/analyze/validate, and use the same engine from the TUI, CLI, agent wrappers, or MCP.">
+        content="High-level TestGen docs for installation, workflow, supported usage modes, and where to find the current source-of-truth docs in the repo.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -34,41 +34,49 @@
     <div class="container docs-container">
         <aside class="docs-sidebar">
             <div class="sidebar-group">
-                <h3>Getting Started</h3>
+                <h3>Start Here</h3>
                 <ul>
-                    <li><a href="#introduction" class="active">Introduction</a></li>
+                    <li><a href="#overview" class="active">Overview</a></li>
                     <li><a href="#installation">Installation</a></li>
                     <li><a href="#configuration">Configuration</a></li>
                     <li><a href="#quick-start">Quick Start</a></li>
                 </ul>
             </div>
             <div class="sidebar-group">
-                <h3>Ways to Use It</h3>
+                <h3>Use TestGen</h3>
                 <ul>
                     <li><a href="#usage-modes">Usage Modes</a></li>
-                    <li><a href="#agent-integrations">Agent Integrations</a></li>
-                    <li><a href="#commands">Core Commands</a></li>
+                    <li><a href="#workflow">Review-first Workflow</a></li>
+                    <li><a href="#integrations">Integrations</a></li>
                     <li><a href="#supported-languages">Supported Languages</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-group">
+                <h3>Docs Guide</h3>
+                <ul>
+                    <li><a href="#docs-guide">Current Docs</a></li>
+                    <li><a href="#historical-docs">Historical Docs</a></li>
                 </ul>
             </div>
         </aside>
 
         <main class="docs-content">
-            <section id="introduction">
-                <h1>Documentation</h1>
+            <section id="overview">
+                <h1>Docs Overview</h1>
                 <p>
-                    TestGen is a multi-language AI test generation tool with one shared engine behind every surface:
-                    the interactive TUI, direct CLI commands, repo-local agent wrappers, and an experimental MCP server.
+                    This page is the high-level guide to TestGen. It explains what the tool is, how to get started,
+                    the main ways to use it, and where to find the current source-of-truth docs in the repository.
                 </p>
                 <p>
-                    The safest default workflow is review-first: generate dry-run output, inspect structured artifacts and
-                    patch operations, then write files only when you are ready.
+                    TestGen is a multi-language tool for inspecting code, generating tests, validating coverage,
+                    and supporting both human and agent-driven workflows through the TUI, CLI, repo-local wrappers,
+                    and an MCP server.
                 </p>
             </section>
 
             <section id="installation">
                 <h2>Installation</h2>
-                <p>Install TestGen locally as a binary, or install from source using the Go module path.</p>
+                <p>Install TestGen locally, then set one provider key before generating tests.</p>
 
                 <div class="docs-tabs">
                     <button class="docs-tab active" onclick="switchTab('unix', this)">macOS / Linux</button>
@@ -127,7 +135,7 @@
 
             <section id="configuration">
                 <h2>Configuration</h2>
-                <p>Set one provider API key before generating tests. TestGen currently supports Anthropic, OpenAI, Gemini, and Groq.</p>
+                <p>Set one provider API key before generating tests. TestGen supports Anthropic, OpenAI, Gemini, and Groq.</p>
 
                 <div class="code-block">
                     <pre><code># Choose one provider
@@ -138,16 +146,16 @@ export GROQ_API_KEY="gsk_..."</code></pre>
                 </div>
 
                 <ul>
-                    <li><strong>Anthropic Claude:</strong> best default quality for many repos</li>
-                    <li><strong>OpenAI:</strong> popular general-purpose option</li>
+                    <li><strong>Anthropic Claude:</strong> strong default quality for many repositories</li>
+                    <li><strong>OpenAI:</strong> common general-purpose option</li>
                     <li><strong>Gemini:</strong> useful when you want a Google-hosted option</li>
-                    <li><strong>Groq:</strong> good when low latency matters</li>
+                    <li><strong>Groq:</strong> useful when low latency matters</li>
                 </ul>
             </section>
 
             <section id="quick-start">
                 <h2>Quick Start</h2>
-                <p>Start with analysis, then preview generation, then write files only when you want validation feedback.</p>
+                <p>Keep the workflow simple: inspect first, preview generation second, write and validate last.</p>
 
                 <h3>1. Inspect a codebase</h3>
                 <div class="code-block">
@@ -168,7 +176,7 @@ export GROQ_API_KEY="gsk_..."</code></pre>
                     <pre><code>testgen generate --path=./src --recursive --type=unit --validate</code></pre>
                 </div>
 
-                <h3>4. Prefer the guided UI?</h3>
+                <h3>4. Prefer a guided UI?</h3>
                 <div class="code-block">
                     <pre><code>testgen tui</code></pre>
                 </div>
@@ -176,18 +184,37 @@ export GROQ_API_KEY="gsk_..."</code></pre>
 
             <section id="usage-modes">
                 <h2>Usage Modes</h2>
-                <p>People can use TestGen in four practical ways today:</p>
+                <p>TestGen supports four practical usage modes today:</p>
                 <ul>
-                    <li><strong>TUI:</strong> best for first-time human users who want a guided keyboard flow</li>
+                    <li><strong>TUI:</strong> best for first-time human users who want a guided terminal flow</li>
                     <li><strong>CLI:</strong> best for local development, scripting, and CI automation</li>
-                    <li><strong>Agent wrappers:</strong> best when Codex, Claude Code, or OpenCode should inspect dry-run artifacts first</li>
+                    <li><strong>Agent wrappers:</strong> best when coding agents should inspect dry-run artifacts before applying writes</li>
                     <li><strong>MCP:</strong> best when your client prefers tool calls over shell execution</li>
                 </ul>
             </section>
 
-            <section id="agent-integrations">
-                <h2>Agent Integrations</h2>
-                <p>TestGen ships repo-local integration surfaces that all call the same app layer underneath.</p>
+            <section id="workflow">
+                <h2>Review-first Workflow</h2>
+                <p>
+                    The clearest default workflow is also the safest one: analyze the repo, generate dry-run output,
+                    inspect the results, and only then write files with validation.
+                </p>
+
+                <div class="code-block">
+                    <pre><code># 1) inspect the repo
+testgen analyze --path=./src --cost-estimate
+
+# 2) preview structured output
+testgen generate --file=./src/utils.py --type=unit --dry-run --emit-patch --output-format json
+
+# 3) write files and validate later
+testgen generate --path=./src --recursive --type=unit --validate</code></pre>
+                </div>
+            </section>
+
+            <section id="integrations">
+                <h2>Integrations</h2>
+                <p>All current integrations rely on the same app layer and the same review-first model.</p>
 
                 <ul>
                     <li><strong>Codex / oh-my-codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
@@ -205,65 +232,6 @@ export GROQ_API_KEY="gsk_..."</code></pre>
                 <div class="code-block">
                     <pre><code>./scripts/install-agent-integrations.sh /path/to/target-repo copy</code></pre>
                 </div>
-
-                <p>This installs the files each agent tool expects:</p>
-                <ul>
-                    <li><strong>Codex / oh-my-codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
-                    <li><strong>Claude Code:</strong> <code>.claude/commands/testgen.md</code></li>
-                    <li><strong>OpenCode:</strong> <code>.opencode/commands/testgen.md</code></li>
-                </ul>
-
-                <h3>Manual install for one agent only</h3>
-                <div class="code-block">
-                    <pre><code># Codex
-mkdir -p /path/to/repo/.codex/skills/testgen
-cp .codex/skills/testgen/SKILL.md /path/to/repo/.codex/skills/testgen/SKILL.md
-
-# Claude Code
-mkdir -p /path/to/repo/.claude/commands
-cp .claude/commands/testgen.md /path/to/repo/.claude/commands/testgen.md
-
-# OpenCode
-mkdir -p /path/to/repo/.opencode/commands
-cp .opencode/commands/testgen.md /path/to/repo/.opencode/commands/testgen.md</code></pre>
-                </div>
-
-                <h3>Print an MCP config snippet</h3>
-                <div class="code-block">
-                    <pre><code>./scripts/print-mcp-config.sh testgen</code></pre>
-                </div>
-            </section>
-
-            <section id="commands">
-                <h2>Core Commands</h2>
-
-                <h3>Generate tests</h3>
-                <div class="code-block">
-                    <pre><code>testgen generate --path=./src --recursive --type=unit,edge-cases
-
-# Important flags:
-#   --dry-run
-#   --emit-patch
-#   --validate
-#   --output-format json
-#   --parallel 4
-#   --interactive</code></pre>
-                </div>
-
-                <h3>Analyze cost and complexity</h3>
-                <div class="code-block">
-                    <pre><code>testgen analyze --path=./src --cost-estimate --detail=per-file --output-format json</code></pre>
-                </div>
-
-                <h3>Validate existing tests and coverage</h3>
-                <div class="code-block">
-                    <pre><code>testgen validate --path=./src --min-coverage=80 --fail-on-missing-tests</code></pre>
-                </div>
-
-                <h3>Run as an MCP server</h3>
-                <div class="code-block">
-                    <pre><code>testgen mcp</code></pre>
-                </div>
             </section>
 
             <section id="supported-languages">
@@ -278,6 +246,40 @@ cp .opencode/commands/testgen.md /path/to/repo/.opencode/commands/testgen.md</co
                     <li><strong>Java:</strong> JUnit 5-oriented generation via the Java adapter</li>
                 </ul>
             </section>
+
+            <section id="docs-guide">
+                <h2>Current Docs</h2>
+                <p>
+                    To reduce confusion, the docs are now split by job. This website page stays high level.
+                    The repository docs are the detailed sources of truth.
+                </p>
+
+                <ul>
+                    <li><strong>README.md</strong> — product overview and onboarding</li>
+                    <li><strong>docs/CLI_REFERENCE.md</strong> — commands, flags, configuration, and environment details</li>
+                    <li><strong>docs/integrations/README.md</strong> — shared integrations overview</li>
+                    <li><strong>docs/ARCHITECTURE.md</strong> — implementation architecture</li>
+                    <li><strong>CONTRIBUTING.md</strong> — contributor workflow</li>
+                </ul>
+
+                <div class="code-block">
+                    <pre><code>Repository docs:
+https://github.com/princepal9120/testgen/tree/main/docs</code></pre>
+                </div>
+            </section>
+
+            <section id="historical-docs">
+                <h2>Historical Docs</h2>
+                <p>
+                    Some older product and technical design docs are still useful for context, but they should not be
+                    treated as the current implementation source of truth.
+                </p>
+
+                <ul>
+                    <li><strong>PRD-TestGen.md</strong> — product vision and requirements history</li>
+                    <li><strong>TechSpec-TestGen.md</strong> — broader technical design exploration</li>
+                </ul>
+            </section>
         </main>
     </div>
 
@@ -286,7 +288,7 @@ cp .opencode/commands/testgen.md /path/to/repo/.opencode/commands/testgen.md</co
             <div class="footer-logo">
                 <img src="images/logo.png" alt="TestGen Logo">
             </div>
-            <p>TestGen docs — CLI, TUI, agent wrappers, and MCP on one shared engine.</p>
+            <p>High-level docs on the site. Detailed references in the repository.</p>
         </div>
     </footer>
 

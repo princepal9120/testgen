@@ -1,5 +1,7 @@
 # OpenCode integration
 
+**Scope:** This page covers OpenCode-specific setup. For the shared integration model and safe defaults, start with the [integrations index](./README.md).
+
 TestGen can be wrapped by OpenCode-style agents using the shared JSON CLI contract.
 
 ## Install into another repo

@@ -1,5 +1,7 @@
 # Product Requirements Document (PRD)
 ## TestGen: AI-Powered Test Generation CLI Tool
+> **Status:** Historical / aspirational product document. It provides product vision and design context, but it is **not** the current source of truth for implemented behavior. For current docs, use `README.md`, `docs/INDEX.md`, `docs/CLI_REFERENCE.md`, and `docs/ARCHITECTURE.md`.
+
 
 ---
 

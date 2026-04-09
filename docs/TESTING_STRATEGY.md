@@ -1,5 +1,7 @@
 # Testing Strategy
 
+**Scope:** This document is the contributor-facing testing strategy for the TestGen codebase. It explains how the project verifies behavior, not how end users run TestGen commands.
+
 This document defines how TestGen verifies behavior with confidence.
 
 ## Test Pyramid

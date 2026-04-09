@@ -1,5 +1,7 @@
 # Technical Specification
 ## TestGen: AI-Powered Test Generation CLI Tool
+> **Status:** Historical / aspirational technical design document. It contains broader technical exploration and may describe ideas that are not implemented. For current behavior, use `README.md`, `docs/INDEX.md`, `docs/CLI_REFERENCE.md`, and `docs/ARCHITECTURE.md`.
+
 
 ---
 

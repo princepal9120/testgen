@@ -1,5 +1,7 @@
 # MCP integration
 
+**Scope:** This page covers direct MCP usage. For the shared integration model and safe defaults, start with the [integrations index](./README.md).
+
 TestGen includes an experimental MCP stdio server.
 
 ## Run
