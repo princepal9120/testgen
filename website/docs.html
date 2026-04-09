@@ -51,13 +51,7 @@
                     <li><a href="#supported-languages">Supported Languages</a></li>
                 </ul>
             </div>
-            <div class="sidebar-group">
-                <h3>Docs Guide</h3>
-                <ul>
-                    <li><a href="#docs-guide">Current Docs</a></li>
-                    <li><a href="#historical-docs">Historical Docs</a></li>
-                </ul>
-            </div>
+        
         </aside>
 
         <main class="docs-content">
@@ -217,7 +211,7 @@ testgen generate --path=./src --recursive --type=unit --validate</code></pre>
                 <p>All current integrations rely on the same app layer and the same review-first model.</p>
 
                 <ul>
-                    <li><strong>Codex / oh-my-codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
+                    <li><strong>Codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
                     <li><strong>Claude Code:</strong> <code>.claude/commands/testgen.md</code></li>
                     <li><strong>OpenCode:</strong> <code>.opencode/commands/testgen.md</code></li>
                     <li><strong>MCP:</strong> <code>testgen mcp</code> exposes <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code></li>
@@ -247,39 +241,7 @@ testgen generate --path=./src --recursive --type=unit --validate</code></pre>
                 </ul>
             </section>
 
-            <section id="docs-guide">
-                <h2>Current Docs</h2>
-                <p>
-                    To reduce confusion, the docs are now split by job. This website page stays high level.
-                    The repository docs are the detailed sources of truth.
-                </p>
 
-                <ul>
-                    <li><strong>README.md</strong> — product overview and onboarding</li>
-                    <li><strong>docs/CLI_REFERENCE.md</strong> — commands, flags, configuration, and environment details</li>
-                    <li><strong>docs/integrations/README.md</strong> — shared integrations overview</li>
-                    <li><strong>docs/ARCHITECTURE.md</strong> — implementation architecture</li>
-                    <li><strong>CONTRIBUTING.md</strong> — contributor workflow</li>
-                </ul>
-
-                <div class="code-block">
-                    <pre><code>Repository docs:
-https://github.com/princepal9120/testgen/tree/main/docs</code></pre>
-                </div>
-            </section>
-
-            <section id="historical-docs">
-                <h2>Historical Docs</h2>
-                <p>
-                    Some older product and technical design docs are still useful for context, but they should not be
-                    treated as the current implementation source of truth.
-                </p>
-
-                <ul>
-                    <li><strong>PRD-TestGen.md</strong> — product vision and requirements history</li>
-                    <li><strong>TechSpec-TestGen.md</strong> — broader technical design exploration</li>
-                </ul>
-            </section>
         </main>
     </div>
 
