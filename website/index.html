@@ -41,8 +41,9 @@
             </h1>
             <p class="hero-subtitle wide">
                 TestGen is a multi-language tool for inspecting code, generating tests, validating coverage,
-                and fitting cleanly into terminal workflows, automation, and agent tooling. Start with analysis,
-                preview dry-run artifacts, then write files only when you are ready.
+                and fitting cleanly into developer workflows, CI automation, and coding-agent tooling. Use it from
+                the terminal, through repo-local wrappers, or over MCP. Start with analysis, preview dry-run
+                artifacts, then write files only when you are ready.
             </p>
             <div class="agent-badges">
                 <span class="agent-badge">TUI</span>
@@ -92,28 +93,28 @@
         <div class="container">
             <div class="section-heading">
                 <h2>Choose the surface that fits the job.</h2>
-                <p>TestGen stays high-level and predictable: one engine underneath, multiple ways to use it.</p>
+                <p>Most teams use TestGen in one of four simple ways.</p>
             </div>
             <div class="features-grid compact-grid">
                 <div class="feature-item">
                     <div class="feature-icon">🖥️</div>
-                    <h3>TUI</h3>
-                    <p>Use <code>testgen tui</code> when you want a guided, keyboard-friendly flow.</p>
+                    <h3>Developers</h3>
+                    <p>Use <code>testgen tui</code> or the CLI when you want a guided flow or direct terminal control.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">⌨️</div>
-                    <h3>CLI</h3>
-                    <p>Use <code>analyze</code>, <code>generate</code>, and <code>validate</code> in scripts, local workflows, and CI.</p>
+                    <h3>CI / automation</h3>
+                    <p>Call <code>analyze</code>, <code>generate</code>, and <code>validate</code> in scripts and use JSON output for predictable results.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">🤖</div>
-                    <h3>Agent wrappers</h3>
-                    <p>Let coding agents inspect dry-run JSON and patch artifacts before writing tests.</p>
+                    <h3>Codex, Claude, OpenCode</h3>
+                    <p>Install repo-local wrappers so coding agents can inspect dry-run JSON and patch artifacts before writing tests.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">🔌</div>
-                    <h3>MCP</h3>
-                    <p>Run <code>testgen mcp</code> when your client prefers tool calls over shell execution.</p>
+                    <h3>MCP clients</h3>
+                    <p>Run <code>testgen mcp</code> when your client prefers tool calls instead of shell execution.</p>
                 </div>
             </div>
         </div>
@@ -131,17 +132,17 @@
                 <div class="integration-card">
                     <div class="feature-icon">🧠</div>
                     <h3>Codex / oh-my-codex</h3>
-                    <p>Use the repo-local skill and keep TestGen as the source of truth for scanning, generation, and validation.</p>
+                    <p>Install <code>.codex/skills/testgen/SKILL.md</code> into the target repo and let Codex call TestGen instead of hand-writing tests.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">✍️</div>
                     <h3>Claude Code</h3>
-                    <p>Ship the repo-local command so Claude can review structured dry-run artifacts before materializing tests.</p>
+                    <p>Install <code>.claude/commands/testgen.md</code> so Claude Code can review structured dry-run artifacts before materializing tests.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">⚙️</div>
                     <h3>OpenCode</h3>
-                    <p>Use the command wrapper or connect through MCP when your setup prefers tool calling.</p>
+                    <p>Install <code>.opencode/commands/testgen.md</code> or connect through MCP when your setup prefers tool calling.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">🔌</div>
@@ -208,7 +209,7 @@
                 </div>
                 <div class="panel-card">
                     <div class="panel-title">Install agent wrappers into another repo</div>
-                    <pre><code>./scripts/install-agent-integrations.sh /path/to/repo copy</code></pre>
+                    <pre><code>./scripts/install-agent-integrations.sh /path/to/target-repo copy</code></pre>
                 </div>
                 <div class="panel-card subtle">
                     <div class="panel-title">Run the MCP server</div>
@@ -228,7 +229,7 @@
                 <div class="feature-item">
                     <div class="feature-icon">🧭</div>
                     <h3>Docs overview</h3>
-                    <p>Use <a href="docs.html#docs-guide">docs.html</a> as the high-level guide to installation, workflow, and doc ownership.</p>
+                    <p>Use <a href="docs.html#docs-guide">docs.html</a> as the high-level guide to installation, workflow, and how people use TestGen.</p>
                 </div>
                 <div class="feature-item">
                     <div class="feature-icon">📘</div>

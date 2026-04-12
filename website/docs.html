@@ -37,6 +37,7 @@
                 <h3>Start Here</h3>
                 <ul>
                     <li><a href="#overview" class="active">Overview</a></li>
+                    <li><a href="#docs-guide">How people use it</a></li>
                     <li><a href="#installation">Installation</a></li>
                     <li><a href="#configuration">Configuration</a></li>
                     <li><a href="#quick-start">Quick Start</a></li>
@@ -65,6 +66,43 @@
                     TestGen is a multi-language tool for inspecting code, generating tests, validating coverage,
                     and supporting both human and agent-driven workflows through the TUI, CLI, repo-local wrappers,
                     and an MCP server.
+                </p>
+            </section>
+
+            <section id="docs-guide">
+                <h2>How people use TestGen</h2>
+                <p>
+                    Most teams use TestGen in one of four simple ways: directly in the terminal, in CI scripts,
+                    through coding-agent wrappers, or through MCP when a client prefers tool calls.
+                </p>
+
+                <ul>
+                    <li><strong>For developers:</strong> run <code>testgen analyze</code>, preview test output, then generate validated files when the results look right.</li>
+                    <li><strong>For CI and automation:</strong> call the CLI directly in scripts and use JSON output for predictable machine-readable results.</li>
+                    <li><strong>For Codex, Claude Code, and OpenCode:</strong> install the repo-local wrappers into the target repo so the agent can call TestGen instead of hand-writing tests from scratch.</li>
+                    <li><strong>For MCP clients:</strong> run <code>testgen mcp</code> and expose generation, analysis, and validation as tools.</li>
+                </ul>
+
+                <h3>Install agent wrappers into another repo</h3>
+                <div class="code-block">
+                    <pre><code>./scripts/install-agent-integrations.sh /path/to/target-repo copy</code></pre>
+                </div>
+
+                <p>That installs the wrapper files agents look for in the target repository:</p>
+                <ul>
+                    <li><code>.codex/skills/testgen/SKILL.md</code></li>
+                    <li><code>.claude/commands/testgen.md</code></li>
+                    <li><code>.opencode/commands/testgen.md</code></li>
+                </ul>
+
+                <h3>Recommended safe command</h3>
+                <div class="code-block">
+                    <pre><code>testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --output-format json</code></pre>
+                </div>
+
+                <p>
+                    Use this when you want people or agents to inspect artifacts before writing files. Re-run with
+                    <code>--validate</code> when you want TestGen to materialize tests.
                 </p>
             </section>
 
