@@ -127,26 +127,12 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	outputFormat := effectiveGenerateOutputFormat()
 	if cmd != nil && machineMode {
 		root := cmd.Root()
-		prevSilenceErrors := cmd.SilenceErrors
-		prevSilenceUsage := cmd.SilenceUsage
-		prevRootSilenceErrors := false
-		prevRootSilenceUsage := false
 		if root != nil {
-			prevRootSilenceErrors = root.SilenceErrors
-			prevRootSilenceUsage = root.SilenceUsage
 			root.SilenceErrors = true
 			root.SilenceUsage = true
 		}
 		cmd.SilenceErrors = true
 		cmd.SilenceUsage = true
-		defer func() {
-			cmd.SilenceErrors = prevSilenceErrors
-			cmd.SilenceUsage = prevSilenceUsage
-			if root != nil {
-				root.SilenceErrors = prevRootSilenceErrors
-				root.SilenceUsage = prevRootSilenceUsage
-			}
-		}()
 	}
 
 	req, err := buildGenerateRequest(cmd)

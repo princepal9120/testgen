@@ -165,6 +165,10 @@ func resetGenerateCommandState() {
 	genRequestFile = ""
 	quiet = false
 	verbose = false
+	generateCmd.SilenceErrors = false
+	generateCmd.SilenceUsage = false
+	rootCmd.SilenceErrors = false
+	rootCmd.SilenceUsage = false
 }
 
 func captureStdout(t *testing.T, fn func() error) string {
