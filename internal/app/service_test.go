@@ -88,6 +88,17 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 	if resp.EstimatedTokens == 0 {
 		t.Fatal("expected cost estimation to populate tokens")
 	}
+	if resp.ExactFunctionFiles != 2 {
+		t.Fatalf("expected exact function counts for both files, got %d", resp.ExactFunctionFiles)
+	}
+	if resp.HeuristicFunctionFiles != 0 {
+		t.Fatalf("expected no heuristic fallback files, got %d", resp.HeuristicFunctionFiles)
+	}
+	for _, file := range resp.Files {
+		if file.FunctionCountMode != "exact" {
+			t.Fatalf("expected exact function count mode, got %q for %s", file.FunctionCountMode, file.Path)
+		}
+	}
 }
 
 func TestServiceValidateFindsExistingTests(t *testing.T) {
