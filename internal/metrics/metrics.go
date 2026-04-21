@@ -14,12 +14,21 @@ import (
 type RunMetrics struct {
 	RunID                string    `json:"run_id"`
 	Timestamp            time.Time `json:"timestamp"`
+	Operation            string    `json:"operation,omitempty"`
+	TargetPath           string    `json:"target_path,omitempty"`
+	MachineMode          bool      `json:"machine_mode,omitempty"`
 	TotalFiles           int       `json:"total_files"`
 	TokensInput          int       `json:"tokens_input"`
 	TokensOutput         int       `json:"tokens_output"`
 	TokensCached         int       `json:"tokens_cached"`
 	CacheHitRate         float64   `json:"cache_hit_rate"`
 	TotalCostUSD         float64   `json:"total_cost_usd"`
+	CoveragePercent      float64   `json:"coverage_percent,omitempty"`
+	ExactFunctionFiles   int       `json:"exact_function_files,omitempty"`
+	HeuristicFunctionFiles int     `json:"heuristic_function_files,omitempty"`
+	MissingTestsCount    int       `json:"missing_tests_count,omitempty"`
+	ValidationErrorCount int       `json:"validation_error_count,omitempty"`
+	ValidationPassed     bool      `json:"validation_passed,omitempty"`
 	ExecutionTimeSeconds float64   `json:"execution_time_seconds"`
 	SuccessCount         int       `json:"success_count"`
 	ErrorCount           int       `json:"error_count"`
@@ -50,6 +59,13 @@ func NewCollector() *Collector {
 	}
 }
 
+// SetContext records top-level metadata for the run.
+func (c *Collector) SetContext(operation string, targetPath string, machineMode bool) {
+	c.current.Operation = operation
+	c.current.TargetPath = targetPath
+	c.current.MachineMode = machineMode
+}
+
 // RecordFile records a file being processed
 func (c *Collector) RecordFile(success bool) {
 	c.current.TotalFiles++
@@ -77,6 +93,25 @@ func (c *Collector) RecordCost(costUSD float64) {
 // SetCacheHitRate sets the cache hit rate
 func (c *Collector) SetCacheHitRate(rate float64) {
 	c.current.CacheHitRate = rate
+}
+
+// SetAnalyzeSummary stores trust-related analysis metadata.
+func (c *Collector) SetAnalyzeSummary(totalFiles int, exactFiles int, heuristicFiles int) {
+	c.current.TotalFiles = totalFiles
+	c.current.ExactFunctionFiles = exactFiles
+	c.current.HeuristicFunctionFiles = heuristicFiles
+	c.current.SuccessCount = totalFiles
+}
+
+// SetValidationSummary stores validation trust metrics for a run.
+func (c *Collector) SetValidationSummary(totalFiles int, coveragePercent float64, testsPassed int, testsFailed int, missingTests int, validationErrors int) {
+	c.current.TotalFiles = totalFiles
+	c.current.CoveragePercent = coveragePercent
+	c.current.MissingTestsCount = missingTests
+	c.current.ValidationErrorCount = validationErrors
+	c.current.SuccessCount = testsPassed
+	c.current.ErrorCount = testsFailed + validationErrors
+	c.current.ValidationPassed = testsFailed == 0 && validationErrors == 0 && missingTests == 0
 }
 
 // Finalize completes metrics collection
