@@ -187,6 +187,44 @@ VALUE = 1
 	}
 }
 
+func TestGenerateRequestFileImplicitMachineMode(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testgen-request-file-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	sampleFile := filepath.Join(dir, "sample.py")
+	content := `def add(a, b):
+    return a + b
+`
+	if err := os.WriteFile(sampleFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write sample file: %v", err)
+	}
+
+	requestFile := filepath.Join(dir, "request.json")
+	request := `{"api_version":"v1","request_id":"req_integration_machine","file":"sample.py","test_types":["unit"],"dry_run":true,"provider":"anthropic"}`
+	if err := os.WriteFile(requestFile, []byte(request), 0644); err != nil {
+		t.Fatalf("Failed to write request file: %v", err)
+	}
+
+	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--request-file=request.json")
+	if err == nil {
+		t.Fatalf("Expected request-file machine mode without API key to fail")
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
+		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+	if payload["failure_code"] != "missing_api_key" {
+		t.Fatalf("Expected missing_api_key failure code, got: %v", payload["failure_code"])
+	}
+	if strings.Contains(stderr, "Usage:") || strings.Contains(stderr, "Error:") {
+		t.Fatalf("Expected machine mode to suppress Cobra error banners, stderr=%s", stderr)
+	}
+}
+
 func TestGenerateNoFile(t *testing.T) {
 	_, stderr, err := runCmd(t, "generate")
 	if err == nil {
