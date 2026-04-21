@@ -139,14 +139,14 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		req.Provider = "anthropic"
 	}
 
-	// Check API key early (non-quiet mode shows helpful error)
+	// Check API key early only for human/text mode. JSON/machine mode should
+	// let the service produce a structured envelope so dry-run/no-definition
+	// flows can still succeed without requiring credentials up front.
 	apiKey := getAPIKeyForProvider(req.Provider)
-	if apiKey == "" {
+	if apiKey == "" && genOutputFormat != "json" {
 		err = fmt.Errorf("%w for %s", llm.ErrNoAPIKey, req.Provider)
-		if !quiet && genOutputFormat != "json" {
+		if !quiet {
 			ui.ShowAPIKeyError(req.Provider)
-		} else if strings.EqualFold(genOutputFormat, "json") {
-			_ = outputJSON(app.NewGenerateFailureResponse(req, err, appTargetPathHint(req)))
 		}
 		return err
 	}

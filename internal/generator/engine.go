@@ -115,11 +115,15 @@ func (e *Engine) GenerateArtifact(sourceFile *models.SourceFile, adapter adapter
 	// Generate tests for each definition
 	var allTests strings.Builder
 	functionsTested := make([]string, 0)
+	var firstGenerationErr error
 
 	for _, def := range definitions {
 		for _, testType := range e.config.TestTypes {
 			testCode, err := e.generateTestForDefinition(ctx, def, adapter, testType, ast.Package)
 			if err != nil {
+				if firstGenerationErr == nil {
+					firstGenerationErr = err
+				}
 				e.logger.Warn("failed to generate test",
 					slog.String("function", def.Name),
 					slog.String("error", err.Error()),
@@ -136,6 +140,10 @@ func (e *Engine) GenerateArtifact(sourceFile *models.SourceFile, adapter adapter
 	}
 
 	if allTests.Len() == 0 {
+		if firstGenerationErr != nil {
+			result.Error = firstGenerationErr
+			result.ErrorMessage = firstGenerationErr.Error()
+		}
 		return result, nil
 	}
 
