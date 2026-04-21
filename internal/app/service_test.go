@@ -47,6 +47,15 @@ func TestServiceGenerateScansAndReturnsResultsForDefinitionFreeFile(t *testing.T
 	if len(resp.SourceFiles) != 1 {
 		t.Fatalf("expected 1 source file, got %d", len(resp.SourceFiles))
 	}
+	if resp.APIVersion != APIVersion {
+		t.Fatalf("expected api version %q, got %q", APIVersion, resp.APIVersion)
+	}
+	if resp.RequestID == "" {
+		t.Fatal("expected request id to be populated")
+	}
+	if !resp.DryRun || resp.WriteFiles {
+		t.Fatalf("expected dry-run response semantics, got dry_run=%v write_files=%v", resp.DryRun, resp.WriteFiles)
+	}
 	if len(resp.Results) != 1 {
 		t.Fatalf("expected 1 result, got %d", len(resp.Results))
 	}
@@ -139,6 +148,29 @@ func TestServiceValidateFindsExistingTests(t *testing.T) {
 	}
 }
 
+func TestServiceGenerateReturnsUnsupportedLanguageForUnsupportedFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	file := filepath.Join(dir, "sample.rb")
+	if err := os.WriteFile(file, []byte("def add(a, b)\n  a + b\nend\n"), 0o644); err != nil {
+		t.Fatalf("write sample file: %v", err)
+	}
+
+	service := NewService()
+	_, err := service.Generate(context.Background(), GenerateRequest{
+		File:      file,
+		TestTypes: []string{"unit"},
+		DryRun:    true,
+	})
+	if err == nil {
+		t.Fatal("expected unsupported language error")
+	}
+	if classifyFailure(err) != FailureCodeUnsupportedLanguage {
+		t.Fatalf("expected unsupported_language failure code, got %q", classifyFailure(err))
+	}
+}
+
 func TestPatchFromResultBuildsStructuredPatch(t *testing.T) {
 	t.Parallel()
 
@@ -181,6 +213,9 @@ func TestArtifactFromResultIncludesErrorDetails(t *testing.T) {
 	artifact := artifactFromResult(result)
 	if !artifact.Generated {
 		t.Fatal("expected artifact to be marked as generated")
+	}
+	if artifact.FailureCode != FailureCodeValidationFailed {
+		t.Fatalf("expected validation failure code, got %q", artifact.FailureCode)
 	}
 	if !artifact.ValidationFailed {
 		t.Fatal("expected validation failure to be detected")
