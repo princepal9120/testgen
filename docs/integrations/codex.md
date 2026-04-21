@@ -23,6 +23,8 @@ cp .codex/skills/testgen/SKILL.md /path/to/target-repo/.codex/skills/testgen/SKI
 
 After that, invoke the repo-local `testgen` skill from Codex / oh-my-codex inside the target repo.
 
+If you upgrade TestGen or the repo-local skill asset, re-run the install step so the copied skill stays aligned.
+
 ## Recommended usage
 
 Safe review-first mode:

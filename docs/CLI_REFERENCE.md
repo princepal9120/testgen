@@ -4,6 +4,12 @@
 
 Complete reference for all TestGen commands and options.
 
+## Shared machine-readable behavior
+
+- Prefer `--output-format json` for CI, wrappers, and agent callers.
+- Prefer `--dry-run --emit-patch` when the caller should inspect artifacts before any file write.
+- The CLI, TUI, and MCP server share the same orchestration layer, so JSON payloads and generation behavior stay aligned across surfaces.
+
 ## Global Flags
 
 | Flag | Short | Description | Default |
@@ -35,7 +41,7 @@ testgen generate [flags]
 | `--recursive` | `-r` | Process recursively | `false` |
 | `--parallel` | `-j` | Number of workers | `2` |
 | `--dry-run` | | Preview without writing | `false` |
-| `--emit-patch` | | Include structured patch operations in JSON output | `false` |
+| `--emit-patch` | | Include structured patch operations in shared/JSON output | `false` |
 | `--interactive` | `-i` | Show interactive results view after generation | `false` |
 | `--validate` | | Run tests after generation | `false` |
 | `--output-format` | | Output format (text/json) | `text` |
@@ -64,6 +70,23 @@ testgen generate --path=./src -r --dry-run --output-format=json
 
 # Dry run with agent-ready patch output
 testgen generate --path=./src -r --dry-run --emit-patch --output-format=json
+```
+
+### Machine-readable / agent-safe examples
+
+```bash
+# Review-first JSON output for automation
+testgen generate --file=./src/utils.py \
+  --type=unit \
+  --dry-run \
+  --emit-patch \
+  --output-format=json
+
+# Explicitly write files and validate them
+testgen generate --file=./src/utils.py \
+  --type=unit \
+  --validate \
+  --output-format=json
 ```
 
 ---
@@ -164,9 +187,25 @@ testgen mcp
 - `testgen_analyze`
 - `testgen_validate`
 
+### `testgen_generate` arguments
+
+| Argument | Description |
+|----------|-------------|
+| `path` / `file` | Target directory or single file |
+| `types` | Test types array, defaults to `["unit"]` |
+| `dry_run` | Preview artifacts without writing files |
+| `validate` | Validate generated tests |
+| `emit_patch` | Include structured patch operations |
+| `parallelism` | Parallel worker count |
+| `batch_size` | Provider batch size |
+| `provider` | Explicit provider override |
+| `write_files` | Required when an MCP client wants writes instead of the safe dry-run default |
+
 ### Notes
 - Uses the same orchestration path as the CLI/TUI
 - Safe dry-run generation is the recommended default for agent clients
+- `testgen_generate` stays in dry-run mode unless the caller explicitly sets `write_files: true`
+- MCP tool results return JSON text inside the tool response content
 
 ---
 

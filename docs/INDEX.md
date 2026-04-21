@@ -17,6 +17,7 @@ If you are new to the project:
 | Commands and flags | [`docs/CLI_REFERENCE.md`](./CLI_REFERENCE.md) | Validate against `cmd/*.go` |
 | Architecture | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Implementation-focused |
 | Agent and MCP usage | [`docs/integrations/README.md`](./integrations/README.md) | Shared contract and per-tool guides |
+| Release and distribution | [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Install, upgrade, and packaging posture |
 | Contributor workflow | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Build, test, lint, PR expectations |
 | Testing approach | [`docs/TESTING_STRATEGY.md`](./TESTING_STRATEGY.md) | Contributor-facing verification strategy |
 | Quality standards | [`QUALITY.md`](../QUALITY.md) | Engineering principles and release bar |
@@ -34,6 +35,7 @@ If you are new to the project:
 | [`docs/integrations/claude-code.md`](./integrations/claude-code.md) | Claude Code users | Claude-specific setup |
 | [`docs/integrations/opencode.md`](./integrations/opencode.md) | OpenCode users | OpenCode-specific setup |
 | [`docs/integrations/mcp.md`](./integrations/mcp.md) | MCP clients | MCP server usage |
+| [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Users integrating TestGen into repos or MCP clients | Install, upgrade, and release posture |
 | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Maintainers | Package and runtime architecture overview |
 
 ### Contributor and maintenance docs
@@ -60,4 +62,5 @@ If you are new to the project:
 - If the onboarding story changes, update [`README.md`](../README.md).
 - If architecture boundaries change, update [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md).
 - If an integration surface changes, update the relevant file under [`docs/integrations/`](./integrations/README.md).
+- If installation, upgrade, or distribution posture changes, update [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md).
 - Do not present historical design documents as the current implementation source of truth unless they are fully synchronized first.

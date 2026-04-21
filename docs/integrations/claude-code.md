@@ -23,6 +23,8 @@ cp .claude/commands/testgen.md /path/to/target-repo/.claude/commands/testgen.md
 
 After that, Claude Code can use the repo-local `/testgen` command from inside the target repo.
 
+If you upgrade TestGen or the repo-local wrapper asset, re-run the install step so the copied command stays current.
+
 ## Recommended usage
 
 Default safe mode:

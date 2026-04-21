@@ -6,7 +6,7 @@
 
 **AI-powered test generation for humans, CI pipelines, and coding agents.**
 
-TestGen is a multi-language CLI for inspecting code, generating tests, validating coverage, and fitting cleanly into local workflows, CI, and agent tooling.
+TestGen is a multi-language CLI for inspecting code, generating tests, validating coverage, and fitting cleanly into local workflows, CI, and agent tooling. The CLI, TUI, and MCP server all ride on the same shared application layer, so teams can use one review-first backend across human and machine callers.
 
 Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
 
@@ -14,12 +14,12 @@ Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
 
 - **Start safely** with `testgen analyze` and dry-run generation before writing files
 - **Work in the terminal** with either direct CLI commands or the interactive TUI
-- **Integrate with agents** through JSON output, patch artifacts, and MCP
+- **Integrate with agents** through shared JSON output, optional patch artifacts, and MCP
 - **Keep workflows scriptable** for CI, automation, and repeatable review-first usage
 
 ## Quick start
 
-### 1. Install
+### 1. Install the latest release or build from source
 
 **macOS / Linux**
 
@@ -40,6 +40,12 @@ git clone https://github.com/princepal9120/testgen.git
 cd testgen
 go build -o testgen .
 ```
+
+Upgrade story:
+
+- Re-run the platform installer to fetch the latest GitHub release.
+- Or use Go directly: `go install github.com/princepal9120/testgen-cli@latest`
+- If you copied repo-local agent wrapper files into another repo, re-run `./scripts/install-agent-integrations.sh` after upgrading so those wrapper assets stay aligned.
 
 ### 2. Set one provider API key
 
@@ -64,16 +70,21 @@ testgen generate --file=./src/utils.py \
   --output-format json
 ```
 
+This is the recommended safe default for agents and automation because it keeps file writes reviewable.
+
 ### 5. Write and validate when ready
 
 ```bash
 testgen generate --path=./src --recursive --type=unit --validate
 ```
 
+For MCP and repo-local agent wrappers, see the integration docs for the same review-first flow and explicit write controls.
+
 ## Where next
 
 - **Full command and flag reference** → [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md)
 - **Agent and MCP integrations** → [`docs/integrations/README.md`](docs/integrations/README.md)
+- **Release and distribution guide** → [`docs/release/AGENT_DISTRIBUTION.md`](docs/release/AGENT_DISTRIBUTION.md)
 - **Architecture** → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **Full docs map** → [`docs/INDEX.md`](docs/INDEX.md)
 - **Contributing guide** → [`CONTRIBUTING.md`](CONTRIBUTING.md)
