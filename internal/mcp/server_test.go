@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/princepal9120/testgen-cli/internal/app"
 )
 
 func TestServerInitializeAndListTools(t *testing.T) {
@@ -74,10 +76,11 @@ func TestServerToolCallGenerate(t *testing.T) {
 		"params": map[string]interface{}{
 			"name": "testgen_generate",
 			"arguments": map[string]interface{}{
-				"file":       file,
-				"dry_run":    true,
-				"emit_patch": true,
-				"types":      []string{"unit"},
+				"api_version": "v1",
+				"request_id":  "req_mcp_test",
+				"file":        file,
+				"emit_patch":  true,
+				"types":       []string{"unit"},
 			},
 		},
 	})
@@ -91,8 +94,24 @@ func TestServerToolCallGenerate(t *testing.T) {
 		t.Fatalf("expected 1 response, got %d", len(responses))
 	}
 	result := responses[0]["result"].(map[string]interface{})
+	if isError, ok := result["isError"].(bool); !ok || isError {
+		t.Fatalf("expected successful MCP tool result, got %#v", result["isError"])
+	}
 	content := result["content"].([]interface{})
 	text := content[0].(map[string]interface{})["text"].(string)
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(text), &payload); err != nil {
+		t.Fatalf("decode MCP payload: %v", err)
+	}
+	if payload["api_version"] != app.APIVersion {
+		t.Fatalf("expected api_version %q, got %#v", app.APIVersion, payload["api_version"])
+	}
+	if payload["request_id"] != "req_mcp_test" {
+		t.Fatalf("expected request id to round-trip, got %#v", payload["request_id"])
+	}
+	if payload["write_mode"] != "dry_run" {
+		t.Fatalf("expected safe dry-run default, got %#v", payload["write_mode"])
+	}
 	if !strings.Contains(text, "\"results\"") {
 		t.Fatalf("expected generate payload in tool result, got %s", text)
 	}

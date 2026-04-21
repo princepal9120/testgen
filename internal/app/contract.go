@@ -20,18 +20,18 @@ const APIVersion = "v1"
 type FailureCode string
 
 const (
-	FailureCodeInvalidRequest         FailureCode = "invalid_request"
-	FailureCodeNoSourceFiles          FailureCode = "no_source_files"
-	FailureCodeUnsupportedLanguage    FailureCode = "unsupported_language"
-	FailureCodeMissingAPIKey          FailureCode = "missing_api_key"
-	FailureCodeProviderTimeout        FailureCode = "provider_timeout"
-	FailureCodeProviderRateLimited    FailureCode = "provider_rate_limited"
+	FailureCodeInvalidRequest          FailureCode = "invalid_request"
+	FailureCodeNoSourceFiles           FailureCode = "no_source_files"
+	FailureCodeUnsupportedLanguage     FailureCode = "unsupported_language"
+	FailureCodeMissingAPIKey           FailureCode = "missing_api_key"
+	FailureCodeProviderTimeout         FailureCode = "provider_timeout"
+	FailureCodeProviderRateLimited     FailureCode = "provider_rate_limited"
 	FailureCodeMalformedProviderOutput FailureCode = "malformed_provider_output"
-	FailureCodeValidationFailed       FailureCode = "validation_failed"
-	FailureCodeWriteFailed            FailureCode = "write_failed"
-	FailureCodeScanFailed             FailureCode = "scan_failed"
-	FailureCodeCancelled              FailureCode = "cancelled"
-	FailureCodeInternalError          FailureCode = "internal_error"
+	FailureCodeValidationFailed        FailureCode = "validation_failed"
+	FailureCodeWriteFailed             FailureCode = "write_failed"
+	FailureCodeScanFailed              FailureCode = "scan_failed"
+	FailureCodeCancelled               FailureCode = "cancelled"
+	FailureCodeInternalError           FailureCode = "internal_error"
 )
 
 var requestCounter atomic.Uint64

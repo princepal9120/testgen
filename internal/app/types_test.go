@@ -22,7 +22,7 @@ func TestNormalizeGenerateRequestRejectsUnknownVersion(t *testing.T) {
 func TestGenerateRequestResolvedWriteSemantics(t *testing.T) {
 	t.Parallel()
 
-	if !GenerateRequest{}.ResolvedWriteFiles() {
+	if !(GenerateRequest{}).ResolvedWriteFiles() {
 		t.Fatal("legacy request without write_files should still default to writes")
 	}
 

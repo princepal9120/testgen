@@ -109,7 +109,7 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 		}
 
 		if result.Error != nil {
-		resp.ErrorCount++
+			resp.ErrorCount++
 		} else {
 			resp.SuccessCount++
 		}

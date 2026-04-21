@@ -7,23 +7,23 @@ import (
 
 // GenerateRequest defines a machine-readable test generation request.
 type GenerateRequest struct {
-	APIVersion     string  `json:"api_version,omitempty"`
-	RequestID      string  `json:"request_id,omitempty"`
-	Path           string  `json:"path,omitempty"`
-	File           string  `json:"file,omitempty"`
-	Recursive      bool    `json:"recursive,omitempty"`
-	IncludePattern string  `json:"include_pattern,omitempty"`
-	ExcludePattern string  `json:"exclude_pattern,omitempty"`
+	APIVersion     string   `json:"api_version,omitempty"`
+	RequestID      string   `json:"request_id,omitempty"`
+	Path           string   `json:"path,omitempty"`
+	File           string   `json:"file,omitempty"`
+	Recursive      bool     `json:"recursive,omitempty"`
+	IncludePattern string   `json:"include_pattern,omitempty"`
+	ExcludePattern string   `json:"exclude_pattern,omitempty"`
 	TestTypes      []string `json:"test_types,omitempty"`
-	Framework      string  `json:"framework,omitempty"`
-	OutputDir      string  `json:"output_dir,omitempty"`
-	DryRun         bool    `json:"dry_run,omitempty"`
-	WriteFiles     *bool   `json:"write_files,omitempty"`
-	Validate       bool    `json:"validate,omitempty"`
-	BatchSize      int     `json:"batch_size,omitempty"`
-	Parallelism    int     `json:"parallelism,omitempty"`
-	Provider       string  `json:"provider,omitempty"`
-	EmitPatch      bool    `json:"emit_patch,omitempty"`
+	Framework      string   `json:"framework,omitempty"`
+	OutputDir      string   `json:"output_dir,omitempty"`
+	DryRun         bool     `json:"dry_run,omitempty"`
+	WriteFiles     *bool    `json:"write_files,omitempty"`
+	Validate       bool     `json:"validate,omitempty"`
+	BatchSize      int      `json:"batch_size,omitempty"`
+	Parallelism    int      `json:"parallelism,omitempty"`
+	Provider       string   `json:"provider,omitempty"`
+	EmitPatch      bool     `json:"emit_patch,omitempty"`
 }
 
 // GenerateResponse contains the shared generation result returned to callers.
@@ -48,15 +48,15 @@ type GenerateResponse struct {
 
 // Artifact is a machine-readable generated artifact.
 type Artifact struct {
-	SourcePath       string   `json:"source_path"`
-	Language         string   `json:"language"`
-	TestPath         string   `json:"test_path,omitempty"`
-	TestCode         string   `json:"test_code,omitempty"`
-	FunctionsTested  []string `json:"functions_tested,omitempty"`
-	Generated        bool     `json:"generated"`
+	SourcePath       string      `json:"source_path"`
+	Language         string      `json:"language"`
+	TestPath         string      `json:"test_path,omitempty"`
+	TestCode         string      `json:"test_code,omitempty"`
+	FunctionsTested  []string    `json:"functions_tested,omitempty"`
+	Generated        bool        `json:"generated"`
 	FailureCode      FailureCode `json:"failure_code,omitempty"`
-	Error            string   `json:"error,omitempty"`
-	ValidationFailed bool     `json:"validation_failed,omitempty"`
+	Error            string      `json:"error,omitempty"`
+	ValidationFailed bool        `json:"validation_failed,omitempty"`
 }
 
 // PatchOperation is a structured write operation suitable for agent wrappers.
@@ -126,11 +126,11 @@ type ValidateRequest struct {
 
 // ValidateResponse contains validation output plus scan metadata.
 type ValidateResponse struct {
-	APIVersion string               `json:"api_version"`
-	RequestID  string               `json:"request_id,omitempty"`
-	Success    bool                 `json:"success"`
-	FailureCode FailureCode         `json:"failure_code,omitempty"`
-	Error      string               `json:"error,omitempty"`
+	APIVersion  string               `json:"api_version"`
+	RequestID   string               `json:"request_id,omitempty"`
+	Success     bool                 `json:"success"`
+	FailureCode FailureCode          `json:"failure_code,omitempty"`
+	Error       string               `json:"error,omitempty"`
 	TargetPath  string               `json:"target_path"`
 	SourceFiles []*models.SourceFile `json:"source_files,omitempty"`
 	Result      *validation.Result   `json:"result"`
