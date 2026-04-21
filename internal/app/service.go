@@ -283,6 +283,7 @@ func artifactFromResult(result *models.GenerationResult) Artifact {
 	artifact.FunctionsTested = result.FunctionsTested
 	artifact.Generated = result.TestCode != ""
 	if result.Error != nil {
+		artifact.FailureCode = classifyFailure(result.Error)
 		artifact.Error = result.Error.Error()
 		artifact.ValidationFailed = strings.Contains(result.Error.Error(), "validation failed")
 	}
