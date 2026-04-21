@@ -15,6 +15,7 @@ func TestRunGenerateSupportsRequestFileMachineMode(t *testing.T) {
 	resetGenerateCommandState()
 	viper.Reset()
 	logger = nil
+	t.Setenv("ANTHROPIC_API_KEY", "test-key")
 
 	dir := t.TempDir()
 	sourceFile := filepath.Join(dir, "sample.py")
