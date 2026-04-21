@@ -13,6 +13,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/princepal9120/testgen-cli/internal/app"
+	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/ui"
 	"github.com/princepal9120/testgen-cli/pkg/models"
 	"github.com/spf13/cobra"
@@ -140,9 +141,14 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 
 	// Check API key early (non-quiet mode shows helpful error)
 	apiKey := getAPIKeyForProvider(req.Provider)
-	if apiKey == "" && !quiet && genOutputFormat != "json" {
-		ui.ShowAPIKeyError(req.Provider)
-		return fmt.Errorf("API key not configured for %s", req.Provider)
+	if apiKey == "" {
+		err = fmt.Errorf("%w for %s", llm.ErrNoAPIKey, req.Provider)
+		if !quiet && genOutputFormat != "json" {
+			ui.ShowAPIKeyError(req.Provider)
+		} else if strings.EqualFold(genOutputFormat, "json") {
+			_ = outputJSON(app.NewGenerateFailureResponse(req, err, appTargetPathHint(req)))
+		}
+		return err
 	}
 
 	log.Info("starting test generation",
