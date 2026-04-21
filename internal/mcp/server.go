@@ -132,11 +132,17 @@ func (s *Server) tools() []map[string]interface{} {
 				"properties": map[string]interface{}{
 					"path":       map[string]interface{}{"type": "string"},
 					"file":       map[string]interface{}{"type": "string"},
+					"api_version": map[string]interface{}{"type": "string"},
+					"request_id": map[string]interface{}{"type": "string"},
 					"recursive":  map[string]interface{}{"type": "boolean"},
 					"types":      map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}},
 					"dry_run":    map[string]interface{}{"type": "boolean"},
+					"write_files": map[string]interface{}{"type": "boolean"},
 					"validate":   map[string]interface{}{"type": "boolean"},
 					"emit_patch": map[string]interface{}{"type": "boolean"},
+					"parallelism": map[string]interface{}{"type": "number"},
+					"batch_size": map[string]interface{}{"type": "number"},
+					"provider": map[string]interface{}{"type": "string"},
 				},
 			},
 		},
@@ -147,6 +153,8 @@ func (s *Server) tools() []map[string]interface{} {
 				"type": "object",
 				"properties": map[string]interface{}{
 					"path":          map[string]interface{}{"type": "string"},
+					"api_version":   map[string]interface{}{"type": "string"},
+					"request_id":    map[string]interface{}{"type": "string"},
 					"recursive":     map[string]interface{}{"type": "boolean"},
 					"cost_estimate": map[string]interface{}{"type": "boolean"},
 					"detail":        map[string]interface{}{"type": "string"},
@@ -160,6 +168,8 @@ func (s *Server) tools() []map[string]interface{} {
 				"type": "object",
 				"properties": map[string]interface{}{
 					"path":            map[string]interface{}{"type": "string"},
+					"api_version":     map[string]interface{}{"type": "string"},
+					"request_id":      map[string]interface{}{"type": "string"},
 					"recursive":       map[string]interface{}{"type": "boolean"},
 					"min_coverage":    map[string]interface{}{"type": "number"},
 					"fail_on_missing": map[string]interface{}{"type": "boolean"},
@@ -180,51 +190,66 @@ func (s *Server) callTool(ctx context.Context, raw json.RawMessage) (map[string]
 	}
 
 	var payload interface{}
+	isError := false
 	switch params.Name {
 	case "testgen_generate":
 		req := app.GenerateRequest{
-			Path:        stringArg(params.Arguments, "path"),
-			File:        stringArg(params.Arguments, "file"),
-			Recursive:   boolArg(params.Arguments, "recursive"),
-			TestTypes:   stringSliceArg(params.Arguments, "types", []string{"unit"}),
-			DryRun:      boolArg(params.Arguments, "dry_run"),
-			Validate:    boolArg(params.Arguments, "validate"),
-			EmitPatch:   boolArg(params.Arguments, "emit_patch"),
+			APIVersion: stringArg(params.Arguments, "api_version"),
+			RequestID:  stringArg(params.Arguments, "request_id"),
+			Path:       stringArg(params.Arguments, "path"),
+			File:       stringArg(params.Arguments, "file"),
+			Recursive:  boolArg(params.Arguments, "recursive"),
+			TestTypes:  stringSliceArg(params.Arguments, "types", []string{"unit"}),
+			DryRun:     boolArg(params.Arguments, "dry_run"),
+			Validate:   boolArg(params.Arguments, "validate"),
+			EmitPatch:  boolArg(params.Arguments, "emit_patch"),
 			Parallelism: intArg(params.Arguments, "parallelism", 2),
-			BatchSize:   intArg(params.Arguments, "batch_size", 5),
-			Provider:    stringArg(params.Arguments, "provider"),
+			BatchSize:  intArg(params.Arguments, "batch_size", 5),
+			Provider:   stringArg(params.Arguments, "provider"),
 		}
-		if !req.DryRun && !boolArg(params.Arguments, "write_files") {
-			req.DryRun = true
-		}
+		writeFiles := boolArg(params.Arguments, "write_files")
+		req.WriteFiles = &writeFiles
 		resp, err := s.service.Generate(ctx, req)
 		if err != nil {
-			return nil, err
+			payload = app.NewGenerateFailureResponse(req, err, targetHint(req.Path, req.File))
+			isError = true
+		} else {
+			payload = resp
+			isError = !resp.Success
 		}
-		payload = resp
 	case "testgen_analyze":
-		resp, err := s.service.Analyze(ctx, app.AnalyzeRequest{
+		req := app.AnalyzeRequest{
+			APIVersion:   stringArg(params.Arguments, "api_version"),
+			RequestID:    stringArg(params.Arguments, "request_id"),
 			Path:         stringArg(params.Arguments, "path"),
 			Recursive:    boolArgDefault(params.Arguments, "recursive", true),
 			CostEstimate: boolArg(params.Arguments, "cost_estimate"),
 			Detail:       stringArgDefault(params.Arguments, "detail", "summary"),
-		})
-		if err != nil {
-			return nil, err
 		}
-		payload = resp
+		resp, err := s.service.Analyze(ctx, req)
+		if err != nil {
+			payload = app.NewAnalyzeFailureResponse(req, err, req.Path)
+			isError = true
+		} else {
+			payload = resp
+		}
 	case "testgen_validate":
-		resp, err := s.service.Validate(ctx, app.ValidateRequest{
+		req := app.ValidateRequest{
+			APIVersion:    stringArg(params.Arguments, "api_version"),
+			RequestID:     stringArg(params.Arguments, "request_id"),
 			Path:          stringArg(params.Arguments, "path"),
 			Recursive:     boolArgDefault(params.Arguments, "recursive", true),
 			MinCoverage:   floatArg(params.Arguments, "min_coverage"),
 			FailOnMissing: boolArg(params.Arguments, "fail_on_missing"),
 			ReportGaps:    boolArg(params.Arguments, "report_gaps"),
-		})
-		if err != nil {
-			return nil, err
 		}
-		payload = resp
+		resp, err := s.service.Validate(ctx, req)
+		if err != nil {
+			payload = app.NewValidateFailureResponse(req, err, req.Path)
+			isError = true
+		} else {
+			payload = resp
+		}
 	default:
 		return nil, fmt.Errorf("unknown tool: %s", params.Name)
 	}
@@ -241,8 +266,15 @@ func (s *Server) callTool(ctx context.Context, raw json.RawMessage) (map[string]
 				"text": string(text),
 			},
 		},
-		"isError": false,
+		"isError": isError,
 	}, nil
+}
+
+func targetHint(pathValue, fileValue string) string {
+	if fileValue != "" {
+		return fileValue
+	}
+	return pathValue
 }
 
 func readMessage(r *bufio.Reader) ([]byte, error) {
