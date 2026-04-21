@@ -12,8 +12,6 @@ import (
 )
 
 func TestRunGenerateSupportsRequestFileMachineMode(t *testing.T) {
-	t.Parallel()
-
 	resetGenerateCommandState()
 	viper.Reset()
 	logger = nil
@@ -53,8 +51,6 @@ func TestRunGenerateSupportsRequestFileMachineMode(t *testing.T) {
 }
 
 func TestRunGenerateOutputsStructuredJSONFailure(t *testing.T) {
-	t.Parallel()
-
 	resetGenerateCommandState()
 	viper.Reset()
 	logger = nil
