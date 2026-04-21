@@ -3,13 +3,16 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/princepal9120/testgen-cli/internal/adapters"
 	"github.com/princepal9120/testgen-cli/internal/generator"
+	"github.com/princepal9120/testgen-cli/internal/metrics"
 	"github.com/princepal9120/testgen-cli/internal/scanner"
 	"github.com/princepal9120/testgen-cli/internal/validation"
 	"github.com/princepal9120/testgen-cli/pkg/models"
@@ -147,13 +150,14 @@ func (s *Service) Analyze(_ context.Context, req AnalyzeRequest) (*AnalyzeRespon
 	}
 
 	result := newAnalyzeResponse(req, targetPath)
-	analyzeFiles(result, sourceFiles, targetPath)
+	analyzeFiles(result, sourceFiles, targetPath, s.registry)
 	if req.CostEstimate {
 		estimateCosts(result)
 	}
 	if req.Detail == "summary" {
 		result.Files = nil
 	}
+	persistAnalyzeMetrics(targetPath, result)
 
 	return result, nil
 }
@@ -188,6 +192,7 @@ func (s *Service) Validate(_ context.Context, req ValidateRequest) (*ValidateRes
 	resp := newValidateResponse(req, targetPath)
 	resp.SourceFiles = sourceFiles
 	resp.Result = result
+	persistValidationMetrics(targetPath, len(sourceFiles), result)
 
 	return resp, nil
 }
@@ -311,7 +316,7 @@ func patchFromResult(result *models.GenerationResult) *PatchOperation {
 	}
 }
 
-func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath string) {
+func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath string, registry *adapters.Registry) {
 	for _, f := range files {
 		content, err := os.ReadFile(f.Path)
 		if err != nil {
@@ -319,26 +324,37 @@ func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath
 		}
 
 		lines := len(strings.Split(string(content), "\n"))
-		estimatedFunctions := max(1, lines/20)
+		functionCount, countMode, warning := countFunctions(f, string(content), registry)
 
 		result.TotalFiles++
 		result.TotalLines += lines
-		result.TotalFunctions += estimatedFunctions
+		result.TotalFunctions += functionCount
+		if countMode == "exact" {
+			result.ExactFunctionFiles++
+		} else {
+			result.HeuristicFunctionFiles++
+			if warning != "" {
+				result.Warnings = append(result.Warnings, warning)
+			}
+		}
 
 		stats := result.ByLanguage[f.Language]
 		stats.Files++
 		stats.Lines += lines
-		stats.Functions += estimatedFunctions
+		stats.Functions += functionCount
 		result.ByLanguage[f.Language] = stats
 
 		relPath, _ := filepath.Rel(basePath, f.Path)
 		result.Files = append(result.Files, FileAnalysis{
-			Path:      relPath,
-			Language:  f.Language,
-			Lines:     lines,
-			Functions: estimatedFunctions,
+			Path:              relPath,
+			Language:          f.Language,
+			Lines:             lines,
+			Functions:         functionCount,
+			FunctionCountMode: countMode,
 		})
 	}
+
+	sort.Strings(result.Warnings)
 }
 
 func estimateCosts(result *AnalyzeResponse) {
@@ -355,6 +371,80 @@ func estimateCosts(result *AnalyzeResponse) {
 	inputCost := float64(totalInputTokens) * 3.00 / 1_000_000
 	outputCost := float64(totalOutputTokens) * 15.00 / 1_000_000
 	result.EstimatedCost = inputCost + outputCost
+}
+
+func countFunctions(file *scanner.SourceFile, content string, registry *adapters.Registry) (int, string, string) {
+	if file == nil {
+		return 0, "heuristic", ""
+	}
+
+	if registry != nil {
+		if adapter := registry.GetAdapter(file.Language); adapter != nil {
+			ast, err := adapter.ParseFile(content)
+			if err == nil && ast != nil {
+				definitions, err := adapter.ExtractDefinitions(ast)
+				if err == nil {
+					return len(definitions), "exact", ""
+				}
+			}
+		}
+	}
+
+	return heuristicFunctionCount(file.Language, content), "heuristic", fmt.Sprintf("%s: function count fell back to heuristic estimation", file.Path)
+}
+
+func heuristicFunctionCount(language string, content string) int {
+	patterns := map[string]string{
+		"go":         `(?m)^func\s+(?:\([^)]*\)\s*)?[A-Za-z_]\w*\s*\(`,
+		"python":     `(?m)^\s*(?:async\s+)?def\s+[A-Za-z_]\w*\s*\(`,
+		"javascript": `(?m)(?:^|\s)(?:async\s+)?function\s+[A-Za-z_]\w*\s*\(|(?:const|let|var)\s+[A-Za-z_]\w*\s*=\s*(?:async\s*)?\([^)]*\)\s*=>`,
+		"typescript": `(?m)(?:^|\s)(?:async\s+)?function\s+[A-Za-z_]\w*\s*\(|(?:const|let|var)\s+[A-Za-z_]\w*\s*=\s*(?:async\s*)?\([^)]*\)\s*=>`,
+		"java":       `(?m)^\s*(?:public|private|protected|static|final|synchronized|abstract|\s)+[\w<>\[\], ?]+\s+[A-Za-z_]\w*\s*\(`,
+		"rust":       `(?m)^\s*(?:pub\s+)?fn\s+[A-Za-z_]\w*\s*\(`,
+	}
+
+	pattern := patterns[scanner.NormalizeLanguage(language)]
+	if pattern != "" {
+		return len(regexp.MustCompile(pattern).FindAllStringIndex(content, -1))
+	}
+
+	lines := len(strings.Split(content, "\n"))
+	if strings.TrimSpace(content) == "" {
+		return 0
+	}
+	return max(1, lines/40)
+}
+
+func persistAnalyzeMetrics(targetPath string, result *AnalyzeResponse) {
+	if result == nil {
+		return
+	}
+
+	collector := metrics.NewCollector()
+	collector.SetContext("analyze", targetPath, true)
+	collector.SetAnalyzeSummary(result.TotalFiles, result.ExactFunctionFiles, result.HeuristicFunctionFiles)
+	if result.EstimatedTokens > 0 {
+		collector.RecordTokens(result.EstimatedTokens, 0, false)
+	}
+	if result.EstimatedCost > 0 {
+		collector.RecordCost(result.EstimatedCost)
+	}
+	if err := collector.Save(); err != nil {
+		slog.Warn("failed to persist analyze metrics", slog.String("path", targetPath), slog.String("error", err.Error()))
+	}
+}
+
+func persistValidationMetrics(targetPath string, totalFiles int, result *validation.Result) {
+	if result == nil {
+		return
+	}
+
+	collector := metrics.NewCollector()
+	collector.SetContext("validate", targetPath, true)
+	collector.SetValidationSummary(totalFiles, result.CoveragePercent, result.TestsPassed, result.TestsFailed, len(result.FilesMissingTests), len(result.Errors))
+	if err := collector.Save(); err != nil {
+		slog.Warn("failed to persist validation metrics", slog.String("path", targetPath), slog.String("error", err.Error()))
+	}
 }
 
 func max(a, b int) int {

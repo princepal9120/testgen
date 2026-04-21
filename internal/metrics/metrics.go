@@ -12,26 +12,26 @@ import (
 
 // RunMetrics represents metrics for a single run
 type RunMetrics struct {
-	RunID                string    `json:"run_id"`
-	Timestamp            time.Time `json:"timestamp"`
-	Operation            string    `json:"operation,omitempty"`
-	TargetPath           string    `json:"target_path,omitempty"`
-	MachineMode          bool      `json:"machine_mode,omitempty"`
-	TotalFiles           int       `json:"total_files"`
-	TokensInput          int       `json:"tokens_input"`
-	TokensOutput         int       `json:"tokens_output"`
-	TokensCached         int       `json:"tokens_cached"`
-	CacheHitRate         float64   `json:"cache_hit_rate"`
-	TotalCostUSD         float64   `json:"total_cost_usd"`
-	CoveragePercent      float64   `json:"coverage_percent,omitempty"`
-	ExactFunctionFiles   int       `json:"exact_function_files,omitempty"`
-	HeuristicFunctionFiles int     `json:"heuristic_function_files,omitempty"`
-	MissingTestsCount    int       `json:"missing_tests_count,omitempty"`
-	ValidationErrorCount int       `json:"validation_error_count,omitempty"`
-	ValidationPassed     bool      `json:"validation_passed,omitempty"`
-	ExecutionTimeSeconds float64   `json:"execution_time_seconds"`
-	SuccessCount         int       `json:"success_count"`
-	ErrorCount           int       `json:"error_count"`
+	RunID                  string    `json:"run_id"`
+	Timestamp              time.Time `json:"timestamp"`
+	Operation              string    `json:"operation,omitempty"`
+	TargetPath             string    `json:"target_path,omitempty"`
+	MachineMode            bool      `json:"machine_mode,omitempty"`
+	TotalFiles             int       `json:"total_files"`
+	TokensInput            int       `json:"tokens_input"`
+	TokensOutput           int       `json:"tokens_output"`
+	TokensCached           int       `json:"tokens_cached"`
+	CacheHitRate           float64   `json:"cache_hit_rate"`
+	TotalCostUSD           float64   `json:"total_cost_usd"`
+	CoveragePercent        float64   `json:"coverage_percent,omitempty"`
+	ExactFunctionFiles     int       `json:"exact_function_files,omitempty"`
+	HeuristicFunctionFiles int       `json:"heuristic_function_files,omitempty"`
+	MissingTestsCount      int       `json:"missing_tests_count,omitempty"`
+	ValidationErrorCount   int       `json:"validation_error_count,omitempty"`
+	ValidationPassed       bool      `json:"validation_passed,omitempty"`
+	ExecutionTimeSeconds   float64   `json:"execution_time_seconds"`
+	SuccessCount           int       `json:"success_count"`
+	ErrorCount             int       `json:"error_count"`
 }
 
 // Collector collects and stores metrics

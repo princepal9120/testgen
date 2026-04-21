@@ -78,22 +78,22 @@ type AnalyzeRequest struct {
 
 // AnalyzeResponse contains analysis details for a codebase.
 type AnalyzeResponse struct {
-	APIVersion      string               `json:"api_version"`
-	RequestID       string               `json:"request_id,omitempty"`
-	Success         bool                 `json:"success"`
-	FailureCode     FailureCode          `json:"failure_code,omitempty"`
-	Error           string               `json:"error,omitempty"`
-	Path            string               `json:"path"`
-	TotalFiles      int                  `json:"total_files"`
-	TotalFunctions  int                  `json:"total_functions"`
-	TotalLines      int                  `json:"total_lines"`
-	ByLanguage      map[string]LangStats `json:"by_language"`
-	ExactFunctionFiles     int            `json:"exact_function_files,omitempty"`
-	HeuristicFunctionFiles int            `json:"heuristic_function_files,omitempty"`
-	EstimatedTokens int                  `json:"estimated_tokens,omitempty"`
-	EstimatedCost   float64              `json:"estimated_cost_usd,omitempty"`
-	Warnings        []string             `json:"warnings,omitempty"`
-	Files           []FileAnalysis       `json:"files,omitempty"`
+	APIVersion             string               `json:"api_version"`
+	RequestID              string               `json:"request_id,omitempty"`
+	Success                bool                 `json:"success"`
+	FailureCode            FailureCode          `json:"failure_code,omitempty"`
+	Error                  string               `json:"error,omitempty"`
+	Path                   string               `json:"path"`
+	TotalFiles             int                  `json:"total_files"`
+	TotalFunctions         int                  `json:"total_functions"`
+	TotalLines             int                  `json:"total_lines"`
+	ByLanguage             map[string]LangStats `json:"by_language"`
+	ExactFunctionFiles     int                  `json:"exact_function_files,omitempty"`
+	HeuristicFunctionFiles int                  `json:"heuristic_function_files,omitempty"`
+	EstimatedTokens        int                  `json:"estimated_tokens,omitempty"`
+	EstimatedCost          float64              `json:"estimated_cost_usd,omitempty"`
+	Warnings               []string             `json:"warnings,omitempty"`
+	Files                  []FileAnalysis       `json:"files,omitempty"`
 }
 
 // LangStats captures aggregate stats per language.
@@ -105,12 +105,12 @@ type LangStats struct {
 
 // FileAnalysis captures per-file analysis output.
 type FileAnalysis struct {
-	Path      string `json:"path"`
-	Language  string `json:"language"`
-	Lines     int    `json:"lines"`
-	Functions int    `json:"functions"`
+	Path              string `json:"path"`
+	Language          string `json:"language"`
+	Lines             int    `json:"lines"`
+	Functions         int    `json:"functions"`
 	FunctionCountMode string `json:"function_count_mode,omitempty"`
-	Tokens    int    `json:"estimated_tokens,omitempty"`
+	Tokens            int    `json:"estimated_tokens,omitempty"`
 }
 
 // ValidateRequest defines a machine-readable validate request.
