@@ -122,10 +122,13 @@ func init() {
 }
 
 func runGenerate(cmd *cobra.Command, args []string) error {
-	log := GetLogger()
 	machineMode := isGenerateMachineMode()
 	outputFormat := effectiveGenerateOutputFormat()
 	if cmd != nil && machineMode {
+		previousQuiet := quiet
+		quiet = true
+		defer func() { quiet = previousQuiet }()
+		initLogger()
 		root := cmd.Root()
 		if root != nil {
 			root.SilenceErrors = true
@@ -134,6 +137,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 		cmd.SilenceErrors = true
 		cmd.SilenceUsage = true
 	}
+	log := GetLogger()
 
 	req, err := buildGenerateRequest(cmd)
 	if err != nil {

@@ -426,7 +426,7 @@ func persistAnalyzeMetrics(targetPath string, result *AnalyzeResponse) {
 	}
 
 	collector := metrics.NewCollector()
-	collector.SetContext("analyze", targetPath, true)
+	collector.SetContext("analyze", targetPath, false)
 	collector.SetAnalyzeSummary(result.TotalFiles, result.ExactFunctionFiles, result.HeuristicFunctionFiles)
 	if result.EstimatedTokens > 0 {
 		collector.RecordTokens(result.EstimatedTokens, 0, false)
@@ -445,7 +445,7 @@ func persistValidationMetrics(targetPath string, totalFiles int, result *validat
 	}
 
 	collector := metrics.NewCollector()
-	collector.SetContext("validate", targetPath, true)
+	collector.SetContext("validate", targetPath, false)
 	collector.SetValidationSummary(totalFiles, result.CoveragePercent, result.TestsPassed, result.TestsFailed, len(result.FilesMissingTests), len(result.Errors))
 	if err := collector.Save(); err != nil {
 		slog.Warn("failed to persist validation metrics", slog.String("path", targetPath), slog.String("error", err.Error()))

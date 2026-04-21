@@ -9,6 +9,7 @@ Complete reference for all TestGen commands and options.
 - Prefer `--output-format json` for CI, wrappers, and agent callers.
 - Prefer `--dry-run --emit-patch` when the caller should inspect artifacts before any file write.
 - The CLI, TUI, and MCP server share the same orchestration layer, so JSON payloads and generation behavior stay aligned across surfaces.
+- In JSON machine mode, commands should return the shared outer envelope on stdout and suppress Cobra usage/error banners on stderr.
 
 ## Global Flags
 
@@ -162,14 +163,13 @@ testgen analyze [flags]
 |------|-------|-------------|---------|
 | `--path` | `-p` | Directory to analyze | `.` |
 | `--cost-estimate` | | Show estimated API cost | `false` |
-| `--detail` | | Detail level | `summary` |
+| `--detail` | | Detail level (`summary`, `per-file`) | `summary` |
 | `--recursive` | `-r` | Analyze recursively | `true` |
 | `--output-format` | | Output format | `text` |
 
 ### Detail Levels
 - `summary` - Total counts
 - `per-file` - File-by-file breakdown
-- `per-function` - Function-level detail
 
 ### Examples
 ```bash
@@ -178,6 +178,9 @@ testgen analyze --path=./src --cost-estimate
 
 # Detailed per-file analysis
 testgen analyze --path=./src --detail=per-file --output-format=json
+
+# Machine-readable validation failure envelope
+testgen validate --path=./src --fail-on-missing-tests --output-format=json
 ```
 
 ---

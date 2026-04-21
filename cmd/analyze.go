@@ -50,7 +50,7 @@ func init() {
 
 	analyzeCmd.Flags().StringVarP(&anaPath, "path", "p", ".", "directory to analyze")
 	analyzeCmd.Flags().BoolVar(&anaCostEstimate, "cost-estimate", false, "show estimated API costs")
-	analyzeCmd.Flags().StringVar(&anaDetail, "detail", "summary", "detail level: summary, per-file, per-function")
+	analyzeCmd.Flags().StringVar(&anaDetail, "detail", "summary", "detail level: summary, per-file")
 	analyzeCmd.Flags().BoolVarP(&anaRecursive, "recursive", "r", true, "analyze recursively")
 	analyzeCmd.Flags().StringVar(&anaOutputFormat, "output-format", "text", "output format: text, json")
 }

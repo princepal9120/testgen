@@ -79,6 +79,8 @@ cat request.json | testgen generate --request-file=-
 # or: testgen generate --request-file=./request.json
 ```
 
+In machine mode, TestGen writes the shared JSON envelope to stdout and suppresses human-oriented Cobra banners on stderr.
+
 ### 5. Write and validate when ready
 
 ```bash
