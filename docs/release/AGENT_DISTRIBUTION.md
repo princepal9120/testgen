@@ -95,7 +95,6 @@ If your binary is not on `PATH`, pass the explicit binary path instead:
 - MCP stdio server
 
 ### Still needed for public registry publishing
-- publish-ready MCP registry metadata bound to a specific released distribution artifact
 - package-manager distribution targets such as Homebrew/Scoop/etc. if broader install channels are desired
 - final registry metadata (`server.json`) tied to a real distribution target
 - versioned release process for MCP packaging
