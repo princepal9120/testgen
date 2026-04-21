@@ -34,8 +34,8 @@ If you are new to the project:
 | [`docs/integrations/codex.md`](./integrations/codex.md) | Codex / oh-my-codex users | Codex-specific setup |
 | [`docs/integrations/claude-code.md`](./integrations/claude-code.md) | Claude Code users | Claude-specific setup |
 | [`docs/integrations/opencode.md`](./integrations/opencode.md) | OpenCode users | OpenCode-specific setup |
-| [`docs/integrations/INSTALL_OVERVIEW.md`](./integrations/INSTALL_OVERVIEW.md) | Tool integrators | High-level install and packaging direction |
-| [`docs/integrations/INSTALL_IMPLEMENTATION.md`](./integrations/INSTALL_IMPLEMENTATION.md) | Maintainers / tool integrators | Concrete implementation plan for supported AI tools |
+| [`docs/integrations/INSTALL_OVERVIEW.md`](./integrations/INSTALL_OVERVIEW.md) | Tool integrators | High-level RTK install and packaging direction |
+| [`docs/integrations/INSTALL_IMPLEMENTATION.md`](./integrations/INSTALL_IMPLEMENTATION.md) | Maintainers / tool integrators | Concrete RTK installation plan for supported AI tools |
 | [`docs/integrations/mcp.md`](./integrations/mcp.md) | MCP clients | MCP server usage |
 | [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Users integrating TestGen into repos or MCP clients | Install, upgrade, and release posture |
 | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Maintainers | Package and runtime architecture overview |

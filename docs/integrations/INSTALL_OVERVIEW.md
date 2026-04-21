@@ -1,22 +1,26 @@
-# TestGen AI Tool Install Overview
+# RTK Installer Overview for TestGen
 
-**Scope:** High-level guide for making TestGen available inside AI coding tools through native skills, commands, or MCP-backed installer flows.
+**Scope:** High-level feature overview for making TestGen installable through RTK so AI-tool users can enable TestGen once and use it natively inside their preferred agent environment.
 
 ## Goal
 
-Install TestGen once, restart your AI tool, and use TestGen through the tool's native surface.
+Turn TestGen into an **RTK-installable agent integration**.
 
-Target experience:
+User flow:
 
 ```bash
-# examples of the installer UX we want to support
+# install once for the target tool
 rtk init -g --codex
 rtk init -g --claude
 rtk init -g --opencode
 rtk init -g --gemini
+
+# restart the AI tool
+# then use TestGen from that tool's native surface
 ```
 
-Then, after restart, the user should be able to invoke TestGen from that tool without manually copying files around.
+The feature is not just “copy some wrapper files.”
+It is a real install experience where RTK installs the correct TestGen integration payload for the chosen AI tool.
 
 ## Priority Order
 
@@ -28,72 +32,65 @@ Then, after restart, the user should be able to invoke TestGen from that tool wi
 
 ## What exists today
 
-Current first-class repo payloads:
-
+Current TestGen payloads:
 - Codex skill: `.codex/skills/testgen/SKILL.md`
 - Claude Code command: `.claude/commands/testgen.md`
 - OpenCode command: `.opencode/commands/testgen.md`
 - MCP server: `testgen mcp`
 
-Current installer primitive:
-
+Current helper script:
 - `scripts/install-agent-integrations.sh`
 
-Current install posture:
+Current reality:
+- good repo-local support for Codex / Claude Code / OpenCode
+- good MCP fallback
+- no Gemini CLI payload yet
+- no real RTK-first install UX yet
 
-- good support for repo-local installs
-- good support for MCP fallback
-- no Gemini CLI integration yet
-- no single global installer UX yet
+## Recommended model
 
-## Recommended packaging model
+### Layer 1: canonical TestGen payloads
+Each tool gets a thin payload owned by this repo.
+Those payloads stay small and only bridge the tool UX to the same TestGen backend contract.
 
-Use two layers:
-
-### 1. Canonical per-tool payloads
-
-Keep thin repo-owned integration payloads for each tool.
-They should only adapt the tool UX to the same TestGen backend contract.
-
-### 2. Installer/bootstrap UX
-
-Expose a simple installer entrypoint that:
+### Layer 2: RTK installer UX
+RTK becomes the public install surface that:
 - detects the target tool
-- installs the right payload to the right location
+- installs the right TestGen payload
 - supports reinstall on upgrade
 - keeps all tools aligned to one backend contract
 
-## Why this approach wins
+## Why this is the right feature
 
+- gives users the install experience they actually want
 - avoids backend forks per tool
-- keeps Codex / Claude Code / OpenCode stable
-- lets Gemini CLI be added cleanly next
-- gives users the install story they actually want
+- lets Gemini CLI come next without reworking the core product
+- keeps MCP as the fallback transport instead of the only portable option
 
-## Recommended release order
+## Release Order
 
 ### Phase 1
 - Codex
 - Claude Code
 - OpenCode
 - normalized payloads
-- installer UX contract
+- RTK installer contract
 
 ### Phase 2
 - Gemini CLI
 - Gemini docs
-- Gemini installer path
+- Gemini install path through RTK
 
 ### Phase 3
 - broader adapters for other tools
 
-## First implementation steps
+## Immediate Next Step
 
-1. Add a support matrix for all target tools
-2. Normalize current Codex / Claude Code / OpenCode payloads
-3. Design Gemini CLI integration
-4. Upgrade the installer from repo-copy helper to a real install surface
-5. Define upgrade / reinstall behavior
+1. define the RTK/TestGen install matrix
+2. normalize Codex / Claude Code / OpenCode payloads
+3. design Gemini CLI payload
+4. define RTK ownership and metadata contract
+5. implement `rtk init -g --codex|--claude|--opencode|--gemini`
 
 ## Where to go next
 
