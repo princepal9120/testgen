@@ -1,13 +1,13 @@
-# TestGen AI Tool Install Implementation Guide
+# RTK Installer Implementation Plan for TestGen
 
-**Scope:** Concrete implementation plan for shipping TestGen as an installable integration for AI coding tools, with Codex, Claude Code, OpenCode, and Gemini CLI as the first supported targets.
+**Scope:** Concrete implementation guide for shipping TestGen as an RTK-installable integration for AI coding tools, with Codex, Claude Code, OpenCode, and Gemini CLI as the first supported targets.
 
 ## Product Goal
 
 Users should be able to:
 
-1. install TestGen for their AI tool with one command
-2. restart the tool
+1. run one RTK install command
+2. restart their AI tool
 3. immediately use TestGen from the tool-native surface
 
 Target UX:
@@ -19,14 +19,21 @@ rtk init -g --opencode
 rtk init -g --gemini
 ```
 
+## Feature Definition
+
+This feature means:
+- TestGen ships the canonical payloads and metadata
+- RTK installs those payloads into the correct tool locations
+- all tools still use the same TestGen backend contract
+
 ## Phase 1 Scope
 
-Ship first-class support for:
+Support through RTK:
 - Codex
 - Claude Code
 - OpenCode
 
-Prepare Gemini CLI integration design and payload contract so Phase 2 is straightforward.
+Prepare Gemini CLI payload and RTK contract so Phase 2 is straightforward.
 
 ## Existing Surfaces To Reuse
 
@@ -53,55 +60,43 @@ Prepare Gemini CLI integration design and payload contract so Phase 2 is straigh
 - `docs/integrations/mcp.md`
 - `docs/release/AGENT_DISTRIBUTION.md`
 
-## Concrete Deliverables
+## Deliverables
 
-### Deliverable 1: install matrix
-Create a single support matrix that defines for each target:
+### Deliverable 1: RTK install matrix
+Create a single matrix that defines for each target:
 - support tier: GA / beta / future
-- payload type: skill / command / plugin / MCP config
+- payload type
 - install location
 - invocation style after install
-- upgrade/reinstall steps
+- upgrade / reinstall steps
+- RTK flag mapping
 
 **New file:**
 - `docs/integrations/INSTALL_MATRIX.md`
 
-### Deliverable 2: normalized payload contract
-Normalize Codex / Claude Code / OpenCode payloads so they all:
-- use the same safe review-first invocation
+### Deliverable 2: normalized top-3 payloads
+Make sure Codex / Claude Code / OpenCode payloads all:
+- use the same review-first invocation
 - document explicit write behavior
-- describe the same JSON contract assumptions
-- stay thin and avoid custom business logic
+- rely on the same shared backend contract
+- avoid tool-specific business logic
 
-**Files:**
-- `.codex/skills/testgen/SKILL.md`
-- `.claude/commands/testgen.md`
-- `.opencode/commands/testgen.md`
+### Deliverable 3: RTK metadata contract
+Define what RTK needs from this repo:
+- payload source paths
+- install destinations
+- support level
+- reinstall behavior
+- version / compatibility metadata
 
-### Deliverable 3: installer abstraction
-Refactor the current installer helper into a reusable primitive that can support both repo-local installs and future global installs.
-
-**Files:**
-- `scripts/install-agent-integrations.sh`
-- maybe a new global bootstrap helper if `rtk` lives in this repo
-
-### Deliverable 4: Gemini CLI integration design
-Define Gemini CLI’s integration model before implementation.
-Possible shapes:
-- command file
-- skill-like asset
-- plugin manifest
-- MCP-first configuration
+### Deliverable 4: Gemini CLI design
+Define Gemini CLI’s native integration shape and how RTK should install it.
 
 **New file:**
 - `docs/integrations/gemini-cli.md`
 
-### Deliverable 5: public installer UX contract
-Decide whether:
-- `rtk` lives inside this repo, or
-- `rtk` is external and consumes metadata from this repo
-
-That decision changes where installer code lives, but not the shared payload contract.
+### Deliverable 5: user-facing docs update
+Document RTK as the preferred install path for supported tools.
 
 ## Implementation Sequence
 
@@ -111,66 +106,76 @@ Create:
 - `docs/integrations/gemini-cli.md`
 
 ### Step 2
-Normalize the existing top-3 payloads.
+Normalize existing payloads for Codex / Claude Code / OpenCode.
 
 ### Step 3
-Refactor `scripts/install-agent-integrations.sh` into a payload-install primitive.
+Refactor `scripts/install-agent-integrations.sh` into a reusable payload-install primitive that RTK can either call directly or mirror.
 
 ### Step 4
-Define the `rtk init -g --<tool>` contract and ownership.
+Define RTK metadata ownership:
+- does this repo export metadata for RTK?
+- or does RTK hardcode TestGen integration behavior?
 
 ### Step 5
-Implement Codex / Claude Code / OpenCode install flow through that contract.
+Implement RTK-first install support for:
+- `--codex`
+- `--claude`
+- `--opencode`
 
 ### Step 6
-Add Gemini CLI support.
+Add Gemini CLI support behind RTK.
 
 ### Step 7
-Document upgrade / reinstall behavior clearly.
+Document upgrade / reinstall behavior.
 
 ## Verification Checklist
 
 ### Codex
-- install on clean profile
+- `rtk init -g --codex`
 - restart Codex
 - TestGen skill available
 - safe dry-run works
 - explicit write flow works
 
 ### Claude Code
-- install on clean profile
+- `rtk init -g --claude`
 - restart Claude Code
 - `/testgen` available
 - safe dry-run works
 - explicit write flow works
 
 ### OpenCode
-- install on clean profile
+- `rtk init -g --opencode`
 - restart OpenCode
 - command available
 - safe dry-run works
 - explicit write flow works
 
 ### Gemini CLI
-- install on clean profile
+- `rtk init -g --gemini`
 - restart Gemini CLI
-- integration surface available
+- integration available
 - safe dry-run works
 - explicit write flow works
 
 ### Upgrade
 - upgrade TestGen binary
-- rerun installer
-- verify payload remains aligned
+- rerun RTK installer
+- verify payload still works
 
 ## Non-Goals
 
-- shipping every AI tool in the first release
-- custom backend behavior per tool
+- supporting every AI tool in the first release
+- per-tool backend forks
 - replacing MCP as fallback
 - adding marketplace integrations before the top four are stable
 
 ## Recommendation
 
-Do not start by building a broad plugin system.
-Start by making the existing top-3 payloads installable and consistent, then add Gemini CLI as the next supported target.
+Make this a clearly named feature:
+**“RTK installer support for TestGen”**
+
+Then execute it in this order:
+1. Codex / Claude Code / OpenCode through RTK
+2. Gemini CLI through RTK
+3. future adapters later
