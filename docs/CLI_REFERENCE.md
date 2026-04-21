@@ -40,6 +40,7 @@ testgen generate [flags]
 | `--output` | `-o` | Output directory | same as source |
 | `--recursive` | `-r` | Process recursively | `false` |
 | `--parallel` | `-j` | Number of workers | `2` |
+| `--request-file` | | Read a machine request from a JSON file (`-` reads stdin) | - |
 | `--dry-run` | | Preview without writing | `false` |
 | `--emit-patch` | | Include structured patch operations in shared/JSON output | `false` |
 | `--interactive` | `-i` | Show interactive results view after generation | `false` |
@@ -68,6 +69,10 @@ testgen generate --path=./src -r --type=unit,edge-cases
 # Dry run with JSON output
 testgen generate --path=./src -r --dry-run --output-format=json
 
+# Machine request from file or stdin
+testgen generate --request-file=./request.json
+cat request.json | testgen generate --request-file=-
+
 # Dry run with agent-ready patch output
 testgen generate --path=./src -r --dry-run --emit-patch --output-format=json
 ```
@@ -87,6 +92,10 @@ testgen generate --file=./src/utils.py \
   --type=unit \
   --validate \
   --output-format=json
+
+# Explicit machine-input lane
+testgen generate --request-file=./request.json
+cat request.json | testgen generate --request-file=-
 ```
 
 ---

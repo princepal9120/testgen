@@ -5,8 +5,10 @@ package metrics
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"time"
 )
 
@@ -41,21 +43,24 @@ type Collector struct {
 	startTime  time.Time
 }
 
+var metricsRunCounter atomic.Uint64
+
 // NewCollector creates a new metrics collector
 func NewCollector() *Collector {
 	// Use .testgen/metrics in current directory
 	metricsDir := filepath.Join(".testgen", "metrics")
 	_ = os.MkdirAll(metricsDir, 0755)
 
-	runID := time.Now().Format("20060102-150405")
+	now := time.Now()
+	runID := fmt.Sprintf("%s-%03d", now.Format("20060102-150405.000000000"), metricsRunCounter.Add(1))
 
 	return &Collector{
 		metricsDir: metricsDir,
 		current: &RunMetrics{
 			RunID:     runID,
-			Timestamp: time.Now(),
+			Timestamp: now,
 		},
-		startTime: time.Now(),
+		startTime: now,
 	}
 }
 

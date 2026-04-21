@@ -279,7 +279,7 @@ func dedupeDiscoveredTests(discovered []discoveredTest) []discoveredTest {
 }
 
 func executionRoot(defaultPath string, sourcePath string, discovered []discoveredTest) string {
-	paths := []string{defaultPath, filepath.Dir(sourcePath)}
+	paths := []string{filepath.Dir(sourcePath)}
 	for _, item := range discovered {
 		if item.inline {
 			continue

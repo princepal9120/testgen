@@ -308,6 +308,47 @@ func TestValidateHelp(t *testing.T) {
 	}
 }
 
+func TestValidateJSONFailureEnvelope(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testgen-validate-json-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	srcDir := filepath.Join(dir, "src")
+	if err := os.MkdirAll(srcDir, 0o755); err != nil {
+		t.Fatalf("Failed to create src dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(srcDir, "sample.py"), []byte("def add(a, b):\n    return a + b\n"), 0o644); err != nil {
+		t.Fatalf("Failed to write sample file: %v", err)
+	}
+
+	stdout, stderr, err := runCmdInDir(t, dir, "validate", "--path=src", "--fail-on-missing-tests", "--output-format=json")
+	if err == nil {
+		t.Fatal("expected validation failure exit")
+	}
+	if strings.Contains(stderr, "Usage:") {
+		t.Fatalf("expected machine-mode validate to suppress usage output, got stderr=%s", stderr)
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
+		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+	if payload["api_version"] != "v1" {
+		t.Fatalf("expected api_version v1, got %#v", payload["api_version"])
+	}
+	if payload["success"] != false {
+		t.Fatalf("expected success=false, got %#v", payload["success"])
+	}
+	if payload["failure_code"] != "validation_failed" {
+		t.Fatalf("expected validation_failed, got %#v", payload["failure_code"])
+	}
+	if _, ok := payload["result"]; !ok {
+		t.Fatalf("expected outer validation response envelope, got %s", stdout)
+	}
+}
+
 // ============================================
 // TUI COMMAND TESTS
 // ============================================

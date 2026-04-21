@@ -193,6 +193,11 @@ func (s *Service) Validate(_ context.Context, req ValidateRequest) (*ValidateRes
 	resp.SourceFiles = sourceFiles
 	resp.Result = result
 	persistValidationMetrics(targetPath, len(sourceFiles), result)
+	if result != nil && len(result.Errors) > 0 {
+		resp.Success = false
+		resp.FailureCode = FailureCodeValidationFailed
+		resp.Error = strings.Join(result.Errors, "; ")
+	}
 
 	return resp, nil
 }

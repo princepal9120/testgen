@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/princepal9120/testgen-cli/internal/app"
-	"github.com/princepal9120/testgen-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -62,6 +61,12 @@ func init() {
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
+	machineMode := strings.EqualFold(valOutputFormat, "json")
+	if machineMode {
+		cmd.SilenceErrors = true
+		cmd.SilenceUsage = true
+	}
+
 	log := GetLogger()
 
 	log.Info("validating tests",
@@ -80,7 +85,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	}
 	response, err := service.Validate(context.Background(), req)
 	if err != nil {
-		if strings.EqualFold(valOutputFormat, "json") {
+		if machineMode {
 			resp := app.NewValidateFailureResponse(req, err, valPath)
 			encoder := json.NewEncoder(os.Stdout)
 			encoder.SetIndent("", "  ")
@@ -88,38 +93,48 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		}
 		return err
 	}
-	result := response.Result
 
 	// Output results
-	if err := outputValidationResults(result, valOutputFormat); err != nil {
+	if err := outputValidationResults(response, valOutputFormat); err != nil {
 		return err
 	}
+	result := response.Result
 
 	// Check thresholds
-	if valMinCoverage > 0 && result.CoveragePercent < valMinCoverage {
+	if result != nil && valMinCoverage > 0 && result.CoveragePercent < valMinCoverage {
 		return fmt.Errorf("coverage %.1f%% is below minimum %.1f%%", result.CoveragePercent, valMinCoverage)
 	}
 
-	if valFailOnMissing && len(result.FilesMissingTests) > 0 {
+	if result != nil && valFailOnMissing && len(result.FilesMissingTests) > 0 {
 		return fmt.Errorf("%d file(s) are missing tests", len(result.FilesMissingTests))
 	}
 
-	log.Info("validation complete",
-		slog.Float64("coverage", result.CoveragePercent),
-		slog.Int("files-with-tests", result.FilesWithTests),
-		slog.Int("files-missing-tests", len(result.FilesMissingTests)),
-	)
+	if result != nil {
+		log.Info("validation complete",
+			slog.Float64("coverage", result.CoveragePercent),
+			slog.Int("files-with-tests", result.FilesWithTests),
+			slog.Int("files-missing-tests", len(result.FilesMissingTests)),
+		)
+	}
 
 	return nil
 }
 
-func outputValidationResults(result *validation.Result, format string) error {
+func outputValidationResults(response *app.ValidateResponse, format string) error {
 	switch strings.ToLower(format) {
 	case "json":
 		encoder := json.NewEncoder(os.Stdout)
 		encoder.SetIndent("", "  ")
-		return encoder.Encode(result)
+		return encoder.Encode(response)
 	default:
+		result := response.Result
+		if result == nil {
+			fmt.Printf("\n=== Validation Results ===\n\n")
+			if response.Error != "" {
+				fmt.Printf("Error: %s\n\n", response.Error)
+			}
+			return nil
+		}
 		fmt.Printf("\n=== Validation Results ===\n\n")
 		fmt.Printf("Coverage:           %.1f%%\n", result.CoveragePercent)
 		fmt.Printf("Files with tests:   %d\n", result.FilesWithTests)

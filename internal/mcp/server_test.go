@@ -117,6 +117,63 @@ func TestServerToolCallGenerate(t *testing.T) {
 	}
 }
 
+func TestServerToolCallValidateFailureSetsIsError(t *testing.T) {
+	t.Parallel()
+
+	server := NewServer("test")
+	dir := t.TempDir()
+	srcDir := dir + "/src"
+	if err := os.MkdirAll(srcDir, 0o755); err != nil {
+		t.Fatalf("mkdir src: %v", err)
+	}
+	file := srcDir + "/sample.py"
+	if err := os.WriteFile(file, []byte("def add(a, b):\n    return a + b\n"), 0o644); err != nil {
+		t.Fatalf("write sample file: %v", err)
+	}
+
+	in := bytes.NewBuffer(nil)
+	out := bytes.NewBuffer(nil)
+	writeRequest(in, map[string]interface{}{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "tools/call",
+		"params": map[string]interface{}{
+			"name": "testgen_validate",
+			"arguments": map[string]interface{}{
+				"api_version":     "v1",
+				"request_id":      "req_validate_mcp_test",
+				"path":            srcDir,
+				"fail_on_missing": true,
+			},
+		},
+	})
+
+	if err := server.Run(context.Background(), in, out); err != nil {
+		t.Fatalf("server run failed: %v", err)
+	}
+
+	responses := decodeResponses(t, out.Bytes())
+	if len(responses) != 1 {
+		t.Fatalf("expected 1 response, got %d", len(responses))
+	}
+	result := responses[0]["result"].(map[string]interface{})
+	if isError, ok := result["isError"].(bool); !ok || !isError {
+		t.Fatalf("expected MCP validate failure to set isError=true, got %#v", result["isError"])
+	}
+	content := result["content"].([]interface{})
+	text := content[0].(map[string]interface{})["text"].(string)
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(text), &payload); err != nil {
+		t.Fatalf("decode MCP validate payload: %v", err)
+	}
+	if payload["api_version"] != app.APIVersion {
+		t.Fatalf("expected api_version %q, got %#v", app.APIVersion, payload["api_version"])
+	}
+	if payload["failure_code"] != string(app.FailureCodeValidationFailed) {
+		t.Fatalf("expected validation failure code, got %#v", payload["failure_code"])
+	}
+}
+
 func writeRequest(buf *bytes.Buffer, payload map[string]interface{}) {
 	data, _ := json.Marshal(payload)
 	buf.WriteString(fmt.Sprintf("Content-Length: %d\r\n\r\n", len(data)))

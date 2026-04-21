@@ -232,6 +232,7 @@ func (s *Server) callTool(ctx context.Context, raw json.RawMessage) (map[string]
 			isError = true
 		} else {
 			payload = resp
+			isError = !resp.Success
 		}
 	case "testgen_validate":
 		req := app.ValidateRequest{
@@ -249,6 +250,7 @@ func (s *Server) callTool(ctx context.Context, raw json.RawMessage) (map[string]
 			isError = true
 		} else {
 			payload = resp
+			isError = !resp.Success
 		}
 	default:
 		return nil, fmt.Errorf("unknown tool: %s", params.Name)

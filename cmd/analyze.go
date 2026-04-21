@@ -56,6 +56,12 @@ func init() {
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) error {
+	machineMode := strings.EqualFold(anaOutputFormat, "json")
+	if machineMode {
+		cmd.SilenceErrors = true
+		cmd.SilenceUsage = true
+	}
+
 	log := GetLogger()
 
 	log.Info("analyzing codebase",
@@ -73,7 +79,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	}
 	result, err := service.Analyze(context.Background(), req)
 	if err != nil {
-		if strings.EqualFold(anaOutputFormat, "json") {
+		if machineMode {
 			resp := app.NewAnalyzeFailureResponse(req, err, anaPath)
 			encoder := json.NewEncoder(os.Stdout)
 			encoder.SetIndent("", "  ")

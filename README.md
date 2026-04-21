@@ -72,6 +72,13 @@ testgen generate --file=./src/utils.py \
 
 This is the recommended safe default for agents and automation because it keeps file writes reviewable.
 
+Explicit machine-input lane:
+
+```bash
+cat request.json | testgen generate --request-file=-
+# or: testgen generate --request-file=./request.json
+```
+
 ### 5. Write and validate when ready
 
 ```bash
