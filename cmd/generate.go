@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -44,6 +46,7 @@ var (
 	genReportUsage    bool
 	genInteractive    bool
 	genEmitPatch      bool
+	genRequestFile    string
 )
 
 // generateCmd represents the generate command
@@ -100,6 +103,7 @@ func init() {
 	generateCmd.Flags().BoolVar(&genValidate, "validate", false, "run generated tests after creation")
 	generateCmd.Flags().StringVar(&genOutputFormat, "output-format", "text", "output format: text, json")
 	generateCmd.Flags().BoolVar(&genEmitPatch, "emit-patch", false, "include structured patch operations in shared/json output")
+	generateCmd.Flags().StringVar(&genRequestFile, "request-file", "", "read a machine request from JSON file ('-' reads stdin)")
 
 	// Filtering options
 	generateCmd.Flags().StringVar(&genIncludePattern, "include-pattern", "", "glob pattern for files to include")
@@ -119,59 +123,42 @@ func init() {
 func runGenerate(cmd *cobra.Command, args []string) error {
 	log := GetLogger()
 
-	// Validate inputs
-	if genPath == "" && genFile == "" {
-		return fmt.Errorf("either --path or --file is required")
+	req, err := buildGenerateRequest(cmd)
+	if err != nil {
+		if strings.EqualFold(genOutputFormat, "json") {
+			_ = outputJSON(app.NewGenerateFailureResponse(req, err, appTargetPathHint(req)))
+		}
+		return err
+	}
+
+	if req.Provider == "" {
+		req.Provider = viper.GetString("llm.provider")
+	}
+	if req.Provider == "" {
+		req.Provider = "anthropic"
 	}
 
 	// Check API key early (non-quiet mode shows helpful error)
-	provider := viper.GetString("llm.provider")
-	if provider == "" {
-		provider = "anthropic" // default
-	}
-	apiKey := getAPIKeyForProvider(provider)
+	apiKey := getAPIKeyForProvider(req.Provider)
 	if apiKey == "" && !quiet && genOutputFormat != "json" {
-		ui.ShowAPIKeyError(provider)
-		return fmt.Errorf("API key not configured for %s", provider)
-	}
-
-	// Determine target path
-	targetPath := genPath
-	if genFile != "" {
-		targetPath = genFile
-	}
-
-	// Make path absolute
-	absPath, err := filepath.Abs(targetPath)
-	if err != nil {
-		return fmt.Errorf("failed to resolve path: %w", err)
+		ui.ShowAPIKeyError(req.Provider)
+		return fmt.Errorf("API key not configured for %s", req.Provider)
 	}
 
 	log.Info("starting test generation",
-		slog.String("path", absPath),
-		slog.Any("types", genTypes),
-		slog.Bool("recursive", genRecursive),
-		slog.Bool("dry-run", genDryRun),
+		slog.String("path", appTargetPathHint(req)),
+		slog.Any("types", req.TestTypes),
+		slog.Bool("recursive", req.Recursive),
+		slog.Bool("dry-run", req.ResolvedDryRun()),
+		slog.String("request_id", req.RequestID),
 	)
 
 	service := app.NewService()
-	response, err := service.Generate(context.Background(), app.GenerateRequest{
-		Path:           genPath,
-		File:           genFile,
-		Recursive:      genRecursive,
-		IncludePattern: genIncludePattern,
-		ExcludePattern: genExcludePattern,
-		TestTypes:      genTypes,
-		Framework:      genFramework,
-		OutputDir:      genOutput,
-		DryRun:         genDryRun,
-		Validate:       genValidate,
-		BatchSize:      genBatchSize,
-		Parallelism:    genParallel,
-		Provider:       viper.GetString("llm.provider"),
-		EmitPatch:      genEmitPatch,
-	})
+	response, err := service.Generate(context.Background(), req)
 	if err != nil {
+		if strings.EqualFold(genOutputFormat, "json") {
+			_ = outputJSON(app.NewGenerateFailureResponse(req, err, appTargetPathHint(req)))
+		}
 		return err
 	}
 	results := response.Results
@@ -182,13 +169,13 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	)
 
 	// Show interactive results or text output
-	if genInteractive && !genDryRun && genOutputFormat != "json" {
+	if genInteractive && !response.DryRun && genOutputFormat != "json" {
 		log.Info("generation complete", slog.Int("files", len(results)))
 		return ui.ShowResults(results)
 	}
 
 	// Output results
-	if err := outputResults(response, genOutputFormat, genDryRun); err != nil {
+	if err := outputResults(response, genOutputFormat, response.DryRun); err != nil {
 		return fmt.Errorf("failed to output results: %w", err)
 	}
 
@@ -209,7 +196,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 				fmt.Sprintf("%d file(s) failed to generate tests", errorCount),
 				"Run with --verbose for details",
 			)
-			return fmt.Errorf("%d file(s) failed to generate tests", errorCount)
+			return machineError(response, fmt.Sprintf("%d file(s) failed to generate tests", errorCount))
 		}
 
 		funcsCount := 0
@@ -225,10 +212,101 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	if errorCount > 0 {
-		return fmt.Errorf("%d file(s) failed to generate tests", errorCount)
+		return machineError(response, fmt.Sprintf("%d file(s) failed to generate tests", errorCount))
 	}
 
 	return nil
+}
+
+func buildGenerateRequest(cmd *cobra.Command) (app.GenerateRequest, error) {
+	req := app.GenerateRequest{}
+	if genRequestFile != "" {
+		loaded, err := loadGenerateRequest(genRequestFile)
+		if err != nil {
+			return req, err
+		}
+		req = loaded
+	}
+
+	shouldOverlay := func(flagName string) bool {
+		return genRequestFile == "" || (cmd != nil && cmd.Flags().Changed(flagName))
+	}
+
+	if shouldOverlay("path") {
+		req.Path = genPath
+	}
+	if shouldOverlay("file") {
+		req.File = genFile
+	}
+	if shouldOverlay("recursive") {
+		req.Recursive = genRecursive
+	}
+	if shouldOverlay("include-pattern") {
+		req.IncludePattern = genIncludePattern
+	}
+	if shouldOverlay("exclude-pattern") {
+		req.ExcludePattern = genExcludePattern
+	}
+	if shouldOverlay("type") {
+		req.TestTypes = append([]string(nil), genTypes...)
+	}
+	if shouldOverlay("framework") {
+		req.Framework = genFramework
+	}
+	if shouldOverlay("output") {
+		req.OutputDir = genOutput
+	}
+	if shouldOverlay("dry-run") {
+		req.DryRun = genDryRun
+	}
+	if shouldOverlay("validate") {
+		req.Validate = genValidate
+	}
+	if shouldOverlay("batch-size") {
+		req.BatchSize = genBatchSize
+	}
+	if shouldOverlay("parallel") {
+		req.Parallelism = genParallel
+	}
+	if shouldOverlay("emit-patch") {
+		req.EmitPatch = genEmitPatch
+	}
+
+	return req, nil
+}
+
+func loadGenerateRequest(path string) (app.GenerateRequest, error) {
+	var data []byte
+	var err error
+	if path == "-" {
+		data, err = io.ReadAll(os.Stdin)
+	} else {
+		data, err = os.ReadFile(path)
+	}
+	if err != nil {
+		return app.GenerateRequest{}, fmt.Errorf("failed to read request file: %w", err)
+	}
+
+	var payload struct {
+		app.GenerateRequest
+		Types []string `json:"types"`
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	if err := decoder.Decode(&payload); err != nil {
+		return app.GenerateRequest{}, fmt.Errorf("failed to decode request file: %w", err)
+	}
+	req := payload.GenerateRequest
+	if len(req.TestTypes) == 0 && len(payload.Types) > 0 {
+		req.TestTypes = append([]string(nil), payload.Types...)
+	}
+	return req, nil
+}
+
+func machineError(response *app.GenerateResponse, fallback string) error {
+	if response != nil && response.Error != "" {
+		return fmt.Errorf("%s", response.Error)
+	}
+	return fmt.Errorf("%s", fallback)
 }
 
 func outputResults(response *app.GenerateResponse, format string, dryRun bool) error {
@@ -244,6 +322,22 @@ func outputJSON(response *app.GenerateResponse) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
 	return encoder.Encode(response)
+}
+
+func appTargetPathHint(req app.GenerateRequest) string {
+	if req.File != "" {
+		if absPath, err := filepath.Abs(req.File); err == nil {
+			return absPath
+		}
+		return req.File
+	}
+	if req.Path != "" {
+		if absPath, err := filepath.Abs(req.Path); err == nil {
+			return absPath
+		}
+		return req.Path
+	}
+	return ""
 }
 
 func outputText(results []*models.GenerationResult, dryRun bool) error {

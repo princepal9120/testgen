@@ -65,13 +65,20 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	)
 
 	service := app.NewService()
-	result, err := service.Analyze(context.Background(), app.AnalyzeRequest{
+	req := app.AnalyzeRequest{
 		Path:         anaPath,
 		Recursive:    anaRecursive,
 		CostEstimate: anaCostEstimate,
 		Detail:       anaDetail,
-	})
+	}
+	result, err := service.Analyze(context.Background(), req)
 	if err != nil {
+		if strings.EqualFold(anaOutputFormat, "json") {
+			resp := app.NewAnalyzeFailureResponse(req, err, anaPath)
+			encoder := json.NewEncoder(os.Stdout)
+			encoder.SetIndent("", "  ")
+			_ = encoder.Encode(resp)
+		}
 		return err
 	}
 

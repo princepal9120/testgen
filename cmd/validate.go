@@ -71,14 +71,21 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	)
 
 	service := app.NewService()
-	response, err := service.Validate(context.Background(), app.ValidateRequest{
+	req := app.ValidateRequest{
 		Path:          valPath,
 		Recursive:     valRecursive,
 		MinCoverage:   valMinCoverage,
 		FailOnMissing: valFailOnMissing,
 		ReportGaps:    valReportGaps,
-	})
+	}
+	response, err := service.Validate(context.Background(), req)
 	if err != nil {
+		if strings.EqualFold(valOutputFormat, "json") {
+			resp := app.NewValidateFailureResponse(req, err, valPath)
+			encoder := json.NewEncoder(os.Stdout)
+			encoder.SetIndent("", "  ")
+			_ = encoder.Encode(resp)
+		}
 		return err
 	}
 	result := response.Result
