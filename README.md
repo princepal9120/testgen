@@ -93,6 +93,7 @@ For MCP and repo-local agent wrappers, see the integration docs for the same rev
 
 - **Full command and flag reference** → [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md)
 - **Agent and MCP integrations** → [`docs/integrations/README.md`](docs/integrations/README.md)
+- **AI tool install overview** → [`docs/integrations/INSTALL_OVERVIEW.md`](docs/integrations/INSTALL_OVERVIEW.md)
 - **Release and distribution guide** → [`docs/release/AGENT_DISTRIBUTION.md`](docs/release/AGENT_DISTRIBUTION.md)
 - **Architecture** → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **Full docs map** → [`docs/INDEX.md`](docs/INDEX.md)
