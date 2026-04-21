@@ -102,6 +102,49 @@ func TestRunGenerateOutputsStructuredJSONFailure(t *testing.T) {
 	}
 }
 
+func TestRunGenerateTreatsRequestFileAsMachineModeWithoutJSONFlag(t *testing.T) {
+	resetGenerateCommandState()
+	viper.Reset()
+	logger = nil
+
+	t.Setenv("ANTHROPIC_API_KEY", "")
+
+	dir := t.TempDir()
+	sourceFile := filepath.Join(dir, "sample.py")
+	if err := os.WriteFile(sourceFile, []byte("def add(a, b):\n    return a + b\n"), 0o644); err != nil {
+		t.Fatalf("write source file: %v", err)
+	}
+
+	requestPath := filepath.Join(dir, "request.json")
+	request := `{"api_version":"v1","request_id":"req_machine_implicit_json","file":"` + sourceFile + `","test_types":["unit"],"dry_run":true,"provider":"anthropic"}`
+	if err := os.WriteFile(requestPath, []byte(request), 0o644); err != nil {
+		t.Fatalf("write request file: %v", err)
+	}
+
+	genRequestFile = requestPath
+
+	var runErr error
+	stdout := captureStdoutNoFail(t, func() error {
+		runErr = runGenerate(generateCmd, nil)
+		return nil
+	})
+
+	if runErr == nil {
+		t.Fatal("expected structured machine-mode failure")
+	}
+
+	var resp app.GenerateResponse
+	if err := json.Unmarshal([]byte(stdout), &resp); err != nil {
+		t.Fatalf("decode json output: %v\noutput=%s", err, stdout)
+	}
+	if resp.RequestID != "req_machine_implicit_json" {
+		t.Fatalf("expected request id to round-trip, got %q", resp.RequestID)
+	}
+	if resp.FailureCode != app.FailureCodeMissingAPIKey {
+		t.Fatalf("expected missing_api_key failure code, got %q", resp.FailureCode)
+	}
+}
+
 func resetGenerateCommandState() {
 	genPath = ""
 	genFile = ""
@@ -148,6 +191,32 @@ func captureStdout(t *testing.T, fn func() error) string {
 	if callErr != nil {
 		t.Fatalf("unexpected command error: %v", callErr)
 	}
+
+	return string(output)
+}
+
+func captureStdoutNoFail(t *testing.T, fn func() error) string {
+	t.Helper()
+
+	originalStdout := os.Stdout
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("pipe stdout: %v", err)
+	}
+	os.Stdout = writer
+
+	if err := fn(); err != nil {
+		t.Fatalf("unexpected command error: %v", err)
+	}
+
+	_ = writer.Close()
+	os.Stdout = originalStdout
+
+	output, readErr := io.ReadAll(reader)
+	if readErr != nil {
+		t.Fatalf("read captured stdout: %v", readErr)
+	}
+	_ = reader.Close()
 
 	return string(output)
 }

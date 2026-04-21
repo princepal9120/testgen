@@ -123,10 +123,22 @@ func init() {
 
 func runGenerate(cmd *cobra.Command, args []string) error {
 	log := GetLogger()
+	machineMode := isGenerateMachineMode()
+	outputFormat := effectiveGenerateOutputFormat()
+	if cmd != nil && machineMode {
+		prevSilenceErrors := cmd.SilenceErrors
+		prevSilenceUsage := cmd.SilenceUsage
+		cmd.SilenceErrors = true
+		cmd.SilenceUsage = true
+		defer func() {
+			cmd.SilenceErrors = prevSilenceErrors
+			cmd.SilenceUsage = prevSilenceUsage
+		}()
+	}
 
 	req, err := buildGenerateRequest(cmd)
 	if err != nil {
-		if strings.EqualFold(genOutputFormat, "json") {
+		if outputFormat == "json" {
 			_ = outputJSON(app.NewGenerateFailureResponse(req, err, appTargetPathHint(req)))
 		}
 		return err
@@ -143,7 +155,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	// let the service produce a structured envelope so dry-run/no-definition
 	// flows can still succeed without requiring credentials up front.
 	apiKey := getAPIKeyForProvider(req.Provider)
-	if apiKey == "" && genOutputFormat != "json" {
+	if apiKey == "" && outputFormat != "json" {
 		err = fmt.Errorf("%w for %s", llm.ErrNoAPIKey, req.Provider)
 		if !quiet {
 			ui.ShowAPIKeyError(req.Provider)
@@ -162,7 +174,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	service := app.NewService()
 	response, err := service.Generate(context.Background(), req)
 	if err != nil {
-		if strings.EqualFold(genOutputFormat, "json") {
+		if outputFormat == "json" {
 			_ = outputJSON(app.NewGenerateFailureResponse(req, err, appTargetPathHint(req)))
 		}
 		return err
@@ -175,13 +187,13 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	)
 
 	// Show interactive results or text output
-	if genInteractive && !response.DryRun && genOutputFormat != "json" {
+	if genInteractive && !response.DryRun && outputFormat != "json" {
 		log.Info("generation complete", slog.Int("files", len(results)))
 		return ui.ShowResults(results)
 	}
 
 	// Output results
-	if err := outputResults(response, genOutputFormat, response.DryRun); err != nil {
+	if err := outputResults(response, outputFormat, response.DryRun); err != nil {
 		return fmt.Errorf("failed to output results: %w", err)
 	}
 
@@ -196,7 +208,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	)
 
 	// Show TUI banner (non-quiet, non-json mode)
-	if !quiet && genOutputFormat != "json" {
+	if !quiet && outputFormat != "json" {
 		if errorCount > 0 {
 			ui.ShowError(
 				fmt.Sprintf("%d file(s) failed to generate tests", errorCount),
@@ -222,6 +234,17 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func isGenerateMachineMode() bool {
+	return strings.EqualFold(genOutputFormat, "json") || genRequestFile != ""
+}
+
+func effectiveGenerateOutputFormat() string {
+	if isGenerateMachineMode() {
+		return "json"
+	}
+	return strings.ToLower(genOutputFormat)
 }
 
 func buildGenerateRequest(cmd *cobra.Command) (app.GenerateRequest, error) {
