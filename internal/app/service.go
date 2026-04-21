@@ -35,6 +35,10 @@ func NewService() *Service {
 
 // Generate executes test generation via the shared application layer.
 func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateResponse, error) {
+	if err := normalizeGenerateRequest(&req); err != nil {
+		return nil, err
+	}
+
 	targetPath, err := resolveTargetPath(req.Path, req.File)
 	if err != nil {
 		return nil, err
@@ -51,11 +55,14 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 		return nil, fmt.Errorf("failed to scan path: %w", err)
 	}
 	if len(sourceFiles) == 0 {
+		if req.File != "" && scanner.DetectLanguage(targetPath) == "" {
+			return nil, fmt.Errorf("unsupported language for file: %s", filepath.Ext(targetPath))
+		}
 		return nil, fmt.Errorf("no source files found")
 	}
 
 	engine, err := s.newEngine(generator.EngineConfig{
-		DryRun:      req.DryRun,
+		DryRun:      req.ResolvedDryRun(),
 		Validate:    req.Validate,
 		OutputDir:   req.OutputDir,
 		TestTypes:   req.TestTypes,
@@ -70,17 +77,16 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 
 	results := s.generateResults(ctx, sourceFiles, engine, req.Parallelism)
 
-	resp := &GenerateResponse{
-		TargetPath:  targetPath,
-		SourceFiles: sourceFiles,
-		Results:     results,
-		Artifacts:   make([]Artifact, 0, len(results)),
-	}
+	resp := newGenerateResponse(req, targetPath)
+	resp.SourceFiles = sourceFiles
+	resp.Results = results
+	resp.Artifacts = make([]Artifact, 0, len(results))
+	resolvedDryRun := req.ResolvedDryRun()
 	for _, result := range results {
 		if result == nil {
 			continue
 		}
-		if !req.DryRun {
+		if !resolvedDryRun {
 			adapter := s.registry.GetAdapter(result.SourceFile.Language)
 			if adapter == nil {
 				result.Error = fmt.Errorf("no adapter for language: %s", result.SourceFile.Language)
@@ -96,18 +102,29 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 			resp.Artifacts = append(resp.Artifacts, artifact)
 		}
 
-		if req.DryRun || req.EmitPatch {
+		if resolvedDryRun || req.EmitPatch {
 			if patch := patchFromResult(result); patch != nil {
 				resp.Patches = append(resp.Patches, *patch)
 			}
 		}
 
 		if result.Error != nil {
-			resp.ErrorCount++
+		resp.ErrorCount++
 		} else {
 			resp.SuccessCount++
 		}
 		resp.TotalFunctions += len(result.FunctionsTested)
+	}
+	resp.Success = resp.ErrorCount == 0
+	if !resp.Success {
+		for _, result := range results {
+			if result == nil || result.Error == nil {
+				continue
+			}
+			resp.FailureCode = classifyFailure(result.Error)
+			resp.Error = result.Error.Error()
+			break
+		}
 	}
 
 	return resp, nil
@@ -115,6 +132,10 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 
 // Analyze executes codebase analysis via the shared application layer.
 func (s *Service) Analyze(_ context.Context, req AnalyzeRequest) (*AnalyzeResponse, error) {
+	if err := normalizeAnalyzeRequest(&req); err != nil {
+		return nil, err
+	}
+
 	targetPath, err := resolveTargetPath(req.Path, "")
 	if err != nil {
 		return nil, err
@@ -125,7 +146,8 @@ func (s *Service) Analyze(_ context.Context, req AnalyzeRequest) (*AnalyzeRespon
 		return nil, fmt.Errorf("failed to scan path: %w", err)
 	}
 
-	result := analyzeFiles(sourceFiles, targetPath)
+	result := newAnalyzeResponse(req, targetPath)
+	analyzeFiles(result, sourceFiles, targetPath)
 	if req.CostEstimate {
 		estimateCosts(result)
 	}
@@ -138,6 +160,10 @@ func (s *Service) Analyze(_ context.Context, req AnalyzeRequest) (*AnalyzeRespon
 
 // Validate executes validation via the shared application layer.
 func (s *Service) Validate(_ context.Context, req ValidateRequest) (*ValidateResponse, error) {
+	if err := normalizeValidateRequest(&req); err != nil {
+		return nil, err
+	}
+
 	targetPath, err := resolveTargetPath(req.Path, "")
 	if err != nil {
 		return nil, err
@@ -159,11 +185,11 @@ func (s *Service) Validate(_ context.Context, req ValidateRequest) (*ValidateRes
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	return &ValidateResponse{
-		TargetPath:  targetPath,
-		SourceFiles: sourceFiles,
-		Result:      result,
-	}, nil
+	resp := newValidateResponse(req, targetPath)
+	resp.SourceFiles = sourceFiles
+	resp.Result = result
+
+	return resp, nil
 }
 
 func resolveTargetPath(path string, file string) (string, error) {
@@ -284,13 +310,7 @@ func patchFromResult(result *models.GenerationResult) *PatchOperation {
 	}
 }
 
-func analyzeFiles(files []*scanner.SourceFile, basePath string) *AnalyzeResponse {
-	result := &AnalyzeResponse{
-		Path:       basePath,
-		ByLanguage: make(map[string]LangStats),
-		Files:      make([]FileAnalysis, 0, len(files)),
-	}
-
+func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath string) {
 	for _, f := range files {
 		content, err := os.ReadFile(f.Path)
 		if err != nil {
@@ -318,8 +338,6 @@ func analyzeFiles(files []*scanner.SourceFile, basePath string) *AnalyzeResponse
 			Functions: estimatedFunctions,
 		})
 	}
-
-	return result
 }
 
 func estimateCosts(result *AnalyzeResponse) {

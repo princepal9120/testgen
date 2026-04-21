@@ -7,24 +7,35 @@ import (
 
 // GenerateRequest defines a machine-readable test generation request.
 type GenerateRequest struct {
-	Path           string
-	File           string
-	Recursive      bool
-	IncludePattern string
-	ExcludePattern string
-	TestTypes      []string
-	Framework      string
-	OutputDir      string
-	DryRun         bool
-	Validate       bool
-	BatchSize      int
-	Parallelism    int
-	Provider       string
-	EmitPatch      bool
+	APIVersion     string  `json:"api_version,omitempty"`
+	RequestID      string  `json:"request_id,omitempty"`
+	Path           string  `json:"path,omitempty"`
+	File           string  `json:"file,omitempty"`
+	Recursive      bool    `json:"recursive,omitempty"`
+	IncludePattern string  `json:"include_pattern,omitempty"`
+	ExcludePattern string  `json:"exclude_pattern,omitempty"`
+	TestTypes      []string `json:"test_types,omitempty"`
+	Framework      string  `json:"framework,omitempty"`
+	OutputDir      string  `json:"output_dir,omitempty"`
+	DryRun         bool    `json:"dry_run,omitempty"`
+	WriteFiles     *bool   `json:"write_files,omitempty"`
+	Validate       bool    `json:"validate,omitempty"`
+	BatchSize      int     `json:"batch_size,omitempty"`
+	Parallelism    int     `json:"parallelism,omitempty"`
+	Provider       string  `json:"provider,omitempty"`
+	EmitPatch      bool    `json:"emit_patch,omitempty"`
 }
 
 // GenerateResponse contains the shared generation result returned to callers.
 type GenerateResponse struct {
+	APIVersion     string                     `json:"api_version"`
+	RequestID      string                     `json:"request_id,omitempty"`
+	Success        bool                       `json:"success"`
+	FailureCode    FailureCode                `json:"failure_code,omitempty"`
+	Error          string                     `json:"error,omitempty"`
+	DryRun         bool                       `json:"dry_run"`
+	WriteFiles     bool                       `json:"write_files"`
+	WriteMode      string                     `json:"write_mode,omitempty"`
 	TargetPath     string                     `json:"target_path"`
 	SourceFiles    []*models.SourceFile       `json:"source_files,omitempty"`
 	Results        []*models.GenerationResult `json:"results"`
@@ -43,6 +54,7 @@ type Artifact struct {
 	TestCode         string   `json:"test_code,omitempty"`
 	FunctionsTested  []string `json:"functions_tested,omitempty"`
 	Generated        bool     `json:"generated"`
+	FailureCode      FailureCode `json:"failure_code,omitempty"`
 	Error            string   `json:"error,omitempty"`
 	ValidationFailed bool     `json:"validation_failed,omitempty"`
 }
@@ -56,14 +68,21 @@ type PatchOperation struct {
 
 // AnalyzeRequest defines a machine-readable analyze request.
 type AnalyzeRequest struct {
-	Path         string
-	Recursive    bool
-	CostEstimate bool
-	Detail       string
+	APIVersion   string `json:"api_version,omitempty"`
+	RequestID    string `json:"request_id,omitempty"`
+	Path         string `json:"path,omitempty"`
+	Recursive    bool   `json:"recursive,omitempty"`
+	CostEstimate bool   `json:"cost_estimate,omitempty"`
+	Detail       string `json:"detail,omitempty"`
 }
 
 // AnalyzeResponse contains analysis details for a codebase.
 type AnalyzeResponse struct {
+	APIVersion      string               `json:"api_version"`
+	RequestID       string               `json:"request_id,omitempty"`
+	Success         bool                 `json:"success"`
+	FailureCode     FailureCode          `json:"failure_code,omitempty"`
+	Error           string               `json:"error,omitempty"`
 	Path            string               `json:"path"`
 	TotalFiles      int                  `json:"total_files"`
 	TotalFunctions  int                  `json:"total_functions"`
@@ -92,15 +111,22 @@ type FileAnalysis struct {
 
 // ValidateRequest defines a machine-readable validate request.
 type ValidateRequest struct {
-	Path          string
-	Recursive     bool
-	MinCoverage   float64
-	FailOnMissing bool
-	ReportGaps    bool
+	APIVersion    string  `json:"api_version,omitempty"`
+	RequestID     string  `json:"request_id,omitempty"`
+	Path          string  `json:"path,omitempty"`
+	Recursive     bool    `json:"recursive,omitempty"`
+	MinCoverage   float64 `json:"min_coverage,omitempty"`
+	FailOnMissing bool    `json:"fail_on_missing,omitempty"`
+	ReportGaps    bool    `json:"report_gaps,omitempty"`
 }
 
 // ValidateResponse contains validation output plus scan metadata.
 type ValidateResponse struct {
+	APIVersion string               `json:"api_version"`
+	RequestID  string               `json:"request_id,omitempty"`
+	Success    bool                 `json:"success"`
+	FailureCode FailureCode         `json:"failure_code,omitempty"`
+	Error      string               `json:"error,omitempty"`
 	TargetPath  string               `json:"target_path"`
 	SourceFiles []*models.SourceFile `json:"source_files,omitempty"`
 	Result      *validation.Result   `json:"result"`
