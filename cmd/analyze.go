@@ -58,6 +58,10 @@ func init() {
 func runAnalyze(cmd *cobra.Command, args []string) error {
 	machineMode := strings.EqualFold(anaOutputFormat, "json")
 	if machineMode {
+		previousQuiet := quiet
+		quiet = true
+		defer func() { quiet = previousQuiet }()
+		initLogger()
 		cmd.SilenceErrors = true
 		cmd.SilenceUsage = true
 	}

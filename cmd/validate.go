@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -63,6 +64,10 @@ func init() {
 func runValidate(cmd *cobra.Command, args []string) error {
 	machineMode := strings.EqualFold(valOutputFormat, "json")
 	if machineMode {
+		previousQuiet := quiet
+		quiet = true
+		defer func() { quiet = previousQuiet }()
+		initLogger()
 		cmd.SilenceErrors = true
 		cmd.SilenceUsage = true
 	}
@@ -115,6 +120,10 @@ func runValidate(cmd *cobra.Command, args []string) error {
 			slog.Int("files-with-tests", result.FilesWithTests),
 			slog.Int("files-missing-tests", len(result.FilesMissingTests)),
 		)
+	}
+
+	if !response.Success {
+		return errors.New(response.Error)
 	}
 
 	return nil
