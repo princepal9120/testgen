@@ -377,13 +377,12 @@ func (a *RustAdapter) RunTests(testDir string) (*models.TestResults, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*1e9) // 5 minutes for cargo
 	defer cancel()
 
-	// Find Cargo.toml
-	cargoPath := testDir
-	for cargoPath != "/" {
-		if _, err := os.Stat(filepath.Join(cargoPath, "Cargo.toml")); err == nil {
-			break
-		}
-		cargoPath = filepath.Dir(cargoPath)
+	cargoPath, found := findCargoProjectRoot(testDir)
+	if !found {
+		return &models.TestResults{
+			Output:   fmt.Sprintf("skipped cargo test: no Cargo.toml found from %s upward", testDir),
+			ExitCode: 0,
+		}, nil
 	}
 
 	cmd := exec.CommandContext(ctx, "cargo", "test", "--", "--nocapture")
@@ -415,4 +414,23 @@ func (a *RustAdapter) RunTests(testDir string) (*models.TestResults, error) {
 	}
 
 	return results, nil
+}
+
+func findCargoProjectRoot(startDir string) (string, bool) {
+	if startDir == "" {
+		return "", false
+	}
+
+	cargoPath := filepath.Clean(startDir)
+	for {
+		if _, err := os.Stat(filepath.Join(cargoPath, "Cargo.toml")); err == nil {
+			return cargoPath, true
+		}
+
+		parent := filepath.Dir(cargoPath)
+		if parent == cargoPath {
+			return "", false
+		}
+		cargoPath = parent
+	}
 }

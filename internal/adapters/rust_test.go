@@ -1,6 +1,7 @@
 package adapters
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -75,4 +76,38 @@ func TestRustAdapter_GenerateTestPath(t *testing.T) {
 	// Explicit output dir
 	pathWithDir := adapter.GenerateTestPath("/src/lib.rs", "/tests")
 	assert.Equal(t, "/tests/lib_test.rs", filepath.ToSlash(pathWithDir))
+}
+
+func TestFindCargoProjectRoot(t *testing.T) {
+	t.Run("finds parent cargo project", func(t *testing.T) {
+		root := t.TempDir()
+		nested := filepath.Join(root, "src", "module")
+		assert.NoError(t, os.MkdirAll(nested, 0o755))
+		assert.NoError(t, os.WriteFile(filepath.Join(root, "Cargo.toml"), []byte("[package]\nname = \"demo\"\nversion = \"0.1.0\"\n"), 0o644))
+
+		cargoRoot, found := findCargoProjectRoot(nested)
+		assert.True(t, found)
+		assert.Equal(t, root, cargoRoot)
+	})
+
+	t.Run("stops at filesystem root when cargo project missing", func(t *testing.T) {
+		root := t.TempDir()
+		nested := filepath.Join(root, "src", "module")
+		assert.NoError(t, os.MkdirAll(nested, 0o755))
+
+		cargoRoot, found := findCargoProjectRoot(nested)
+		assert.False(t, found)
+		assert.Empty(t, cargoRoot)
+	})
+}
+
+func TestRustAdapter_RunTestsSkipsWhenCargoProjectMissing(t *testing.T) {
+	adapter := NewRustAdapter()
+	root := t.TempDir()
+
+	results, err := adapter.RunTests(root)
+	assert.NoError(t, err)
+	assert.NotNil(t, results)
+	assert.Equal(t, 0, results.ExitCode)
+	assert.Contains(t, results.Output, "skipped cargo test")
 }
