@@ -24,7 +24,13 @@ func TestRunGenerateSupportsRequestFileMachineMode(t *testing.T) {
 	}
 
 	requestPath := filepath.Join(dir, "request.json")
-	request := `{"api_version":"v1","request_id":"req_machine_success","file":"` + sourceFile + `","test_types":["unit"],"dry_run":true}`
+	request := mustMarshalGenerateRequest(t, map[string]any{
+		"api_version": "v1",
+		"request_id":  "req_machine_success",
+		"file":        sourceFile,
+		"test_types":  []string{"unit"},
+		"dry_run":     true,
+	})
 	if err := os.WriteFile(requestPath, []byte(request), 0o644); err != nil {
 		t.Fatalf("write request file: %v", err)
 	}
@@ -69,7 +75,14 @@ func TestRunGenerateOutputsStructuredJSONFailure(t *testing.T) {
 	}
 
 	requestPath := filepath.Join(dir, "request.json")
-	request := `{"api_version":"v1","request_id":"req_machine_failure","file":"` + sourceFile + `","test_types":["unit"],"dry_run":true,"provider":"anthropic"}`
+	request := mustMarshalGenerateRequest(t, map[string]any{
+		"api_version": "v1",
+		"request_id":  "req_machine_failure",
+		"file":        sourceFile,
+		"test_types":  []string{"unit"},
+		"dry_run":     true,
+		"provider":    "anthropic",
+	})
 	if err := os.WriteFile(requestPath, []byte(request), 0o644); err != nil {
 		t.Fatalf("write request file: %v", err)
 	}
@@ -116,7 +129,14 @@ func TestRunGenerateTreatsRequestFileAsMachineModeWithoutJSONFlag(t *testing.T) 
 	}
 
 	requestPath := filepath.Join(dir, "request.json")
-	request := `{"api_version":"v1","request_id":"req_machine_implicit_json","file":"` + sourceFile + `","test_types":["unit"],"dry_run":true,"provider":"anthropic"}`
+	request := mustMarshalGenerateRequest(t, map[string]any{
+		"api_version": "v1",
+		"request_id":  "req_machine_implicit_json",
+		"file":        sourceFile,
+		"test_types":  []string{"unit"},
+		"dry_run":     true,
+		"provider":    "anthropic",
+	})
 	if err := os.WriteFile(requestPath, []byte(request), 0o644); err != nil {
 		t.Fatalf("write request file: %v", err)
 	}
@@ -223,4 +243,15 @@ func captureStdoutNoFail(t *testing.T, fn func() error) string {
 	_ = reader.Close()
 
 	return string(output)
+}
+
+func mustMarshalGenerateRequest(t *testing.T, payload map[string]any) string {
+	t.Helper()
+
+	data, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("marshal request payload: %v", err)
+	}
+
+	return string(data)
 }
