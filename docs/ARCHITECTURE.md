@@ -47,6 +47,7 @@ TestGen follows a layered architecture with a shared application service between
 - Shared application-layer request/response contracts
 - Generate/analyze/validate orchestration
 - Shared machine-readable output for CLI, TUI, and agent wrappers
+- Shared cost/usage transparency contract for analyze, generate, and integrations
 
 ### `internal/ui/tui/`
 - Bubble Tea TUI application
@@ -72,11 +73,16 @@ TestGen follows a layered architecture with a shared application service between
 - `Provider` interface
 - Anthropic/OpenAI implementations
 - Caching, rate limiting, batching
+- Provider usage accounting and pricing metadata
 
 ### `internal/generator/`
 - Core orchestration
 - Worker pool for parallelism
 - Output handling
+
+### `internal/metrics/`
+- Per-run metrics snapshots under `.testgen/metrics/`
+- Usage, cache, and cost reporting persistence
 
 ### `internal/validation/`
 - Test compilation checks
@@ -125,6 +131,15 @@ Caller → App Service → Scanner → Adapter.Parse → Engine → LLM → Adap
 5. **LLM** generates test code
 6. **Engine** returns artifacts first
 7. **App service / engine** writes and validates when requested
+
+## Cost-efficiency data flow
+
+Goal 5 keeps analysis and runtime accounting on one shared path:
+
+1. **Analyze** estimates provider-aware tokens/cost without making live API calls.
+2. **Engine + LLM providers** collect request counts, cache reuse, batching/chunking totals, and model/provider metadata during generation.
+3. **App service** returns additive usage fields through the same JSON contract used by CLI, TUI, and MCP callers.
+4. **Metrics collector** persists the same run totals to `.testgen/metrics/` for later inspection.
 
 ---
 
