@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/validation"
 	"github.com/princepal9120/testgen-cli/pkg/models"
 )
@@ -46,6 +47,7 @@ type GenerateResponse struct {
 	SuccessCount   int                        `json:"success_count"`
 	ErrorCount     int                        `json:"error_count"`
 	TotalFunctions int                        `json:"total_functions"`
+	Usage          *llm.UsageMetrics          `json:"usage,omitempty"`
 }
 
 // UsageReport is additive runtime accounting for a generation request.
@@ -87,6 +89,9 @@ type AnalyzeRequest struct {
 	Path         string `json:"path,omitempty"`
 	Recursive    bool   `json:"recursive,omitempty"`
 	CostEstimate bool   `json:"cost_estimate,omitempty"`
+	Provider     string `json:"provider,omitempty"`
+	Model        string `json:"model,omitempty"`
+	BatchSize    int    `json:"batch_size,omitempty"`
 	Detail       string `json:"detail,omitempty"`
 	Provider     string `json:"provider,omitempty"`
 	Model        string `json:"model,omitempty"`
@@ -120,6 +125,7 @@ type AnalyzeResponse struct {
 	OutputCostPerMTokens   float64              `json:"output_cost_per_million_usd,omitempty"`
 	CostEstimateOffline    bool                 `json:"cost_estimate_offline,omitempty"`
 	Warnings               []string             `json:"warnings,omitempty"`
+	Usage                  *llm.UsageMetrics    `json:"usage,omitempty"`
 	Files                  []FileAnalysis       `json:"files,omitempty"`
 }
 
@@ -142,6 +148,7 @@ type FileAnalysis struct {
 	InputTokens       int    `json:"estimated_input_tokens,omitempty"`
 	OutputTokens      int    `json:"estimated_output_tokens,omitempty"`
 	Tokens            int    `json:"estimated_tokens,omitempty"`
+	EstimatedCost     float64 `json:"estimated_cost_usd,omitempty"`
 }
 
 // ValidateRequest defines a machine-readable validate request.
