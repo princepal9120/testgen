@@ -14,11 +14,11 @@ import (
 )
 
 type generationTask struct {
-	id             string
-	def            *models.Definition
-	testType       string
-	prompt         string
-	cacheKey       string
+	id              string
+	def             *models.Definition
+	testType        string
+	prompt          string
+	cacheKey        string
 	estimatedTokens int
 }
 

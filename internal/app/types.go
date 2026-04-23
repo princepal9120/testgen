@@ -150,16 +150,12 @@ type LangStats struct {
 
 // FileAnalysis captures per-file analysis output.
 type FileAnalysis struct {
-	Path              string `json:"path"`
-	Language          string `json:"language"`
-	Lines             int    `json:"lines"`
-	Functions         int    `json:"functions"`
-	FunctionCountMode string `json:"function_count_mode,omitempty"`
-	EstimatedRequests int    `json:"estimated_requests,omitempty"`
-	EstimatedBatches  int    `json:"estimated_batch_count,omitempty"`
-	InputTokens       int    `json:"estimated_input_tokens,omitempty"`
-	OutputTokens      int    `json:"estimated_output_tokens,omitempty"`
-	Tokens            int    `json:"estimated_tokens,omitempty"`
+	Path              string  `json:"path"`
+	Language          string  `json:"language"`
+	Lines             int     `json:"lines"`
+	Functions         int     `json:"functions"`
+	FunctionCountMode string  `json:"function_count_mode,omitempty"`
+	Tokens            int     `json:"estimated_tokens,omitempty"`
 	EstimatedCost     float64 `json:"estimated_cost_usd,omitempty"`
 }
 

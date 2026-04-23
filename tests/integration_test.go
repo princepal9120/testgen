@@ -172,7 +172,7 @@ VALUE = 1
 		t.Fatalf("Failed to write sample file: %v", err)
 	}
 
-	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--emit-patch", "--output-format=json")
+	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--emit-patch", "--report-usage", "--output-format=json")
 	if err != nil {
 		t.Fatalf("Expected JSON dry-run to succeed, got error: %v stderr=%s", err, stderr)
 	}
@@ -184,6 +184,13 @@ VALUE = 1
 
 	if _, ok := payload["results"]; !ok {
 		t.Fatalf("Expected JSON payload to contain results, got: %s", stdout)
+	}
+	usage, ok := payload["usage"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected JSON payload to contain usage block, got: %s", stdout)
+	}
+	if usage["provider"] == "" {
+		t.Fatalf("expected usage provider, got: %v", usage)
 	}
 }
 
@@ -327,7 +334,7 @@ function multiply(a, b) {
 	}
 }
 
-func TestAnalyzeJSONIncludesProviderAwareEstimateFields(t *testing.T) {
+func TestAnalyzeJSONIncludesProviderAwareCostFields(t *testing.T) {
 	dir, err := os.MkdirTemp("", "testgen-analyze-json-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
@@ -335,7 +342,7 @@ func TestAnalyzeJSONIncludesProviderAwareEstimateFields(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	if err := os.WriteFile(filepath.Join(dir, "main.py"), []byte("def main():\n    return 42\n"), 0o644); err != nil {
-		t.Fatalf("Failed to write main.py: %v", err)
+		t.Fatalf("write python file: %v", err)
 	}
 
 	stdout, stderr, err := runCmdInDir(t, dir, "analyze", "--path=.", "--cost-estimate", "--output-format=json")
@@ -343,22 +350,28 @@ func TestAnalyzeJSONIncludesProviderAwareEstimateFields(t *testing.T) {
 		t.Fatalf("Expected analyze json to succeed, got error: %v stderr=%s", err, stderr)
 	}
 
-	var payload map[string]any
+	var payload map[string]interface{}
 	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
 		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
 	}
 
-	if payload["provider"] == "" {
-		t.Fatalf("expected provider in analyze payload, got: %s", stdout)
+	usage, ok := payload["usage"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected usage block in analyze output, got: %s", stdout)
 	}
-	if payload["model"] == "" {
-		t.Fatalf("expected model in analyze payload, got: %s", stdout)
+	if usage["provider"] == "" {
+		t.Fatalf("expected analyze usage provider, got: %v", usage)
 	}
-	if payload["estimated_input_tokens"] == nil || payload["estimated_output_tokens"] == nil {
-		t.Fatalf("expected provider-aware token breakdown in analyze payload, got: %s", stdout)
+	files, ok := payload["files"].([]interface{})
+	if !ok || len(files) == 0 {
+		t.Fatalf("expected per-file entries in analyze output, got: %s", stdout)
 	}
-	if payload["estimated_requests"] == nil || payload["estimated_batch_count"] == nil {
-		t.Fatalf("expected request/batch estimates in analyze payload, got: %s", stdout)
+	firstFile, ok := files[0].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected first file object, got: %#v", files[0])
+	}
+	if _, ok := firstFile["estimated_cost_usd"]; !ok {
+		t.Fatalf("expected per-file estimated_cost_usd, got: %#v", firstFile)
 	}
 }
 

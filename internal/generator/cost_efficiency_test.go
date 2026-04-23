@@ -58,7 +58,6 @@ func (p *stubProvider) Complete(ctx context.Context, req llm.CompletionRequest) 
 		Model:            llm.AnthropicDefaultModel,
 		EstimatedCostUSD: llm.EstimateCost("anthropic", llm.AnthropicDefaultModel, 200, 100),
 	}, nil
-	}
 }
 
 func TestEngineGenerateArtifactBatchesAndCachesDefinitions(t *testing.T) {
