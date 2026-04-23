@@ -131,7 +131,7 @@
                 <div class="integration-card">
                     <div class="feature-icon">🧠</div>
                     <h3>Codex / oh-my-codex</h3>
-                    <p>Use the repo-local skill and keep TestGen as the source of truth for scanning, generation, and validation.</p>
+                    <p>Use the canonical shared skill in `skills/testgen/SKILL.md`; this repo keeps a repo-local Codex compatibility path for local workflows.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">✍️</div>
@@ -147,6 +147,11 @@
                     <div class="feature-icon">🔌</div>
                     <h3>MCP clients</h3>
                     <p>Expose <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code> over stdio.</p>
+                </div>
+                <div class="integration-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>skills.sh publishing</h3>
+                    <p>Publish <code>skills/testgen/SKILL.md</code> from this repo and let users install it with <code>npx skills add ... --skill testgen</code>; there is no manual registry request in <code>vercel-labs/skills</code>.</p>
                 </div>
             </div>
         </div>

@@ -46,6 +46,12 @@ go build -o testgen .
 - Or rerun `go install github.com/princepal9120/testgen-cli@latest`.
 - If a target repo copied wrapper files instead of symlinking them, rerun `./scripts/install-agent-integrations.sh` after upgrading so those repo-local assets stay aligned with the current docs and wrapper behavior.
 
+## Skill source layout
+
+- Canonical shared skill source in this repo: `skills/testgen/SKILL.md`
+- Repo-local Codex compatibility path in this repo: `.codex/skills/testgen/SKILL.md`
+- Installers should treat `skills/testgen/SKILL.md` as the source of truth and `.codex/skills/testgen/SKILL.md` as the destination path for target repos.
+
 ## Install wrappers into another repo
 
 Copy mode:
@@ -54,11 +60,13 @@ Copy mode:
 ./scripts/install-agent-integrations.sh /path/to/target-repo copy
 ```
 
-Symlink mode:
+Symlink mode (same-machine local development only):
 
 ```bash
 ./scripts/install-agent-integrations.sh /path/to/target-repo symlink
 ```
+
+Use `copy` for any shared, portable, or long-lived installation. Symlink mode points the target repo back to this checkout and is only appropriate when both repos stay on the same machine.
 
 ## Print MCP config snippet
 
@@ -98,3 +106,14 @@ If your binary is not on `PATH`, pass the explicit binary path instead:
 - package-manager distribution targets such as Homebrew/Scoop/etc. if broader install channels are desired
 - final registry metadata (`server.json`) tied to a real distribution target
 - versioned release process for MCP packaging
+
+
+## skills.sh listing flow
+
+TestGen is not added to `skills.sh` by opening a manual request in `vercel-labs/skills`. The publishable asset is `skills/testgen/SKILL.md` in this repository. Once the repo is public on GitHub, users can install it with the `skills` CLI, for example:
+
+```bash
+npx skills add https://github.com/princepal9120/testgen --skill testgen
+```
+
+Any `skills.sh` leaderboard/listing visibility comes from anonymous install telemetry in the CLI rather than a separate submission workflow.

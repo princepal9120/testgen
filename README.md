@@ -89,6 +89,18 @@ testgen generate --path=./src --recursive --type=unit --validate
 
 For MCP and repo-local agent wrappers, see the integration docs for the same review-first flow and explicit write controls.
 
+## Publish the TestGen skill through skills.sh
+
+TestGen now keeps its canonical shared skill at `skills/testgen/SKILL.md`, which matches the standard repository layout that the `skills` CLI scans. The repo-local Codex path `.codex/skills/testgen/SKILL.md` remains in this repo as a compatibility symlink for local Codex workflows.
+
+You do **not** open a manual listing request in `vercel-labs/skills`. That repository is the CLI/tooling, not the registry for third-party skills. Instead, publish this repo on GitHub and let users install the skill directly, for example:
+
+```bash
+npx skills add https://github.com/princepal9120/testgen --skill testgen
+```
+
+Leaderboard visibility on `skills.sh` comes automatically from anonymous install telemetry in the `skills` CLI. For target repos, prefer `copy` installs from `./scripts/install-agent-integrations.sh`; `symlink` is only for same-machine local development.
+
 ## Where next
 
 - **Full command and flag reference** → [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md)

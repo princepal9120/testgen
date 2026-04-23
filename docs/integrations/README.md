@@ -39,7 +39,20 @@ testgen generate --file ./src/utils.py --type=unit --validate --output-format js
 
 ## Guidance
 
+- The canonical shared TestGen skill for skills.sh-style discovery lives at `skills/testgen/SKILL.md`.
+- The repo-local Codex path `.codex/skills/testgen/SKILL.md` exists only as a compatibility symlink in this repo.
 - Prefer **dry-run + JSON output** when an agent should inspect artifacts before writing.
 - Keep wrappers thin. TestGen should remain the source of truth for scanning, generation, and validation orchestration.
 - When you upgrade the TestGen binary, re-run the wrapper install script in repos that copied the repo-local wrapper files.
 - Use the per-tool docs only for the wrapper-specific installation and invocation details.
+
+
+## skills.sh publishing note
+
+You do not manually submit this skill to `vercel-labs/skills`. That repository hosts the CLI/tooling. To publish the TestGen skill, keep `skills/testgen/SKILL.md` in this repo, push the repo to GitHub, and let users install it directly with the `skills` CLI, for example:
+
+```bash
+npx skills add https://github.com/princepal9120/testgen --skill testgen
+```
+
+Listing visibility on `skills.sh` comes from anonymous install telemetry in the `skills` CLI, not from a manual registry request.
