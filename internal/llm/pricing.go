@@ -11,17 +11,17 @@ const (
 
 // UsageEstimate captures provider-aware offline usage estimates.
 type UsageEstimate struct {
-	Provider                 string
-	Model                    string
-	Requests                 int
-	BatchCount               int
-	ChunkCount               int
-	InputTokens              int
-	OutputTokens             int
-	TotalTokens              int
-	EstimatedCostUSD         float64
-	InputCostPerMillionUSD   float64
-	OutputCostPerMillionUSD  float64
+	Provider                string
+	Model                   string
+	Requests                int
+	BatchCount              int
+	ChunkCount              int
+	InputTokens             int
+	OutputTokens            int
+	TotalTokens             int
+	EstimatedCostUSD        float64
+	InputCostPerMillionUSD  float64
+	OutputCostPerMillionUSD float64
 }
 
 // EstimateOfflineUsage computes a provider-aware offline estimate for a generation workload.
