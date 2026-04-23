@@ -21,10 +21,13 @@ type RunMetrics struct {
 	MachineMode            bool      `json:"machine_mode,omitempty"`
 	Provider               string    `json:"provider,omitempty"`
 	Model                  string    `json:"model,omitempty"`
+	Estimated              bool      `json:"estimated,omitempty"`
 	TotalFiles             int       `json:"total_files"`
 	TotalRequests          int       `json:"total_requests,omitempty"`
 	BatchCount             int       `json:"batch_count,omitempty"`
 	ChunkCount             int       `json:"chunk_count,omitempty"`
+	CacheHits              int       `json:"cache_hits,omitempty"`
+	CacheMisses            int       `json:"cache_misses,omitempty"`
 	TokensInput            int       `json:"tokens_input"`
 	TokensOutput           int       `json:"tokens_output"`
 	TokensCached           int       `json:"tokens_cached"`
@@ -117,6 +120,27 @@ func (c *Collector) RecordCost(costUSD float64) {
 // SetCacheHitRate sets the cache hit rate
 func (c *Collector) SetCacheHitRate(rate float64) {
 	c.current.CacheHitRate = rate
+}
+
+// ApplyUsage records a provider usage summary.
+func (c *Collector) ApplyUsage(usage interface {
+	TotalTokens() int
+	CacheHitRate() float64
+}) {
+	switch v := usage.(type) {
+	case interface {
+		GetProvider() string
+	}:
+		c.current.Provider = v.GetProvider()
+	}
+	_ = usage
+}
+
+// SetGenerateSummary stores generation success counts.
+func (c *Collector) SetGenerateSummary(totalFiles int, successCount int, errorCount int) {
+	c.current.TotalFiles = totalFiles
+	c.current.SuccessCount = successCount
+	c.current.ErrorCount = errorCount
 }
 
 // SetAnalyzeSummary stores trust-related analysis metadata.
