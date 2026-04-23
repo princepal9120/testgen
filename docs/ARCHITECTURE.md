@@ -141,6 +141,13 @@ Goal 5 keeps analysis and runtime accounting on one shared path:
 3. **App service** returns additive usage fields through the same JSON contract used by CLI, TUI, and MCP callers.
 4. **Metrics collector** persists the same run totals to `.testgen/metrics/` for later inspection.
 
+### Contract rules
+
+- Cost and usage reporting must stay **additive** to the shared response envelope; existing machine-mode keys should remain stable.
+- Analyze and generate should share the same pricing/accounting assumptions so offline estimates and runtime totals do not drift apart.
+- Provider-specific gaps should surface as explicit estimates or optional fields rather than silent zero values.
+- Integrations should tolerate unknown future usage fields and continue treating the shared envelope as the stable top-level contract.
+
 ---
 
 ## Adding a New Language
