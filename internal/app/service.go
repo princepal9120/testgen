@@ -442,6 +442,45 @@ func estimateCosts(result *AnalyzeResponse, req AnalyzeRequest) {
 	result.Usage = usage
 }
 
+func estimateFunctionTokens(functionCount int) (inputTokens int, outputTokens int) {
+	if functionCount <= 0 {
+		return 0, 0
+	}
+
+	const (
+		tokensPerFunction  = 150
+		outputPerFunction  = 200
+		batchSize          = 5
+		systemPromptTokens = 500
+	)
+
+	inputTokens = (functionCount * tokensPerFunction) +
+		(((functionCount-1)/batchSize)+1)*systemPromptTokens
+	outputTokens = functionCount * outputPerFunction
+	return inputTokens, outputTokens
+}
+
+func usageReportFromEngine(engine *generator.Engine) *UsageReport {
+	if engine == nil {
+		return &UsageReport{}
+	}
+
+	report := &UsageReport{}
+	if usage := engine.GetUsage(); usage != nil {
+		report.RequestCount = usage.TotalRequests
+		report.TotalTokensIn = usage.TotalTokensIn
+		report.TotalTokensOut = usage.TotalTokensOut
+		report.CachedTokens = usage.CachedTokens
+		report.EstimatedCostUSD = usage.EstimatedCostUSD
+	}
+
+	_, hits, misses, hitRate := engine.GetCacheStats()
+	report.CacheHits = hits
+	report.CacheMisses = misses
+	report.CacheHitRate = hitRate
+	return report
+}
+
 func countFunctions(file *scanner.SourceFile, content string, registry *adapters.Registry) (int, string, string) {
 	if file == nil {
 		return 0, "heuristic", ""
