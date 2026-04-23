@@ -37,9 +37,9 @@ func TestServiceGenerateScansAndReturnsResultsForDefinitionFreeFile(t *testing.T
 
 	service := NewService()
 	resp, err := service.Generate(context.Background(), GenerateRequest{
-		File:      file,
-		TestTypes: []string{"unit"},
-		DryRun:    true,
+		File:        file,
+		TestTypes:   []string{"unit"},
+		DryRun:      true,
 		ReportUsage: true,
 	})
 	if err != nil {
