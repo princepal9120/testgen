@@ -62,6 +62,18 @@ type UsageReport struct {
 	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
 }
 
+// UsageReport is additive runtime accounting for a generation request.
+type UsageReport struct {
+	RequestCount     int     `json:"request_count"`
+	TotalTokensIn    int     `json:"total_tokens_in"`
+	TotalTokensOut   int     `json:"total_tokens_out"`
+	CacheHits        int     `json:"cache_hits"`
+	CacheMisses      int     `json:"cache_misses"`
+	CachedTokens     int     `json:"cached_tokens"`
+	CacheHitRate     float64 `json:"cache_hit_rate"`
+	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
+}
+
 // Artifact is a machine-readable generated artifact.
 type Artifact struct {
 	SourcePath       string      `json:"source_path"`
