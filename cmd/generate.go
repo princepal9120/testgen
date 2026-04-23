@@ -297,6 +297,9 @@ func buildGenerateRequest(cmd *cobra.Command) (app.GenerateRequest, error) {
 	if shouldOverlay("batch-size") {
 		req.BatchSize = genBatchSize
 	}
+	if shouldOverlay("report-usage") {
+		req.ReportUsage = genReportUsage
+	}
 	if shouldOverlay("parallel") {
 		req.Parallelism = genParallel
 	}
