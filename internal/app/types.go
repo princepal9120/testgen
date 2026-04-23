@@ -42,27 +42,22 @@ type GenerateResponse struct {
 	Results        []*models.GenerationResult `json:"results"`
 	Artifacts      []Artifact                 `json:"artifacts,omitempty"`
 	Patches        []PatchOperation           `json:"patches,omitempty"`
-	Usage          *UsageSummary              `json:"usage,omitempty"`
+	Usage          *UsageReport               `json:"usage,omitempty"`
 	SuccessCount   int                        `json:"success_count"`
 	ErrorCount     int                        `json:"error_count"`
 	TotalFunctions int                        `json:"total_functions"`
 }
 
-// UsageSummary captures additive LLM/cache transparency for generation runs.
-type UsageSummary struct {
-	Provider         string  `json:"provider,omitempty"`
-	Model            string  `json:"model,omitempty"`
-	TotalRequests    int     `json:"total_requests,omitempty"`
-	BatchCount       int     `json:"batch_count,omitempty"`
-	ChunkCount       int     `json:"chunk_count,omitempty"`
-	InputTokens      int     `json:"input_tokens,omitempty"`
-	OutputTokens     int     `json:"output_tokens,omitempty"`
-	CachedTokens     int     `json:"cached_tokens,omitempty"`
-	EstimatedCostUSD float64 `json:"estimated_cost_usd,omitempty"`
-	CacheEntries     int     `json:"cache_entries,omitempty"`
-	CacheHits        int     `json:"cache_hits,omitempty"`
-	CacheMisses      int     `json:"cache_misses,omitempty"`
-	CacheHitRate     float64 `json:"cache_hit_rate,omitempty"`
+// UsageReport is additive runtime accounting for a generation request.
+type UsageReport struct {
+	RequestCount     int     `json:"request_count"`
+	TotalTokensIn    int     `json:"total_tokens_in"`
+	TotalTokensOut   int     `json:"total_tokens_out"`
+	CacheHits        int     `json:"cache_hits"`
+	CacheMisses      int     `json:"cache_misses"`
+	CachedTokens     int     `json:"cached_tokens"`
+	CacheHitRate     float64 `json:"cache_hit_rate"`
+	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
 }
 
 // Artifact is a machine-readable generated artifact.
