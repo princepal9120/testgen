@@ -85,6 +85,11 @@ func (c *Collector) SetLLMUsage(provider string, model string, requests int, bat
 	c.current.ChunkCount = chunkCount
 }
 
+// SetCachedTokens records cached-token totals for the run.
+func (c *Collector) SetCachedTokens(tokens int) {
+	c.current.TokensCached = tokens
+}
+
 // RecordFile records a file being processed
 func (c *Collector) RecordFile(success bool) {
 	c.current.TotalFiles++

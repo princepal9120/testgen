@@ -187,6 +187,39 @@ VALUE = 1
 	}
 }
 
+func TestGenerateDryRunJSONUsageOutput(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testgen-json-usage-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	sampleFile := filepath.Join(dir, "sample.py")
+	content := `# intentionally no function definitions
+VALUE = 1
+`
+	if err := os.WriteFile(sampleFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("Failed to write sample file: %v", err)
+	}
+
+	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--report-usage", "--output-format=json")
+	if err != nil {
+		t.Fatalf("Expected JSON dry-run usage mode to succeed, got error: %v stderr=%s", err, stderr)
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
+		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+	usage, ok := payload["usage"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected JSON payload to contain usage block, got: %s", stdout)
+	}
+	if usage["provider"] == "" || usage["model"] == "" {
+		t.Fatalf("Expected provider/model metadata in usage block, got: %v", usage)
+	}
+}
+
 func TestGenerateRequestFileImplicitMachineMode(t *testing.T) {
 	dir, err := os.MkdirTemp("", "testgen-request-file-*")
 	if err != nil {

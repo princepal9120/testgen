@@ -442,6 +442,14 @@ func (e *Engine) GetUsage() *llm.UsageMetrics {
 	return usage
 }
 
+// GetProviderName returns the underlying provider name.
+func (e *Engine) GetProviderName() string {
+	if e == nil || e.provider == nil {
+		return ""
+	}
+	return e.provider.Name()
+}
+
 // GetCacheStats returns cache statistics
 func (e *Engine) GetCacheStats() (size int, hits int, misses int, hitRate float64) {
 	return e.cache.Stats()

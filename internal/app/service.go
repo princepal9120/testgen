@@ -130,6 +130,10 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 			break
 		}
 	}
+	if req.ReportUsage {
+		resp.Usage = buildGenerateUsageSummary(engine)
+	}
+	persistGenerateMetrics(targetPath, resp)
 
 	return resp, nil
 }
@@ -322,6 +326,43 @@ func patchFromResult(result *models.GenerationResult) *PatchOperation {
 	}
 }
 
+func buildGenerateUsageSummary(engine *generator.Engine) *UsageSummary {
+	if engine == nil {
+		return nil
+	}
+
+	usage := engine.GetUsage()
+	cacheSize, hits, misses, hitRate := engine.GetCacheStats()
+	if usage == nil {
+		usage = &llm.UsageMetrics{}
+	}
+
+	provider := usage.Provider
+	if provider == "" {
+		provider = engine.GetProviderName()
+	}
+	model := usage.Model
+	if model == "" {
+		model = llm.GetDefaultModel(provider)
+	}
+
+	return &UsageSummary{
+		Provider:         provider,
+		Model:            model,
+		TotalRequests:    usage.TotalRequests,
+		BatchCount:       usage.BatchCount,
+		ChunkCount:       usage.ChunkCount,
+		InputTokens:      usage.TotalTokensIn,
+		OutputTokens:     usage.TotalTokensOut,
+		CachedTokens:     usage.CachedTokens,
+		EstimatedCostUSD: usage.EstimatedCostUSD,
+		CacheEntries:     cacheSize,
+		CacheHits:        hits,
+		CacheMisses:      misses,
+		CacheHitRate:     hitRate,
+	}
+}
+
 func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath string, registry *adapters.Registry) {
 	for _, f := range files {
 		content, err := os.ReadFile(f.Path)
@@ -459,6 +500,35 @@ func persistAnalyzeMetrics(targetPath string, result *AnalyzeResponse) {
 	}
 	if err := collector.Save(); err != nil {
 		slog.Warn("failed to persist analyze metrics", slog.String("path", targetPath), slog.String("error", err.Error()))
+	}
+}
+
+func persistGenerateMetrics(targetPath string, result *GenerateResponse) {
+	if result == nil {
+		return
+	}
+
+	collector := metrics.NewCollector()
+	collector.SetContext("generate", targetPath, false)
+	for _, generationResult := range result.Results {
+		if generationResult == nil {
+			continue
+		}
+		collector.RecordFile(generationResult.Error == nil)
+	}
+	if result.Usage != nil {
+		collector.SetLLMUsage(result.Usage.Provider, result.Usage.Model, result.Usage.TotalRequests, result.Usage.BatchCount, result.Usage.ChunkCount)
+		if result.Usage.InputTokens > 0 || result.Usage.OutputTokens > 0 {
+			collector.RecordTokens(result.Usage.InputTokens, result.Usage.OutputTokens, false)
+		}
+		collector.SetCachedTokens(result.Usage.CachedTokens)
+		collector.SetCacheHitRate(result.Usage.CacheHitRate)
+		if result.Usage.EstimatedCostUSD > 0 {
+			collector.RecordCost(result.Usage.EstimatedCostUSD)
+		}
+	}
+	if err := collector.Save(); err != nil {
+		slog.Warn("failed to persist generate metrics", slog.String("path", targetPath), slog.String("error", err.Error()))
 	}
 }
 

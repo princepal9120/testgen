@@ -300,6 +300,9 @@ func buildGenerateRequest(cmd *cobra.Command) (app.GenerateRequest, error) {
 	if shouldOverlay("parallel") {
 		req.Parallelism = genParallel
 	}
+	if shouldOverlay("report-usage") {
+		req.ReportUsage = genReportUsage
+	}
 	if shouldOverlay("emit-patch") {
 		req.EmitPatch = genEmitPatch
 	}
@@ -346,7 +349,7 @@ func outputResults(response *app.GenerateResponse, format string, dryRun bool) e
 	case "json":
 		return outputJSON(response)
 	default:
-		return outputText(response.Results, dryRun)
+		return outputText(response, dryRun)
 	}
 }
 
@@ -372,8 +375,12 @@ func appTargetPathHint(req app.GenerateRequest) string {
 	return ""
 }
 
-func outputText(results []*models.GenerationResult, dryRun bool) error {
-	for _, r := range results {
+func outputText(response *app.GenerateResponse, dryRun bool) error {
+	if response == nil {
+		return nil
+	}
+
+	for _, r := range response.Results {
 		if r.Error != nil {
 			fmt.Printf("%s %s: %v\n", errorMark, r.SourceFile.Path, r.Error)
 			continue
@@ -387,6 +394,23 @@ func outputText(results []*models.GenerationResult, dryRun bool) error {
 			funcInfo := dimStyle.Render(fmt.Sprintf("(%d functions)", len(r.FunctionsTested)))
 			fmt.Printf("%s %s → %s %s\n", successMark, r.SourceFile.Path, r.TestPath, funcInfo)
 		}
+	}
+	if response.Usage != nil {
+		fmt.Printf("\n--- Usage Report ---\n")
+		if response.Usage.Provider != "" {
+			fmt.Printf("Provider:        %s\n", response.Usage.Provider)
+		}
+		if response.Usage.Model != "" {
+			fmt.Printf("Model:           %s\n", response.Usage.Model)
+		}
+		fmt.Printf("Requests:        %d\n", response.Usage.TotalRequests)
+		fmt.Printf("Input tokens:    %d\n", response.Usage.InputTokens)
+		fmt.Printf("Output tokens:   %d\n", response.Usage.OutputTokens)
+		fmt.Printf("Cached tokens:   %d\n", response.Usage.CachedTokens)
+		fmt.Printf("Cache hits:      %d\n", response.Usage.CacheHits)
+		fmt.Printf("Cache misses:    %d\n", response.Usage.CacheMisses)
+		fmt.Printf("Cache hit rate:  %.2f%%\n", response.Usage.CacheHitRate*100)
+		fmt.Printf("Estimated cost:  $%.4f USD\n", response.Usage.EstimatedCostUSD)
 	}
 	return nil
 }

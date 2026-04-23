@@ -40,6 +40,7 @@ func TestServiceGenerateScansAndReturnsResultsForDefinitionFreeFile(t *testing.T
 		File:      file,
 		TestTypes: []string{"unit"},
 		DryRun:    true,
+		ReportUsage: true,
 	})
 	if err != nil {
 		t.Fatalf("generate returned error: %v", err)
@@ -61,6 +62,12 @@ func TestServiceGenerateScansAndReturnsResultsForDefinitionFreeFile(t *testing.T
 	}
 	if resp.Results[0].Error != nil {
 		t.Fatalf("expected no generation error, got %v", resp.Results[0].Error)
+	}
+	if resp.Usage == nil {
+		t.Fatal("expected additive usage block when report_usage is enabled")
+	}
+	if resp.Usage.Provider == "" || resp.Usage.Model == "" {
+		t.Fatalf("expected provider/model metadata in usage block, got %#v", resp.Usage)
 	}
 }
 

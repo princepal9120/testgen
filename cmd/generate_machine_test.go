@@ -57,6 +57,38 @@ func TestRunGenerateSupportsRequestFileMachineMode(t *testing.T) {
 	}
 }
 
+func TestRunGenerateIncludesUsageBlockWhenRequested(t *testing.T) {
+	resetGenerateCommandState()
+	viper.Reset()
+	logger = nil
+
+	dir := t.TempDir()
+	sourceFile := filepath.Join(dir, "sample.py")
+	if err := os.WriteFile(sourceFile, []byte("# no functions here\n"), 0o644); err != nil {
+		t.Fatalf("write source file: %v", err)
+	}
+
+	genFile = sourceFile
+	genDryRun = true
+	genReportUsage = true
+	genOutputFormat = "json"
+
+	stdout := captureStdout(t, func() error {
+		return runGenerate(generateCmd, nil)
+	})
+
+	var resp app.GenerateResponse
+	if err := json.Unmarshal([]byte(stdout), &resp); err != nil {
+		t.Fatalf("decode json output: %v\noutput=%s", err, stdout)
+	}
+	if resp.Usage == nil {
+		t.Fatalf("expected usage block in JSON output, got %s", stdout)
+	}
+	if resp.Usage.Provider == "" || resp.Usage.Model == "" {
+		t.Fatalf("expected provider/model metadata in usage block, got %#v", resp.Usage)
+	}
+}
+
 func TestRunGenerateOutputsStructuredJSONFailure(t *testing.T) {
 	resetGenerateCommandState()
 	viper.Reset()
