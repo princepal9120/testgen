@@ -46,3 +46,11 @@ testgen generate --file ./src/utils.py --type=unit --validate --output-format js
 - Keep wrappers thin. TestGen should remain the source of truth for scanning, generation, and validation orchestration.
 - When you upgrade the TestGen binary, re-run the wrapper install script in repos that copied the repo-local wrapper files.
 - Use the per-tool docs only for the wrapper-specific installation and invocation details.
+
+## Cost-aware preflight pattern
+
+For large repositories or budget-sensitive workflows, prefer this sequence:
+
+1. Run `testgen analyze --cost-estimate --output-format json` to get an offline provider-aware estimate.
+2. If the estimate is acceptable, run `testgen generate --dry-run --emit-patch --report-usage --output-format json`.
+3. Only enable file writes after the caller has reviewed artifacts and usage data.
