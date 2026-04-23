@@ -81,6 +81,9 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 		Recursive:    true,
 		CostEstimate: true,
 		Detail:       "per-file",
+		Provider:     "openai",
+		Model:        "gpt-4-turbo-preview",
+		BatchSize:    2,
 	})
 	if err != nil {
 		t.Fatalf("analyze returned error: %v", err)
@@ -97,6 +100,21 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 	if resp.EstimatedTokens == 0 {
 		t.Fatal("expected cost estimation to populate tokens")
 	}
+	if resp.Provider != "openai" {
+		t.Fatalf("expected provider %q, got %q", "openai", resp.Provider)
+	}
+	if resp.Model != "gpt-4-turbo-preview" {
+		t.Fatalf("expected model %q, got %q", "gpt-4-turbo-preview", resp.Model)
+	}
+	if !resp.CostEstimateOffline {
+		t.Fatal("expected cost estimate to be marked offline")
+	}
+	if resp.EstimatedInputTokens == 0 || resp.EstimatedOutputTokens == 0 {
+		t.Fatal("expected input/output token estimates to be populated")
+	}
+	if resp.EstimatedRequests == 0 || resp.EstimatedBatchCount == 0 {
+		t.Fatal("expected request and batch estimates to be populated")
+	}
 	if resp.ExactFunctionFiles != 2 {
 		t.Fatalf("expected exact function counts for both files, got %d", resp.ExactFunctionFiles)
 	}
@@ -106,6 +124,12 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 	for _, file := range resp.Files {
 		if file.FunctionCountMode != "exact" {
 			t.Fatalf("expected exact function count mode, got %q for %s", file.FunctionCountMode, file.Path)
+		}
+		if file.Tokens == 0 || file.InputTokens == 0 || file.OutputTokens == 0 {
+			t.Fatalf("expected populated file token estimates for %s", file.Path)
+		}
+		if file.EstimatedRequests == 0 || file.EstimatedBatches == 0 {
+			t.Fatalf("expected request/batch estimates for %s", file.Path)
 		}
 	}
 }

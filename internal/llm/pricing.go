@@ -2,58 +2,110 @@ package llm
 
 import "strings"
 
-type pricing struct {
-	inputPerMillion  float64
-	outputPerMillion float64
+const (
+	defaultEstimatedPromptTokensPerFunction = 150
+	defaultEstimatedOutputTokensPerFunction = 200
+	defaultEstimatedSystemPromptTokens      = 500
+	defaultEstimatedBatchSize               = 5
+)
+
+// UsageEstimate captures provider-aware offline usage estimates.
+type UsageEstimate struct {
+	Provider                 string
+	Model                    string
+	Requests                 int
+	BatchCount               int
+	ChunkCount               int
+	InputTokens              int
+	OutputTokens             int
+	TotalTokens              int
+	EstimatedCostUSD         float64
+	InputCostPerMillionUSD   float64
+	OutputCostPerMillionUSD  float64
 }
 
-// ResolveProvider normalizes provider names across runtime and analysis flows.
-func ResolveProvider(provider string) string {
-	return strings.ToLower(strings.TrimSpace(provider))
-}
-
-// ResolveModel returns a concrete model for a provider, falling back to defaults.
-func ResolveModel(provider, model string) string {
+// EstimateOfflineUsage computes a provider-aware offline estimate for a generation workload.
+func EstimateOfflineUsage(provider string, model string, functionCount int, batchSize int) UsageEstimate {
+	provider = normalizeProvider(provider)
 	model = strings.TrimSpace(model)
-	if model != "" {
-		return model
+	if model == "" {
+		model = GetDefaultModel(provider)
 	}
-	return GetDefaultModel(ResolveProvider(provider))
+	if batchSize <= 0 {
+		batchSize = defaultEstimatedBatchSize
+	}
+
+	inputRate, outputRate := pricingForProviderModel(provider, model)
+	if functionCount <= 0 {
+		return UsageEstimate{
+			Provider:                provider,
+			Model:                   model,
+			InputCostPerMillionUSD:  inputRate,
+			OutputCostPerMillionUSD: outputRate,
+		}
+	}
+
+	batchCount := ceilDiv(functionCount, batchSize)
+	inputTokens := (functionCount * defaultEstimatedPromptTokensPerFunction) + (batchCount * defaultEstimatedSystemPromptTokens)
+	outputTokens := functionCount * defaultEstimatedOutputTokensPerFunction
+	totalTokens := inputTokens + outputTokens
+
+	return UsageEstimate{
+		Provider:                provider,
+		Model:                   model,
+		Requests:                batchCount,
+		BatchCount:              batchCount,
+		ChunkCount:              batchCount,
+		InputTokens:             inputTokens,
+		OutputTokens:            outputTokens,
+		TotalTokens:             totalTokens,
+		EstimatedCostUSD:        (float64(inputTokens) * inputRate / 1_000_000) + (float64(outputTokens) * outputRate / 1_000_000),
+		InputCostPerMillionUSD:  inputRate,
+		OutputCostPerMillionUSD: outputRate,
+	}
 }
 
-func resolvePricing(provider, model string) pricing {
-	provider = ResolveProvider(provider)
-	model = ResolveModel(provider, model)
-
-	switch provider {
+func normalizeProvider(provider string) string {
+	switch strings.ToLower(strings.TrimSpace(provider)) {
 	case "openai":
-		return pricing{inputPerMillion: 10.00, outputPerMillion: 30.00}
+		return "openai"
 	case "gemini":
-		switch model {
-		case "gemini-1.5-flash", "gemini-1.5-flash-latest":
-			return pricing{inputPerMillion: 0.075, outputPerMillion: 0.30}
-		default:
-			return pricing{inputPerMillion: 1.25, outputPerMillion: 5.00}
-		}
+		return "gemini"
 	case "groq":
-		switch model {
-		case "llama-3.1-8b-instant":
-			return pricing{inputPerMillion: 0.05, outputPerMillion: 0.08}
-		case "mixtral-8x7b-32768":
-			return pricing{inputPerMillion: 0.24, outputPerMillion: 0.24}
-		default:
-			return pricing{inputPerMillion: 0.59, outputPerMillion: 0.79}
-		}
-	case "anthropic":
-		fallthrough
+		return "groq"
 	default:
-		return pricing{inputPerMillion: 3.00, outputPerMillion: 15.00}
+		return "anthropic"
 	}
 }
 
-// EstimateCost returns the provider-aware cost estimate for the supplied tokens.
-func EstimateCost(provider, model string, inputTokens, outputTokens int) float64 {
-	rates := resolvePricing(provider, model)
-	return (float64(inputTokens) * rates.inputPerMillion / 1_000_000) +
-		(float64(outputTokens) * rates.outputPerMillion / 1_000_000)
+func pricingForProviderModel(provider string, model string) (float64, float64) {
+	normalizedModel := strings.ToLower(strings.TrimSpace(model))
+
+	switch normalizeProvider(provider) {
+	case "openai":
+		return 10.00, 30.00
+	case "gemini":
+		if strings.Contains(normalizedModel, "flash") {
+			return 0.075, 0.30
+		}
+		return 1.25, 5.00
+	case "groq":
+		switch {
+		case strings.Contains(normalizedModel, "llama-3.1-8b-instant"):
+			return 0.05, 0.08
+		case strings.Contains(normalizedModel, "mixtral-8x7b-32768"):
+			return 0.24, 0.24
+		default:
+			return 0.59, 0.79
+		}
+	default:
+		return 3.00, 15.00
+	}
+}
+
+func ceilDiv(n, d int) int {
+	if n <= 0 || d <= 0 {
+		return 0
+	}
+	return (n + d - 1) / d
 }

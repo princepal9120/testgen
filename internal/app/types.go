@@ -74,6 +74,9 @@ type AnalyzeRequest struct {
 	Recursive    bool   `json:"recursive,omitempty"`
 	CostEstimate bool   `json:"cost_estimate,omitempty"`
 	Detail       string `json:"detail,omitempty"`
+	Provider     string `json:"provider,omitempty"`
+	Model        string `json:"model,omitempty"`
+	BatchSize    int    `json:"batch_size,omitempty"`
 }
 
 // AnalyzeResponse contains analysis details for a codebase.
@@ -90,8 +93,18 @@ type AnalyzeResponse struct {
 	ByLanguage             map[string]LangStats `json:"by_language"`
 	ExactFunctionFiles     int                  `json:"exact_function_files,omitempty"`
 	HeuristicFunctionFiles int                  `json:"heuristic_function_files,omitempty"`
+	Provider               string               `json:"provider,omitempty"`
+	Model                  string               `json:"model,omitempty"`
+	EstimatedRequests      int                  `json:"estimated_requests,omitempty"`
+	EstimatedBatchCount    int                  `json:"estimated_batch_count,omitempty"`
+	EstimatedChunkCount    int                  `json:"estimated_chunk_count,omitempty"`
+	EstimatedInputTokens   int                  `json:"estimated_input_tokens,omitempty"`
+	EstimatedOutputTokens  int                  `json:"estimated_output_tokens,omitempty"`
 	EstimatedTokens        int                  `json:"estimated_tokens,omitempty"`
 	EstimatedCost          float64              `json:"estimated_cost_usd,omitempty"`
+	InputCostPerMTokens    float64              `json:"input_cost_per_million_usd,omitempty"`
+	OutputCostPerMTokens   float64              `json:"output_cost_per_million_usd,omitempty"`
+	CostEstimateOffline    bool                 `json:"cost_estimate_offline,omitempty"`
 	Warnings               []string             `json:"warnings,omitempty"`
 	Files                  []FileAnalysis       `json:"files,omitempty"`
 }
@@ -110,6 +123,10 @@ type FileAnalysis struct {
 	Lines             int    `json:"lines"`
 	Functions         int    `json:"functions"`
 	FunctionCountMode string `json:"function_count_mode,omitempty"`
+	EstimatedRequests int    `json:"estimated_requests,omitempty"`
+	EstimatedBatches  int    `json:"estimated_batch_count,omitempty"`
+	InputTokens       int    `json:"estimated_input_tokens,omitempty"`
+	OutputTokens      int    `json:"estimated_output_tokens,omitempty"`
 	Tokens            int    `json:"estimated_tokens,omitempty"`
 }
 

@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -80,6 +82,9 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		Recursive:    anaRecursive,
 		CostEstimate: anaCostEstimate,
 		Detail:       anaDetail,
+		Provider:     viper.GetString("llm.provider"),
+		Model:        viper.GetString("llm.model"),
+		BatchSize:    viper.GetInt("generation.batch_size"),
 	}
 	result, err := service.Analyze(context.Background(), req)
 	if err != nil {
@@ -111,7 +116,13 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 
 		if len(result.ByLanguage) > 0 {
 			fmt.Printf("\n--- By Language ---\n")
-			for lang, stats := range result.ByLanguage {
+			languages := make([]string, 0, len(result.ByLanguage))
+			for lang := range result.ByLanguage {
+				languages = append(languages, lang)
+			}
+			sort.Strings(languages)
+			for _, lang := range languages {
+				stats := result.ByLanguage[lang]
 				fmt.Printf("  %s: %d files, %d lines, ~%d functions\n",
 					lang, stats.Files, stats.Lines, stats.Functions)
 			}
@@ -119,6 +130,16 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 
 		if result.EstimatedTokens > 0 {
 			fmt.Printf("\n--- Cost Estimate ---\n")
+			if result.Provider != "" {
+				fmt.Printf("Provider:         %s\n", result.Provider)
+			}
+			if result.Model != "" {
+				fmt.Printf("Model:            %s\n", result.Model)
+			}
+			fmt.Printf("Est. requests:    %d\n", result.EstimatedRequests)
+			fmt.Printf("Est. batches:     %d\n", result.EstimatedBatchCount)
+			fmt.Printf("Input tokens:     %d\n", result.EstimatedInputTokens)
+			fmt.Printf("Output tokens:    %d\n", result.EstimatedOutputTokens)
 			fmt.Printf("Estimated tokens: %d\n", result.EstimatedTokens)
 			fmt.Printf("Estimated cost:   $%.2f USD\n", result.EstimatedCost)
 		}
@@ -126,8 +147,12 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 		if detail == "per-file" && len(result.Files) > 0 {
 			fmt.Printf("\n--- Per-File Details ---\n")
 			for _, f := range result.Files {
-				fmt.Printf("  %s (%s): %d lines, ~%d functions\n",
+				fmt.Printf("  %s (%s): %d lines, ~%d functions",
 					f.Path, f.Language, f.Lines, f.Functions)
+				if result.EstimatedTokens > 0 {
+					fmt.Printf(", %d est. tokens, %d est. requests", f.Tokens, f.EstimatedRequests)
+				}
+				fmt.Println()
 			}
 		}
 

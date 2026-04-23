@@ -19,7 +19,12 @@ type RunMetrics struct {
 	Operation              string    `json:"operation,omitempty"`
 	TargetPath             string    `json:"target_path,omitempty"`
 	MachineMode            bool      `json:"machine_mode,omitempty"`
+	Provider               string    `json:"provider,omitempty"`
+	Model                  string    `json:"model,omitempty"`
 	TotalFiles             int       `json:"total_files"`
+	TotalRequests          int       `json:"total_requests,omitempty"`
+	BatchCount             int       `json:"batch_count,omitempty"`
+	ChunkCount             int       `json:"chunk_count,omitempty"`
 	TokensInput            int       `json:"tokens_input"`
 	TokensOutput           int       `json:"tokens_output"`
 	TokensCached           int       `json:"tokens_cached"`
@@ -69,6 +74,15 @@ func (c *Collector) SetContext(operation string, targetPath string, machineMode 
 	c.current.Operation = operation
 	c.current.TargetPath = targetPath
 	c.current.MachineMode = machineMode
+}
+
+// SetLLMUsage records provider/model/request metadata for the run.
+func (c *Collector) SetLLMUsage(provider string, model string, requests int, batchCount int, chunkCount int) {
+	c.current.Provider = provider
+	c.current.Model = model
+	c.current.TotalRequests = requests
+	c.current.BatchCount = batchCount
+	c.current.ChunkCount = chunkCount
 }
 
 // RecordFile records a file being processed

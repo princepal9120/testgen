@@ -12,6 +12,7 @@ import (
 
 	"github.com/princepal9120/testgen-cli/internal/adapters"
 	"github.com/princepal9120/testgen-cli/internal/generator"
+	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/metrics"
 	"github.com/princepal9120/testgen-cli/internal/scanner"
 	"github.com/princepal9120/testgen-cli/internal/validation"
@@ -152,7 +153,7 @@ func (s *Service) Analyze(_ context.Context, req AnalyzeRequest) (*AnalyzeRespon
 	result := newAnalyzeResponse(req, targetPath)
 	analyzeFiles(result, sourceFiles, targetPath, s.registry)
 	if req.CostEstimate {
-		estimateCosts(result)
+		estimateCosts(result, req)
 	}
 	if req.Detail == "summary" {
 		result.Files = nil
@@ -362,20 +363,39 @@ func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath
 	sort.Strings(result.Warnings)
 }
 
-func estimateCosts(result *AnalyzeResponse) {
-	tokensPerFunction := 150
-	outputPerFunction := 200
-	batchSize := 5
-	systemPromptTokens := 500
+func estimateCosts(result *AnalyzeResponse, req AnalyzeRequest) {
+	if result == nil {
+		return
+	}
 
-	totalInputTokens := (result.TotalFunctions * tokensPerFunction) +
-		((result.TotalFunctions / batchSize) * systemPromptTokens)
-	totalOutputTokens := result.TotalFunctions * outputPerFunction
+	batchSize := req.BatchSize
+	if batchSize <= 0 {
+		batchSize = 5
+	}
 
-	result.EstimatedTokens = totalInputTokens + totalOutputTokens
-	inputCost := float64(totalInputTokens) * 3.00 / 1_000_000
-	outputCost := float64(totalOutputTokens) * 15.00 / 1_000_000
-	result.EstimatedCost = inputCost + outputCost
+	baseEstimate := llm.EstimateOfflineUsage(req.Provider, req.Model, 0, batchSize)
+	result.Provider = baseEstimate.Provider
+	result.Model = baseEstimate.Model
+	result.InputCostPerMTokens = baseEstimate.InputCostPerMillionUSD
+	result.OutputCostPerMTokens = baseEstimate.OutputCostPerMillionUSD
+	result.CostEstimateOffline = true
+
+	for idx := range result.Files {
+		fileEstimate := llm.EstimateOfflineUsage(result.Provider, result.Model, result.Files[idx].Functions, batchSize)
+		result.Files[idx].EstimatedRequests = fileEstimate.Requests
+		result.Files[idx].EstimatedBatches = fileEstimate.BatchCount
+		result.Files[idx].InputTokens = fileEstimate.InputTokens
+		result.Files[idx].OutputTokens = fileEstimate.OutputTokens
+		result.Files[idx].Tokens = fileEstimate.TotalTokens
+
+		result.EstimatedRequests += fileEstimate.Requests
+		result.EstimatedBatchCount += fileEstimate.BatchCount
+		result.EstimatedChunkCount += fileEstimate.ChunkCount
+		result.EstimatedInputTokens += fileEstimate.InputTokens
+		result.EstimatedOutputTokens += fileEstimate.OutputTokens
+		result.EstimatedTokens += fileEstimate.TotalTokens
+		result.EstimatedCost += fileEstimate.EstimatedCostUSD
+	}
 }
 
 func countFunctions(file *scanner.SourceFile, content string, registry *adapters.Registry) (int, string, string) {
@@ -428,8 +448,11 @@ func persistAnalyzeMetrics(targetPath string, result *AnalyzeResponse) {
 	collector := metrics.NewCollector()
 	collector.SetContext("analyze", targetPath, false)
 	collector.SetAnalyzeSummary(result.TotalFiles, result.ExactFunctionFiles, result.HeuristicFunctionFiles)
-	if result.EstimatedTokens > 0 {
-		collector.RecordTokens(result.EstimatedTokens, 0, false)
+	if result.Provider != "" || result.Model != "" {
+		collector.SetLLMUsage(result.Provider, result.Model, result.EstimatedRequests, result.EstimatedBatchCount, result.EstimatedChunkCount)
+	}
+	if result.EstimatedInputTokens > 0 || result.EstimatedOutputTokens > 0 {
+		collector.RecordTokens(result.EstimatedInputTokens, result.EstimatedOutputTokens, false)
 	}
 	if result.EstimatedCost > 0 {
 		collector.RecordCost(result.EstimatedCost)
