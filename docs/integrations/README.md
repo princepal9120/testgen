@@ -9,6 +9,7 @@ All current integration surfaces rely on the same underlying model:
 - machine-readable JSON output
 - review-first dry-run flows before file writes
 - optional patch-style artifacts for agent application
+- additive usage and cost transparency when reporting is enabled
 
 Current JSON payloads expose the same core concepts across wrappers:
 
@@ -17,11 +18,12 @@ Current JSON payloads expose the same core concepts across wrappers:
 - `artifacts`: generated test artifacts and validation flags
 - `patches`: structured write operations when dry-run or patch emission is requested
 - `success_count` / `error_count`: aggregate run status
+- additive usage/cost fields when the caller enables reporting
 
 Recommended safe default:
 
 ```bash
-testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --output-format json
+testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
 
 When you want TestGen to materialize files and validate them:
@@ -40,6 +42,7 @@ testgen generate --file ./src/utils.py --type=unit --validate --output-format js
 ## Guidance
 
 - Prefer **dry-run + JSON output** when an agent should inspect artifacts before writing.
+- Prefer `testgen analyze --cost-estimate --output-format json` when a wrapper needs provider-aware budget guidance before any API call.
 - Keep wrappers thin. TestGen should remain the source of truth for scanning, generation, and validation orchestration.
 - When you upgrade the TestGen binary, re-run the wrapper install script in repos that copied the repo-local wrapper files.
 - Use the per-tool docs only for the wrapper-specific installation and invocation details.
