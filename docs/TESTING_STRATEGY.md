@@ -34,6 +34,7 @@ Goal 5 introduces cache, batching/chunking, and provider-aware reporting require
 - **Integration tests:** JSON/text snapshots for `testgen analyze --cost-estimate` and `testgen generate --report-usage`, plus non-breaking machine-mode envelopes.
 - **Fixture-backed savings checks:** repeated-run fixtures proving cache reuse savings and bulk-run fixtures proving batching reduces request overhead.
 - **Metrics persistence:** `.testgen/metrics` snapshots should reflect the same accounting totals surfaced in CLI/TUI/MCP responses.
+- **Contract stability:** additive usage fields must not remove or rename the existing top-level machine-readable keys.
 
 ## Coverage Goals
 

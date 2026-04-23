@@ -41,3 +41,9 @@ You can print a ready-to-paste config snippet with:
 - `testgen_generate` defaults to safe dry-run behavior unless the caller explicitly requests file writes.
 - Structured outputs are returned as JSON text inside MCP tool results.
 - Usage/cost reporting is additive and should not break existing MCP clients that already consume the shared envelope.
+
+## Recommended call order
+
+1. Start with `testgen_analyze` when an MCP client needs an offline cost preview.
+2. Use `testgen_generate` in dry-run mode to inspect artifacts and usage transparency before any write.
+3. Escalate to write-enabled generation only after the client accepts the patch/artifact output.
