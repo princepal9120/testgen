@@ -91,9 +91,6 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 		Model:        "mixtral-8x7b-32768",
 		BatchSize:    3,
 		Detail:       "per-file",
-		Provider:     "openai",
-		Model:        "gpt-4-turbo-preview",
-		BatchSize:    2,
 	})
 	if err != nil {
 		t.Fatalf("analyze returned error: %v", err)

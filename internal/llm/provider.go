@@ -73,15 +73,38 @@ type CompletionResponse struct {
 
 // UsageMetrics tracks API usage
 type UsageMetrics struct {
-	Provider         string
-	Model            string
-	TotalRequests    int
-	BatchCount       int
-	ChunkCount       int
-	TotalTokensIn    int
-	TotalTokensOut   int
-	CachedTokens     int
-	EstimatedCostUSD float64
+	Provider         string  `json:"provider"`
+	Model            string  `json:"model"`
+	Estimated        bool    `json:"estimated"`
+	TotalRequests    int     `json:"request_count"`
+	BatchCount       int     `json:"batch_count"`
+	ChunkCount       int     `json:"chunk_count"`
+	CacheHits        int     `json:"cache_hits"`
+	CacheMisses      int     `json:"cache_misses"`
+	TotalTokensIn    int     `json:"total_tokens_in"`
+	TotalTokensOut   int     `json:"total_tokens_out"`
+	CachedTokens     int     `json:"cached_tokens"`
+	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
+}
+
+// Clone returns a defensive copy of usage metrics.
+func (u UsageMetrics) Clone() *UsageMetrics {
+	copy := u
+	return &copy
+}
+
+// TotalTokens returns the aggregate input and output token count.
+func (u UsageMetrics) TotalTokens() int {
+	return u.TotalTokensIn + u.TotalTokensOut
+}
+
+// CacheHitRate returns the derived cache hit rate.
+func (u UsageMetrics) CacheHitRate() float64 {
+	total := u.CacheHits + u.CacheMisses
+	if total == 0 {
+		return 0
+	}
+	return float64(u.CacheHits) / float64(total)
 }
 
 // Message represents a chat message

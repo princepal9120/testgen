@@ -325,13 +325,13 @@ func patchFromResult(result *models.GenerationResult) *PatchOperation {
 	}
 }
 
-func buildGenerateUsageSummary(engine *generator.Engine) *UsageSummary {
+func buildGenerateUsageSummary(engine *generator.Engine) *llm.UsageMetrics {
 	if engine == nil {
 		return nil
 	}
 
 	usage := engine.GetUsage()
-	cacheSize, hits, misses, hitRate := engine.GetCacheStats()
+	_, hits, misses, _ := engine.GetCacheStats()
 	if usage == nil {
 		usage = &llm.UsageMetrics{}
 	}
@@ -345,20 +345,19 @@ func buildGenerateUsageSummary(engine *generator.Engine) *UsageSummary {
 		model = llm.GetDefaultModel(provider)
 	}
 
-	return &UsageSummary{
+	return &llm.UsageMetrics{
 		Provider:         provider,
 		Model:            model,
 		TotalRequests:    usage.TotalRequests,
 		BatchCount:       usage.BatchCount,
 		ChunkCount:       usage.ChunkCount,
-		InputTokens:      usage.TotalTokensIn,
-		OutputTokens:     usage.TotalTokensOut,
+		TotalTokensIn:    usage.TotalTokensIn,
+		TotalTokensOut:   usage.TotalTokensOut,
 		CachedTokens:     usage.CachedTokens,
 		EstimatedCostUSD: usage.EstimatedCostUSD,
-		CacheEntries:     cacheSize,
 		CacheHits:        hits,
 		CacheMisses:      misses,
-		CacheHitRate:     hitRate,
+		Estimated:        usage.Estimated,
 	}
 }
 
@@ -460,25 +459,11 @@ func estimateFunctionTokens(functionCount int) (inputTokens int, outputTokens in
 	return inputTokens, outputTokens
 }
 
-func usageReportFromEngine(engine *generator.Engine) *UsageReport {
+func usageReportFromEngine(engine *generator.Engine) *llm.UsageMetrics {
 	if engine == nil {
-		return &UsageReport{}
+		return &llm.UsageMetrics{}
 	}
-
-	report := &UsageReport{}
-	if usage := engine.GetUsage(); usage != nil {
-		report.RequestCount = usage.TotalRequests
-		report.TotalTokensIn = usage.TotalTokensIn
-		report.TotalTokensOut = usage.TotalTokensOut
-		report.CachedTokens = usage.CachedTokens
-		report.EstimatedCostUSD = usage.EstimatedCostUSD
-	}
-
-	_, hits, misses, hitRate := engine.GetCacheStats()
-	report.CacheHits = hits
-	report.CacheMisses = misses
-	report.CacheHitRate = hitRate
-	return report
+	return engine.GetUsage()
 }
 
 func countFunctions(file *scanner.SourceFile, content string, registry *adapters.Registry) (int, string, string) {

@@ -43,35 +43,10 @@ type GenerateResponse struct {
 	Results        []*models.GenerationResult `json:"results"`
 	Artifacts      []Artifact                 `json:"artifacts,omitempty"`
 	Patches        []PatchOperation           `json:"patches,omitempty"`
-	Usage          *UsageReport               `json:"usage,omitempty"`
+	Usage          *llm.UsageMetrics          `json:"usage,omitempty"`
 	SuccessCount   int                        `json:"success_count"`
 	ErrorCount     int                        `json:"error_count"`
 	TotalFunctions int                        `json:"total_functions"`
-	Usage          *llm.UsageMetrics          `json:"usage,omitempty"`
-}
-
-// UsageReport is additive runtime accounting for a generation request.
-type UsageReport struct {
-	RequestCount     int     `json:"request_count"`
-	TotalTokensIn    int     `json:"total_tokens_in"`
-	TotalTokensOut   int     `json:"total_tokens_out"`
-	CacheHits        int     `json:"cache_hits"`
-	CacheMisses      int     `json:"cache_misses"`
-	CachedTokens     int     `json:"cached_tokens"`
-	CacheHitRate     float64 `json:"cache_hit_rate"`
-	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
-}
-
-// UsageReport is additive runtime accounting for a generation request.
-type UsageReport struct {
-	RequestCount     int     `json:"request_count"`
-	TotalTokensIn    int     `json:"total_tokens_in"`
-	TotalTokensOut   int     `json:"total_tokens_out"`
-	CacheHits        int     `json:"cache_hits"`
-	CacheMisses      int     `json:"cache_misses"`
-	CachedTokens     int     `json:"cached_tokens"`
-	CacheHitRate     float64 `json:"cache_hit_rate"`
-	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
 }
 
 // Artifact is a machine-readable generated artifact.
@@ -105,9 +80,6 @@ type AnalyzeRequest struct {
 	Model        string `json:"model,omitempty"`
 	BatchSize    int    `json:"batch_size,omitempty"`
 	Detail       string `json:"detail,omitempty"`
-	Provider     string `json:"provider,omitempty"`
-	Model        string `json:"model,omitempty"`
-	BatchSize    int    `json:"batch_size,omitempty"`
 }
 
 // AnalyzeResponse contains analysis details for a codebase.

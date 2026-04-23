@@ -137,8 +137,12 @@ func (c *Collector) ApplyUsage(usage *llm.UsageMetrics) {
 	c.current.ChunkCount += usage.ChunkCount
 	c.current.CacheHits += usage.CacheHits
 	c.current.CacheMisses += usage.CacheMisses
-	c.current.TokensInput += usage.TotalTokensIn
-	c.current.TokensOutput += usage.TotalTokensOut
+	if usage.Estimated {
+		c.current.TokensInput += usage.TotalTokens()
+	} else {
+		c.current.TokensInput += usage.TotalTokensIn
+		c.current.TokensOutput += usage.TotalTokensOut
+	}
 	c.current.TokensCached += usage.CachedTokens
 	c.current.TotalCostUSD += usage.EstimatedCostUSD
 	c.current.CacheHitRate = usage.CacheHitRate()

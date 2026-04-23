@@ -26,11 +26,8 @@ type UsageEstimate struct {
 
 // EstimateOfflineUsage computes a provider-aware offline estimate for a generation workload.
 func EstimateOfflineUsage(provider string, model string, functionCount int, batchSize int) UsageEstimate {
-	provider = normalizeProvider(provider)
-	model = strings.TrimSpace(model)
-	if model == "" {
-		model = GetDefaultModel(provider)
-	}
+	provider = ResolveProvider(provider)
+	model = ResolveModel(provider, model)
 	if batchSize <= 0 {
 		batchSize = defaultEstimatedBatchSize
 	}
@@ -63,6 +60,28 @@ func EstimateOfflineUsage(provider string, model string, functionCount int, batc
 		InputCostPerMillionUSD:  inputRate,
 		OutputCostPerMillionUSD: outputRate,
 	}
+}
+
+// ResolveProvider normalizes a provider identifier onto the supported provider set.
+func ResolveProvider(provider string) string {
+	return normalizeProvider(provider)
+}
+
+// ResolveModel returns the requested model or the provider default when omitted.
+func ResolveModel(provider string, model string) string {
+	model = strings.TrimSpace(model)
+	if model != "" {
+		return model
+	}
+	return GetDefaultModel(ResolveProvider(provider))
+}
+
+// EstimateCost computes provider/model-aware cost for concrete input/output token counts.
+func EstimateCost(provider string, model string, inputTokens int, outputTokens int) float64 {
+	provider = ResolveProvider(provider)
+	model = ResolveModel(provider, model)
+	inputRate, outputRate := pricingForProviderModel(provider, model)
+	return (float64(inputTokens) * inputRate / 1_000_000) + (float64(outputTokens) * outputRate / 1_000_000)
 }
 
 func normalizeProvider(provider string) string {
