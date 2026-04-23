@@ -11,6 +11,12 @@ If you are new to the project:
 
 ## Source of truth
 
+For Goal 5 cost-efficiency work, read these docs together:
+- [`README.md`](../README.md) for the user-facing cost/usage workflow
+- [`docs/CLI_REFERENCE.md`](./CLI_REFERENCE.md) for flag and machine-mode contract details
+- [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) for shared accounting/data-flow rules
+- [`docs/TESTING_STRATEGY.md`](./TESTING_STRATEGY.md) for savings and contract-regression verification
+
 | Topic | Canonical doc | Notes |
 |------|---------------|-------|
 | Product overview and onboarding | [`README.md`](../README.md) | High-level only |
