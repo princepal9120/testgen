@@ -3,6 +3,7 @@ package llm
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strings"
 	"sync"
 )
 
@@ -31,21 +32,27 @@ func NewCache(maxSize int) *Cache {
 	}
 }
 
-// GenerateKey creates a cache key from the request parameters
+// GenerateKey creates a cache key from the request parameters.
 func (c *Cache) GenerateKey(prompt string, systemRole string, model string) string {
+	return c.GenerateKeyParts(prompt, systemRole, model)
+}
+
+// GenerateKeyParts creates a cache key from normalized string parts.
+func (c *Cache) GenerateKeyParts(parts ...string) string {
 	hasher := sha256.New()
-	hasher.Write([]byte(prompt))
-	hasher.Write([]byte("|"))
-	hasher.Write([]byte(systemRole))
-	hasher.Write([]byte("|"))
-	hasher.Write([]byte(model))
+	for idx, part := range parts {
+		if idx > 0 {
+			hasher.Write([]byte("|"))
+		}
+		hasher.Write([]byte(strings.TrimSpace(part)))
+	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 // Get retrieves a cached response
 func (c *Cache) Get(key string) (*CompletionResponse, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	entry, exists := c.entries[key]
 	if exists {
@@ -103,6 +110,13 @@ func (c *Cache) Stats() (size int, hits int, misses int, hitRate float64) {
 	}
 
 	return
+}
+
+// Counts returns raw cache hit/miss counters.
+func (c *Cache) Counts() (hits int, misses int) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.hits, c.misses
 }
 
 // CachedProvider wraps a Provider with caching

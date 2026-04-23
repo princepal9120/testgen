@@ -205,29 +205,24 @@ func (p *GeminiProvider) Complete(ctx context.Context, req CompletionRequest) (*
 	}
 
 	// Update usage metrics
+	cost := EstimateCost(p.Name(), p.config.Model, apiResp.UsageMetadata.PromptTokenCount, apiResp.UsageMetadata.CandidatesTokenCount)
 	p.mu.Lock()
+	p.usage.Provider = p.Name()
+	p.usage.Model = p.config.Model
 	p.usage.TotalRequests++
 	p.usage.TotalTokensIn += apiResp.UsageMetadata.PromptTokenCount
 	p.usage.TotalTokensOut += apiResp.UsageMetadata.CandidatesTokenCount
-	// Gemini 1.5 Flash pricing (per million tokens)
-	// Input: $0.075 / 1M, Output: $0.30 / 1M (flash model)
-	// Gemini 1.5 Pro: Input: $1.25 / 1M, Output: $5.00 / 1M
-	if p.config.Model == "gemini-1.5-flash" || p.config.Model == "gemini-1.5-flash-latest" {
-		p.usage.EstimatedCostUSD += float64(apiResp.UsageMetadata.PromptTokenCount) * 0.075 / 1_000_000
-		p.usage.EstimatedCostUSD += float64(apiResp.UsageMetadata.CandidatesTokenCount) * 0.30 / 1_000_000
-	} else {
-		// Default to Pro pricing
-		p.usage.EstimatedCostUSD += float64(apiResp.UsageMetadata.PromptTokenCount) * 1.25 / 1_000_000
-		p.usage.EstimatedCostUSD += float64(apiResp.UsageMetadata.CandidatesTokenCount) * 5.00 / 1_000_000
-	}
+	p.usage.EstimatedCostUSD += cost
 	p.mu.Unlock()
 
 	return &CompletionResponse{
-		Content:      content,
-		TokensInput:  apiResp.UsageMetadata.PromptTokenCount,
-		TokensOutput: apiResp.UsageMetadata.CandidatesTokenCount,
-		Model:        p.config.Model,
-		FinishReason: finishReason,
+		Content:          content,
+		TokensInput:      apiResp.UsageMetadata.PromptTokenCount,
+		TokensOutput:     apiResp.UsageMetadata.CandidatesTokenCount,
+		Provider:         p.Name(),
+		Model:            p.config.Model,
+		FinishReason:     finishReason,
+		EstimatedCostUSD: cost,
 	}, nil
 }
 

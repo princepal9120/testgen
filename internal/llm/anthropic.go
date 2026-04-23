@@ -163,21 +163,24 @@ func (p *AnthropicProvider) Complete(ctx context.Context, req CompletionRequest)
 	}
 
 	// Update usage metrics
+	cost := EstimateCost(p.Name(), apiResp.Model, apiResp.Usage.InputTokens, apiResp.Usage.OutputTokens)
 	p.mu.Lock()
+	p.usage.Provider = p.Name()
+	p.usage.Model = apiResp.Model
 	p.usage.TotalRequests++
 	p.usage.TotalTokensIn += apiResp.Usage.InputTokens
 	p.usage.TotalTokensOut += apiResp.Usage.OutputTokens
-	// Claude 3.5 Sonnet pricing
-	p.usage.EstimatedCostUSD += float64(apiResp.Usage.InputTokens) * 3.00 / 1_000_000
-	p.usage.EstimatedCostUSD += float64(apiResp.Usage.OutputTokens) * 15.00 / 1_000_000
+	p.usage.EstimatedCostUSD += cost
 	p.mu.Unlock()
 
 	return &CompletionResponse{
-		Content:      content,
-		TokensInput:  apiResp.Usage.InputTokens,
-		TokensOutput: apiResp.Usage.OutputTokens,
-		Model:        apiResp.Model,
-		FinishReason: apiResp.StopReason,
+		Content:          content,
+		TokensInput:      apiResp.Usage.InputTokens,
+		TokensOutput:     apiResp.Usage.OutputTokens,
+		Provider:         p.Name(),
+		Model:            apiResp.Model,
+		FinishReason:     apiResp.StopReason,
+		EstimatedCostUSD: cost,
 	}, nil
 }
 

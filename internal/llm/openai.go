@@ -174,21 +174,24 @@ func (p *OpenAIProvider) Complete(ctx context.Context, req CompletionRequest) (*
 	}
 
 	// Update usage metrics
+	cost := EstimateCost(p.Name(), apiResp.Model, apiResp.Usage.PromptTokens, apiResp.Usage.CompletionTokens)
 	p.mu.Lock()
+	p.usage.Provider = p.Name()
+	p.usage.Model = apiResp.Model
 	p.usage.TotalRequests++
 	p.usage.TotalTokensIn += apiResp.Usage.PromptTokens
 	p.usage.TotalTokensOut += apiResp.Usage.CompletionTokens
-	// GPT-4 Turbo pricing (approximate)
-	p.usage.EstimatedCostUSD += float64(apiResp.Usage.PromptTokens) * 10.00 / 1_000_000
-	p.usage.EstimatedCostUSD += float64(apiResp.Usage.CompletionTokens) * 30.00 / 1_000_000
+	p.usage.EstimatedCostUSD += cost
 	p.mu.Unlock()
 
 	return &CompletionResponse{
-		Content:      content,
-		TokensInput:  apiResp.Usage.PromptTokens,
-		TokensOutput: apiResp.Usage.CompletionTokens,
-		Model:        apiResp.Model,
-		FinishReason: finishReason,
+		Content:          content,
+		TokensInput:      apiResp.Usage.PromptTokens,
+		TokensOutput:     apiResp.Usage.CompletionTokens,
+		Provider:         p.Name(),
+		Model:            apiResp.Model,
+		FinishReason:     finishReason,
+		EstimatedCostUSD: cost,
 	}, nil
 }
 

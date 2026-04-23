@@ -183,37 +183,24 @@ func (p *GroqProvider) Complete(ctx context.Context, req CompletionRequest) (*Co
 	}
 
 	// Update usage metrics
+	cost := EstimateCost(p.Name(), p.config.Model, apiResp.Usage.PromptTokens, apiResp.Usage.CompletionTokens)
 	p.mu.Lock()
+	p.usage.Provider = p.Name()
+	p.usage.Model = p.config.Model
 	p.usage.TotalRequests++
 	p.usage.TotalTokensIn += apiResp.Usage.PromptTokens
 	p.usage.TotalTokensOut += apiResp.Usage.CompletionTokens
-	// Groq pricing (very low cost due to LPU inference)
-	// Llama 3.1 70B: Input: $0.59 / 1M, Output: $0.79 / 1M
-	// Llama 3.1 8B: Input: $0.05 / 1M, Output: $0.08 / 1M
-	// Mixtral 8x7B: Input: $0.24 / 1M, Output: $0.24 / 1M
-	switch p.config.Model {
-	case "llama-3.1-70b-versatile", "llama-3.3-70b-versatile":
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.PromptTokens) * 0.59 / 1_000_000
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.CompletionTokens) * 0.79 / 1_000_000
-	case "llama-3.1-8b-instant":
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.PromptTokens) * 0.05 / 1_000_000
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.CompletionTokens) * 0.08 / 1_000_000
-	case "mixtral-8x7b-32768":
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.PromptTokens) * 0.24 / 1_000_000
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.CompletionTokens) * 0.24 / 1_000_000
-	default:
-		// Default to Llama 3.1 70B pricing
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.PromptTokens) * 0.59 / 1_000_000
-		p.usage.EstimatedCostUSD += float64(apiResp.Usage.CompletionTokens) * 0.79 / 1_000_000
-	}
+	p.usage.EstimatedCostUSD += cost
 	p.mu.Unlock()
 
 	return &CompletionResponse{
-		Content:      content,
-		TokensInput:  apiResp.Usage.PromptTokens,
-		TokensOutput: apiResp.Usage.CompletionTokens,
-		Model:        apiResp.Model,
-		FinishReason: finishReason,
+		Content:          content,
+		TokensInput:      apiResp.Usage.PromptTokens,
+		TokensOutput:     apiResp.Usage.CompletionTokens,
+		Provider:         p.Name(),
+		Model:            apiResp.Model,
+		FinishReason:     finishReason,
+		EstimatedCostUSD: cost,
 	}, nil
 }
 
