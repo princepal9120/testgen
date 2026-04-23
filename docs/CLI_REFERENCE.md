@@ -247,7 +247,7 @@ testgen mcp
 - Uses the same orchestration path as the CLI/TUI
 - Safe dry-run generation is the recommended default for agent clients
 - `testgen_generate` stays in dry-run mode unless the caller explicitly sets `write_files: true`
-- `testgen_generate` can opt into additive usage transparency with the same `report_usage`/runtime contract used by the CLI layer when available
+- When usage transparency is enabled in the shared generate path, MCP callers receive the same additive usage fields as CLI JSON mode
 - MCP tool results return JSON text inside the tool response content
 
 ---
