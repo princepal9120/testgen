@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"time"
+
+	"github.com/princepal9120/testgen-cli/internal/llm"
 )
 
 // RunMetrics represents metrics for a single run
@@ -123,17 +125,23 @@ func (c *Collector) SetCacheHitRate(rate float64) {
 }
 
 // ApplyUsage records a provider usage summary.
-func (c *Collector) ApplyUsage(usage interface {
-	TotalTokens() int
-	CacheHitRate() float64
-}) {
-	switch v := usage.(type) {
-	case interface {
-		GetProvider() string
-	}:
-		c.current.Provider = v.GetProvider()
+func (c *Collector) ApplyUsage(usage *llm.UsageMetrics) {
+	if usage == nil {
+		return
 	}
-	_ = usage
+	c.current.Provider = usage.Provider
+	c.current.Model = usage.Model
+	c.current.Estimated = usage.Estimated
+	c.current.TotalRequests += usage.TotalRequests
+	c.current.BatchCount += usage.BatchCount
+	c.current.ChunkCount += usage.ChunkCount
+	c.current.CacheHits += usage.CacheHits
+	c.current.CacheMisses += usage.CacheMisses
+	c.current.TokensInput += usage.TotalTokensIn
+	c.current.TokensOutput += usage.TotalTokensOut
+	c.current.TokensCached += usage.CachedTokens
+	c.current.TotalCostUSD += usage.EstimatedCostUSD
+	c.current.CacheHitRate = usage.CacheHitRate()
 }
 
 // SetGenerateSummary stores generation success counts.
