@@ -10,6 +10,7 @@ Complete reference for all TestGen commands and options.
 - Prefer `--dry-run --emit-patch` when the caller should inspect artifacts before any file write.
 - The CLI, TUI, and MCP server share the same orchestration layer, so JSON payloads and generation behavior stay aligned across surfaces.
 - In JSON machine mode, commands should return the shared outer envelope on stdout and suppress Cobra usage/error banners on stderr.
+- Cost/usage transparency is additive: enabling `--report-usage` or `--cost-estimate` adds fields and summaries without renaming or removing the existing envelope keys.
 
 ## Global Flags
 
@@ -76,6 +77,26 @@ cat request.json | testgen generate --request-file=-
 
 # Dry run with agent-ready patch output
 testgen generate --path=./src -r --dry-run --emit-patch --output-format=json
+```
+
+### Usage reporting (`--report-usage`)
+
+When enabled, TestGen emits a shared usage summary for the current generation run:
+
+- **Text mode** keeps the human summary concise while adding request/count/cost transparency.
+- **JSON mode** keeps the existing response envelope and adds an additive usage block so current consumers remain compatible.
+- Usage details are intended to cover request count, cache reuse, cached-token savings, batch count, chunk count, selected provider/model, and estimated cost when that data is available.
+- Per-run snapshots are also persisted under `.testgen/metrics/` for later review.
+
+Recommended machine-readable example:
+
+```bash
+testgen generate --path=./src \
+  -r \
+  --dry-run \
+  --emit-patch \
+  --report-usage \
+  --output-format=json
 ```
 
 ### Machine-readable / agent-safe examples
@@ -183,6 +204,15 @@ testgen analyze --path=./src --detail=per-file --output-format=json
 testgen validate --path=./src --fail-on-missing-tests --output-format=json
 ```
 
+### Provider-aware cost estimates (`--cost-estimate`)
+
+`testgen analyze --cost-estimate` is designed to stay review-first:
+
+- Runs offline and does not require live provider credentials.
+- Uses the same pricing and batching assumptions as generation/reporting so estimates and runtime usage stay aligned.
+- Adds provider-aware totals at the top level and can include per-file token estimates when `--detail=per-file` is selected.
+- Keeps text output readable and JSON output backward-compatible by adding fields instead of replacing the shared response contract.
+
 ---
 
 ## `testgen mcp`
@@ -217,6 +247,7 @@ testgen mcp
 - Uses the same orchestration path as the CLI/TUI
 - Safe dry-run generation is the recommended default for agent clients
 - `testgen_generate` stays in dry-run mode unless the caller explicitly sets `write_files: true`
+- `testgen_generate` can opt into additive usage transparency with the same `report_usage`/runtime contract used by the CLI layer when available
 - MCP tool results return JSON text inside the tool response content
 
 ---
