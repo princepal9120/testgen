@@ -172,7 +172,7 @@ VALUE = 1
 		t.Fatalf("Failed to write sample file: %v", err)
 	}
 
-	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--emit-patch", "--output-format=json")
+	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--emit-patch", "--report-usage", "--output-format=json")
 	if err != nil {
 		t.Fatalf("Expected JSON dry-run to succeed, got error: %v stderr=%s", err, stderr)
 	}
@@ -184,6 +184,46 @@ VALUE = 1
 
 	if _, ok := payload["results"]; !ok {
 		t.Fatalf("Expected JSON payload to contain results, got: %s", stdout)
+	}
+	usage, ok := payload["usage"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected JSON payload to contain usage block, got: %s", stdout)
+	}
+	if usage["provider"] == "" {
+		t.Fatalf("expected usage provider, got: %v", usage)
+	}
+}
+
+func TestGenerateDryRunJSONUsageOutput(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testgen-json-usage-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	sampleFile := filepath.Join(dir, "sample.py")
+	content := `# intentionally no function definitions
+VALUE = 1
+`
+	if err := os.WriteFile(sampleFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("Failed to write sample file: %v", err)
+	}
+
+	stdout, stderr, err := runCmdInDir(t, dir, "generate", "--file=sample.py", "--dry-run", "--report-usage", "--output-format=json")
+	if err != nil {
+		t.Fatalf("Expected JSON dry-run usage mode to succeed, got error: %v stderr=%s", err, stderr)
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
+		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+	usage, ok := payload["usage"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected JSON payload to contain usage block, got: %s", stdout)
+	}
+	if usage["provider"] == "" || usage["model"] == "" {
+		t.Fatalf("Expected provider/model metadata in usage block, got: %v", usage)
 	}
 }
 
@@ -291,6 +331,47 @@ function multiply(a, b) {
 	// Should show some analysis output
 	if strings.Contains(combined, "error") && !strings.Contains(combined, "file") {
 		t.Logf("Output: %s", combined)
+	}
+}
+
+func TestAnalyzeJSONIncludesProviderAwareCostFields(t *testing.T) {
+	dir, err := os.MkdirTemp("", "testgen-analyze-json-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(dir)
+
+	if err := os.WriteFile(filepath.Join(dir, "main.py"), []byte("def main():\n    return 42\n"), 0o644); err != nil {
+		t.Fatalf("write python file: %v", err)
+	}
+
+	stdout, stderr, err := runCmdInDir(t, dir, "analyze", "--path=.", "--cost-estimate", "--detail=per-file", "--output-format=json")
+	if err != nil {
+		t.Fatalf("Expected analyze json to succeed, got error: %v stderr=%s", err, stderr)
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal([]byte(stdout), &payload); err != nil {
+		t.Fatalf("Expected valid JSON output, got error: %v\nstdout=%s\nstderr=%s", err, stdout, stderr)
+	}
+
+	usage, ok := payload["usage"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected usage block in analyze output, got: %s", stdout)
+	}
+	if usage["provider"] == "" {
+		t.Fatalf("expected analyze usage provider, got: %v", usage)
+	}
+	files, ok := payload["files"].([]interface{})
+	if !ok || len(files) == 0 {
+		t.Fatalf("expected per-file entries in analyze output, got: %s", stdout)
+	}
+	firstFile, ok := files[0].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected first file object, got: %#v", files[0])
+	}
+	if _, ok := firstFile["estimated_cost_usd"]; !ok {
+		t.Fatalf("expected per-file estimated_cost_usd, got: %#v", firstFile)
 	}
 }
 

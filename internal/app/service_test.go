@@ -37,9 +37,10 @@ func TestServiceGenerateScansAndReturnsResultsForDefinitionFreeFile(t *testing.T
 
 	service := NewService()
 	resp, err := service.Generate(context.Background(), GenerateRequest{
-		File:      file,
-		TestTypes: []string{"unit"},
-		DryRun:    true,
+		File:        file,
+		TestTypes:   []string{"unit"},
+		DryRun:      true,
+		ReportUsage: true,
 	})
 	if err != nil {
 		t.Fatalf("generate returned error: %v", err)
@@ -62,6 +63,12 @@ func TestServiceGenerateScansAndReturnsResultsForDefinitionFreeFile(t *testing.T
 	if resp.Results[0].Error != nil {
 		t.Fatalf("expected no generation error, got %v", resp.Results[0].Error)
 	}
+	if resp.Usage == nil {
+		t.Fatal("expected additive usage block when report_usage is enabled")
+	}
+	if resp.Usage.Provider == "" || resp.Usage.Model == "" {
+		t.Fatalf("expected provider/model metadata in usage block, got %#v", resp.Usage)
+	}
 }
 
 func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
@@ -80,6 +87,9 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 		Path:         dir,
 		Recursive:    true,
 		CostEstimate: true,
+		Provider:     "groq",
+		Model:        "mixtral-8x7b-32768",
+		BatchSize:    3,
 		Detail:       "per-file",
 	})
 	if err != nil {
@@ -97,6 +107,18 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 	if resp.EstimatedTokens == 0 {
 		t.Fatal("expected cost estimation to populate tokens")
 	}
+	if resp.Usage == nil {
+		t.Fatal("expected provider-aware usage summary")
+	}
+	if resp.Usage.Provider != "groq" {
+		t.Fatalf("expected groq provider, got %q", resp.Usage.Provider)
+	}
+	if resp.Usage.Model != "mixtral-8x7b-32768" {
+		t.Fatalf("expected analyze model to round-trip, got %q", resp.Usage.Model)
+	}
+	if resp.Usage.TotalRequests == 0 {
+		t.Fatal("expected analyze request estimate to be populated")
+	}
 	if resp.ExactFunctionFiles != 2 {
 		t.Fatalf("expected exact function counts for both files, got %d", resp.ExactFunctionFiles)
 	}
@@ -107,6 +129,43 @@ func TestServiceAnalyzeReturnsStructuredStats(t *testing.T) {
 		if file.FunctionCountMode != "exact" {
 			t.Fatalf("expected exact function count mode, got %q for %s", file.FunctionCountMode, file.Path)
 		}
+		if file.Tokens == 0 {
+			t.Fatalf("expected per-file token estimate for %s", file.Path)
+		}
+		if file.EstimatedCost == 0 {
+			t.Fatalf("expected per-file cost estimate for %s", file.Path)
+		}
+	}
+}
+
+func TestServiceGenerateEmitsUsageFromEngine(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	file := filepath.Join(dir, "sample.py")
+	if err := os.WriteFile(file, []byte("# no functions here\n"), 0o644); err != nil {
+		t.Fatalf("write sample file: %v", err)
+	}
+
+	service := NewService()
+	resp, err := service.Generate(context.Background(), GenerateRequest{
+		File:        file,
+		TestTypes:   []string{"unit"},
+		DryRun:      true,
+		Provider:    "anthropic",
+		ReportUsage: true,
+	})
+	if err != nil {
+		t.Fatalf("generate returned error: %v", err)
+	}
+	if resp.Usage == nil {
+		t.Fatal("expected usage block on generate response")
+	}
+	if resp.Usage.Provider != "anthropic" {
+		t.Fatalf("expected anthropic provider, got %q", resp.Usage.Provider)
+	}
+	if resp.Usage.Model == "" {
+		t.Fatal("expected default model to be populated")
 	}
 }
 

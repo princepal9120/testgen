@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/princepal9120/testgen-cli/internal/adapters"
@@ -40,6 +41,8 @@ type Engine struct {
 	provider llm.Provider
 	cache    *llm.Cache
 	logger   *slog.Logger
+	usageMu  sync.Mutex
+	usage    llm.UsageMetrics
 }
 
 // NewEngine creates a new generation engine
@@ -72,6 +75,10 @@ func NewEngine(config EngineConfig) (*Engine, error) {
 		provider: provider,
 		cache:    llm.NewCache(10000),
 		logger:   logger,
+		usage: llm.UsageMetrics{
+			Provider: llm.ResolveProvider(config.Provider),
+			Model:    llm.ResolveModel(config.Provider, ""),
+		},
 	}, nil
 }
 
@@ -113,30 +120,63 @@ func (e *Engine) GenerateArtifact(sourceFile *models.SourceFile, adapter adapter
 	)
 
 	// Generate tests for each definition
+	tasks := buildGenerationTasks(e.provider, e.config, adapter, definitions, ast.Package)
+	generated := make(map[string]string, len(tasks))
 	var allTests strings.Builder
 	functionsTested := make([]string, 0)
 	var firstGenerationErr error
 
-	for _, def := range definitions {
-		for _, testType := range e.config.TestTypes {
-			testCode, err := e.generateTestForDefinition(ctx, def, adapter, testType, ast.Package)
-			if err != nil {
-				if firstGenerationErr == nil {
-					firstGenerationErr = err
-				}
-				e.logger.Warn("failed to generate test",
-					slog.String("function", def.Name),
-					slog.String("error", err.Error()),
-				)
-				continue
-			}
-
-			if testCode != "" {
-				allTests.WriteString(testCode)
-				allTests.WriteString("\n\n")
-				functionsTested = append(functionsTested, def.Name)
-			}
+	pending := make([]generationTask, 0, len(tasks))
+	for _, task := range tasks {
+		if cached, hit := e.cache.Get(task.cacheKey); hit {
+			e.logger.Debug("cache hit", slog.String("function", task.def.Name), slog.String("test_type", task.testType))
+			e.recordCachedUsage(cached)
+			generated[task.cacheKey] = cached.Content
+			continue
 		}
+		pending = append(pending, task)
+	}
+
+	for _, chunk := range planGenerationChunks(e.provider, e.config, adapter, ast.Package, pending) {
+		chunkCodes, err := e.generateChunk(ctx, chunk, adapter)
+		if err != nil {
+			if firstGenerationErr == nil {
+				firstGenerationErr = err
+			}
+			e.logger.Warn("failed to generate chunk",
+				slog.Int("definitions", len(chunk.tasks)),
+				slog.String("error", err.Error()),
+			)
+			for _, task := range chunk.tasks {
+				testCode, singleErr := e.generateSingleTask(ctx, task, adapter)
+				if singleErr != nil {
+					if firstGenerationErr == nil {
+						firstGenerationErr = singleErr
+					}
+					e.logger.Warn("failed to generate test",
+						slog.String("function", task.def.Name),
+						slog.String("test_type", task.testType),
+						slog.String("error", singleErr.Error()),
+					)
+					continue
+				}
+				generated[task.cacheKey] = testCode
+			}
+			continue
+		}
+		for key, code := range chunkCodes {
+			generated[key] = code
+		}
+	}
+
+	for _, task := range tasks {
+		testCode := strings.TrimSpace(generated[task.cacheKey])
+		if testCode == "" {
+			continue
+		}
+		allTests.WriteString(testCode)
+		allTests.WriteString("\n\n")
+		functionsTested = append(functionsTested, task.def.Name)
 	}
 
 	if allTests.Len() == 0 {
@@ -206,30 +246,10 @@ func (e *Engine) Generate(sourceFile *models.SourceFile, adapter adapters.Langua
 	return result, nil
 }
 
-func (e *Engine) generateTestForDefinition(
-	ctx context.Context,
-	def *models.Definition,
-	adapter adapters.LanguageAdapter,
-	testType string,
-	packageName string,
-) (string, error) {
-	// Build prompt
-	promptTemplate := adapter.GetPromptTemplate(testType)
-	prompt := fmt.Sprintf(promptTemplate, def.Body, packageName)
-
-	// Check cache
-	cacheKey := e.cache.GenerateKey(prompt, "", e.provider.Name())
-	if cached, hit := e.cache.Get(cacheKey); hit {
-		e.logger.Debug("cache hit", slog.String("function", def.Name))
-		return cached.Content, nil
-	}
-
-	// Call LLM
-	systemRole := fmt.Sprintf("You are an expert %s developer. Generate production-quality tests that follow best practices. Output only the test code, no explanations.", adapter.GetLanguage())
-
+func (e *Engine) generateSingleTask(ctx context.Context, task generationTask, adapter adapters.LanguageAdapter) (string, error) {
 	resp, err := e.provider.Complete(ctx, llm.CompletionRequest{
-		Prompt:      prompt,
-		SystemRole:  systemRole,
+		Prompt:      task.prompt,
+		SystemRole:  defaultSystemRole(adapter),
 		Temperature: 0.3,
 		MaxTokens:   2000,
 	})
@@ -237,13 +257,108 @@ func (e *Engine) generateTestForDefinition(
 		return "", fmt.Errorf("LLM completion failed: %w", err)
 	}
 
-	// Cache result
-	e.cache.Set(cacheKey, resp)
-
-	// Extract code from response
 	code := extractCodeFromResponse(resp.Content, adapter.GetLanguage())
+	if strings.TrimSpace(code) == "" {
+		return "", fmt.Errorf("empty response from provider")
+	}
 
+	resp.Content = code
+	e.cache.Set(task.cacheKey, resp)
+	e.recordLiveUsage(resp, 1)
 	return code, nil
+}
+
+func (e *Engine) generateChunk(ctx context.Context, chunk generationChunk, adapter adapters.LanguageAdapter) (map[string]string, error) {
+	if len(chunk.tasks) == 0 {
+		return nil, nil
+	}
+	if len(chunk.tasks) == 1 {
+		code, err := e.generateSingleTask(ctx, chunk.tasks[0], adapter)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]string{chunk.tasks[0].cacheKey: code}, nil
+	}
+
+	resp, err := e.provider.Complete(ctx, llm.CompletionRequest{
+		Prompt:      chunk.prompt,
+		SystemRole:  chunk.systemRole,
+		Temperature: 0.3,
+		MaxTokens:   4000,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("LLM batch completion failed: %w", err)
+	}
+
+	parsed, err := parseChunkResponse(resp.Content, adapter.GetLanguage(), chunk.tasks)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse batched response: %w", err)
+	}
+
+	results := make(map[string]string, len(chunk.tasks))
+	totalEstimated := 0
+	for _, task := range chunk.tasks {
+		totalEstimated += maxInt(task.estimatedTokens, 1)
+	}
+	if totalEstimated == 0 {
+		totalEstimated = len(chunk.tasks)
+	}
+
+	remainingIn := resp.TokensInput
+	remainingOut := resp.TokensOutput
+	remainingCost := resp.EstimatedCostUSD
+
+	for idx, task := range chunk.tasks {
+		code := strings.TrimSpace(parsed[task.id])
+		if code == "" {
+			return nil, fmt.Errorf("empty code for task id %s", task.id)
+		}
+
+		allocatedIn, allocatedOut, allocatedCost := splitChunkMetrics(resp, remainingIn, remainingOut, remainingCost, totalEstimated, task.estimatedTokens, idx == len(chunk.tasks)-1)
+		remainingIn -= allocatedIn
+		remainingOut -= allocatedOut
+		remainingCost -= allocatedCost
+		totalEstimated -= maxInt(task.estimatedTokens, 1)
+
+		cachedResp := &llm.CompletionResponse{
+			Content:          code,
+			TokensInput:      allocatedIn,
+			TokensOutput:     allocatedOut,
+			Provider:         firstNonEmpty(resp.Provider, e.provider.Name()),
+			Model:            resp.Model,
+			FinishReason:     resp.FinishReason,
+			EstimatedCostUSD: allocatedCost,
+		}
+		e.cache.Set(task.cacheKey, cachedResp)
+		results[task.cacheKey] = code
+	}
+
+	e.recordLiveUsage(resp, len(chunk.tasks))
+	return results, nil
+}
+
+func splitChunkMetrics(resp *llm.CompletionResponse, remainingIn, remainingOut int, remainingCost float64, remainingWeight int, taskTokens int, last bool) (int, int, float64) {
+	if last {
+		return remainingIn, remainingOut, remainingCost
+	}
+
+	weight := maxInt(taskTokens, 1)
+	if remainingWeight <= 0 {
+		remainingWeight = weight
+	}
+	input := int(float64(resp.TokensInput) * float64(weight) / float64(remainingWeight))
+	output := int(float64(resp.TokensOutput) * float64(weight) / float64(remainingWeight))
+	cost := resp.EstimatedCostUSD * float64(weight) / float64(remainingWeight)
+	if input > remainingIn {
+		input = remainingIn
+	}
+	if output > remainingOut {
+		output = remainingOut
+	}
+	if cost > remainingCost {
+		cost = remainingCost
+	}
+	return input, output, cost
 }
 
 // extractCodeFromResponse extracts code blocks from LLM response
@@ -317,12 +432,69 @@ func (e *Engine) writeTestFile(path string, content string) error {
 
 // GetUsage returns LLM usage metrics
 func (e *Engine) GetUsage() *llm.UsageMetrics {
-	return e.provider.GetUsage()
+	e.usageMu.Lock()
+	defer e.usageMu.Unlock()
+
+	usage := e.usage.Clone()
+	hits, misses := e.cache.Counts()
+	usage.CacheHits = hits
+	usage.CacheMisses = misses
+	return usage
+}
+
+// GetProviderName returns the underlying provider name.
+func (e *Engine) GetProviderName() string {
+	if e == nil || e.provider == nil {
+		return ""
+	}
+	return e.provider.Name()
 }
 
 // GetCacheStats returns cache statistics
 func (e *Engine) GetCacheStats() (size int, hits int, misses int, hitRate float64) {
 	return e.cache.Stats()
+}
+
+func (e *Engine) recordCachedUsage(resp *llm.CompletionResponse) {
+	if resp == nil {
+		return
+	}
+	e.usageMu.Lock()
+	defer e.usageMu.Unlock()
+	if e.usage.Provider == "" {
+		e.usage.Provider = firstNonEmpty(resp.Provider, e.provider.Name())
+	}
+	if e.usage.Model == "" {
+		e.usage.Model = resp.Model
+	}
+	e.usage.CachedTokens += resp.TokensInput
+}
+
+func (e *Engine) recordLiveUsage(resp *llm.CompletionResponse, chunkSize int) {
+	if resp == nil {
+		return
+	}
+	e.usageMu.Lock()
+	defer e.usageMu.Unlock()
+	e.usage.Provider = firstNonEmpty(resp.Provider, e.usage.Provider, e.provider.Name())
+	e.usage.Model = firstNonEmpty(resp.Model, e.usage.Model)
+	e.usage.TotalRequests++
+	e.usage.TotalTokensIn += resp.TokensInput
+	e.usage.TotalTokensOut += resp.TokensOutput
+	e.usage.EstimatedCostUSD += resp.EstimatedCostUSD
+	e.usage.ChunkCount++
+	if chunkSize > 1 {
+		e.usage.BatchCount++
+	}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 // GeneratedTestJSON represents the expected JSON structure from LLM

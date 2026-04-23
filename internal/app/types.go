@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/validation"
 	"github.com/princepal9120/testgen-cli/pkg/models"
 )
@@ -23,6 +24,7 @@ type GenerateRequest struct {
 	BatchSize      int      `json:"batch_size,omitempty"`
 	Parallelism    int      `json:"parallelism,omitempty"`
 	Provider       string   `json:"provider,omitempty"`
+	ReportUsage    bool     `json:"report_usage,omitempty"`
 	EmitPatch      bool     `json:"emit_patch,omitempty"`
 }
 
@@ -41,6 +43,7 @@ type GenerateResponse struct {
 	Results        []*models.GenerationResult `json:"results"`
 	Artifacts      []Artifact                 `json:"artifacts,omitempty"`
 	Patches        []PatchOperation           `json:"patches,omitempty"`
+	Usage          *llm.UsageMetrics          `json:"usage,omitempty"`
 	SuccessCount   int                        `json:"success_count"`
 	ErrorCount     int                        `json:"error_count"`
 	TotalFunctions int                        `json:"total_functions"`
@@ -73,6 +76,9 @@ type AnalyzeRequest struct {
 	Path         string `json:"path,omitempty"`
 	Recursive    bool   `json:"recursive,omitempty"`
 	CostEstimate bool   `json:"cost_estimate,omitempty"`
+	Provider     string `json:"provider,omitempty"`
+	Model        string `json:"model,omitempty"`
+	BatchSize    int    `json:"batch_size,omitempty"`
 	Detail       string `json:"detail,omitempty"`
 }
 
@@ -90,9 +96,20 @@ type AnalyzeResponse struct {
 	ByLanguage             map[string]LangStats `json:"by_language"`
 	ExactFunctionFiles     int                  `json:"exact_function_files,omitempty"`
 	HeuristicFunctionFiles int                  `json:"heuristic_function_files,omitempty"`
+	Provider               string               `json:"provider,omitempty"`
+	Model                  string               `json:"model,omitempty"`
+	EstimatedRequests      int                  `json:"estimated_requests,omitempty"`
+	EstimatedBatchCount    int                  `json:"estimated_batch_count,omitempty"`
+	EstimatedChunkCount    int                  `json:"estimated_chunk_count,omitempty"`
+	EstimatedInputTokens   int                  `json:"estimated_input_tokens,omitempty"`
+	EstimatedOutputTokens  int                  `json:"estimated_output_tokens,omitempty"`
 	EstimatedTokens        int                  `json:"estimated_tokens,omitempty"`
 	EstimatedCost          float64              `json:"estimated_cost_usd,omitempty"`
+	InputCostPerMTokens    float64              `json:"input_cost_per_million_usd,omitempty"`
+	OutputCostPerMTokens   float64              `json:"output_cost_per_million_usd,omitempty"`
+	CostEstimateOffline    bool                 `json:"cost_estimate_offline,omitempty"`
 	Warnings               []string             `json:"warnings,omitempty"`
+	Usage                  *llm.UsageMetrics    `json:"usage,omitempty"`
 	Files                  []FileAnalysis       `json:"files,omitempty"`
 }
 
@@ -105,12 +122,13 @@ type LangStats struct {
 
 // FileAnalysis captures per-file analysis output.
 type FileAnalysis struct {
-	Path              string `json:"path"`
-	Language          string `json:"language"`
-	Lines             int    `json:"lines"`
-	Functions         int    `json:"functions"`
-	FunctionCountMode string `json:"function_count_mode,omitempty"`
-	Tokens            int    `json:"estimated_tokens,omitempty"`
+	Path              string  `json:"path"`
+	Language          string  `json:"language"`
+	Lines             int     `json:"lines"`
+	Functions         int     `json:"functions"`
+	FunctionCountMode string  `json:"function_count_mode,omitempty"`
+	Tokens            int     `json:"estimated_tokens,omitempty"`
+	EstimatedCost     float64 `json:"estimated_cost_usd,omitempty"`
 }
 
 // ValidateRequest defines a machine-readable validate request.

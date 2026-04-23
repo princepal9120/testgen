@@ -15,7 +15,6 @@ import (
 	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/ui"
-	"github.com/princepal9120/testgen-cli/pkg/models"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -196,7 +195,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output results
-	if err := outputResults(response, outputFormat, response.DryRun); err != nil {
+	if err := outputResults(response, outputFormat, response.DryRun, genReportUsage); err != nil {
 		return fmt.Errorf("failed to output results: %w", err)
 	}
 
@@ -297,8 +296,14 @@ func buildGenerateRequest(cmd *cobra.Command) (app.GenerateRequest, error) {
 	if shouldOverlay("batch-size") {
 		req.BatchSize = genBatchSize
 	}
+	if shouldOverlay("report-usage") {
+		req.ReportUsage = genReportUsage
+	}
 	if shouldOverlay("parallel") {
 		req.Parallelism = genParallel
+	}
+	if shouldOverlay("report-usage") {
+		req.ReportUsage = genReportUsage
 	}
 	if shouldOverlay("emit-patch") {
 		req.EmitPatch = genEmitPatch
@@ -341,12 +346,12 @@ func machineError(response *app.GenerateResponse, fallback string) error {
 	return fmt.Errorf("%s", fallback)
 }
 
-func outputResults(response *app.GenerateResponse, format string, dryRun bool) error {
+func outputResults(response *app.GenerateResponse, format string, dryRun bool, reportUsage bool) error {
 	switch strings.ToLower(format) {
 	case "json":
 		return outputJSON(response)
 	default:
-		return outputText(response.Results, dryRun)
+		return outputText(response, dryRun, reportUsage)
 	}
 }
 
@@ -372,8 +377,8 @@ func appTargetPathHint(req app.GenerateRequest) string {
 	return ""
 }
 
-func outputText(results []*models.GenerationResult, dryRun bool) error {
-	for _, r := range results {
+func outputText(response *app.GenerateResponse, dryRun bool, reportUsage bool) error {
+	for _, r := range response.Results {
 		if r.Error != nil {
 			fmt.Printf("%s %s: %v\n", errorMark, r.SourceFile.Path, r.Error)
 			continue
@@ -387,6 +392,24 @@ func outputText(results []*models.GenerationResult, dryRun bool) error {
 			funcInfo := dimStyle.Render(fmt.Sprintf("(%d functions)", len(r.FunctionsTested)))
 			fmt.Printf("%s %s → %s %s\n", successMark, r.SourceFile.Path, r.TestPath, funcInfo)
 		}
+	}
+	if reportUsage && response != nil && response.Usage != nil {
+		usage := response.Usage
+		fmt.Printf("\n--- Usage ---\n")
+		if usage.Provider != "" {
+			fmt.Printf("Provider:         %s\n", usage.Provider)
+		}
+		if usage.Model != "" {
+			fmt.Printf("Model:            %s\n", usage.Model)
+		}
+		fmt.Printf("Requests:         %d\n", usage.TotalRequests)
+		fmt.Printf("Batches:          %d\n", usage.BatchCount)
+		fmt.Printf("Chunks:           %d\n", usage.ChunkCount)
+		fmt.Printf("Cache hits:       %d\n", usage.CacheHits)
+		fmt.Printf("Cached tokens:    %d\n", usage.CachedTokens)
+		fmt.Printf("Input tokens:     %d\n", usage.TotalTokensIn)
+		fmt.Printf("Output tokens:    %d\n", usage.TotalTokensOut)
+		fmt.Printf("Estimated cost:   $%.4f USD\n", usage.EstimatedCostUSD)
 	}
 	return nil
 }

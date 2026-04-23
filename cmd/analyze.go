@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -57,6 +59,10 @@ func init() {
 
 func runAnalyze(cmd *cobra.Command, args []string) error {
 	machineMode := strings.EqualFold(anaOutputFormat, "json")
+	detail := anaDetail
+	if machineMode && detail == "summary" && (cmd == nil || !cmd.Flags().Changed("detail")) {
+		detail = "per-file"
+	}
 	if machineMode {
 		previousQuiet := quiet
 		quiet = true
@@ -71,7 +77,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	log.Info("analyzing codebase",
 		slog.String("path", anaPath),
 		slog.Bool("cost-estimate", anaCostEstimate),
-		slog.String("detail", anaDetail),
+		slog.String("detail", detail),
 	)
 
 	service := app.NewService()
@@ -79,7 +85,12 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		Path:         anaPath,
 		Recursive:    anaRecursive,
 		CostEstimate: anaCostEstimate,
-		Detail:       anaDetail,
+		Provider:     viper.GetString("llm.provider"),
+		BatchSize:    viper.GetInt("generation.batch_size"),
+		Detail:       detail,
+	}
+	if req.Provider == "" {
+		req.Provider = "anthropic"
 	}
 	result, err := service.Analyze(context.Background(), req)
 	if err != nil {
@@ -93,7 +104,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output results
-	return outputAnalysisResults(result, anaOutputFormat, anaDetail)
+	return outputAnalysisResults(result, anaOutputFormat, detail)
 }
 
 func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) error {
@@ -111,7 +122,13 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 
 		if len(result.ByLanguage) > 0 {
 			fmt.Printf("\n--- By Language ---\n")
-			for lang, stats := range result.ByLanguage {
+			languages := make([]string, 0, len(result.ByLanguage))
+			for lang := range result.ByLanguage {
+				languages = append(languages, lang)
+			}
+			sort.Strings(languages)
+			for _, lang := range languages {
+				stats := result.ByLanguage[lang]
 				fmt.Printf("  %s: %d files, %d lines, ~%d functions\n",
 					lang, stats.Files, stats.Lines, stats.Functions)
 			}
@@ -119,6 +136,15 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 
 		if result.EstimatedTokens > 0 {
 			fmt.Printf("\n--- Cost Estimate ---\n")
+			if result.Usage != nil {
+				if result.Usage.Provider != "" {
+					fmt.Printf("Provider:         %s\n", result.Usage.Provider)
+				}
+				if result.Usage.Model != "" {
+					fmt.Printf("Model:            %s\n", result.Usage.Model)
+				}
+				fmt.Printf("Estimated reqs:   %d\n", result.Usage.TotalRequests)
+			}
 			fmt.Printf("Estimated tokens: %d\n", result.EstimatedTokens)
 			fmt.Printf("Estimated cost:   $%.2f USD\n", result.EstimatedCost)
 		}
@@ -126,8 +152,15 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 		if detail == "per-file" && len(result.Files) > 0 {
 			fmt.Printf("\n--- Per-File Details ---\n")
 			for _, f := range result.Files {
-				fmt.Printf("  %s (%s): %d lines, ~%d functions\n",
+				fmt.Printf("  %s (%s): %d lines, ~%d functions",
 					f.Path, f.Language, f.Lines, f.Functions)
+				if f.Tokens > 0 {
+					fmt.Printf(", ~%d tokens", f.Tokens)
+				}
+				if f.EstimatedCost > 0 {
+					fmt.Printf(", $%.4f", f.EstimatedCost)
+				}
+				fmt.Println()
 			}
 		}
 

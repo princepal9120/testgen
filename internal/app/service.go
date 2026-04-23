@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/princepal9120/testgen-cli/internal/adapters"
 	"github.com/princepal9120/testgen-cli/internal/generator"
+	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/metrics"
 	"github.com/princepal9120/testgen-cli/internal/scanner"
 	"github.com/princepal9120/testgen-cli/internal/validation"
@@ -118,6 +120,7 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 		}
 		resp.TotalFunctions += len(result.FunctionsTested)
 	}
+	resp.Usage = engine.GetUsage()
 	resp.Success = resp.ErrorCount == 0
 	if !resp.Success {
 		for _, result := range results {
@@ -129,6 +132,7 @@ func (s *Service) Generate(ctx context.Context, req GenerateRequest) (*GenerateR
 			break
 		}
 	}
+	persistGenerateMetrics(targetPath, req.ReportUsage, resp)
 
 	return resp, nil
 }
@@ -152,7 +156,7 @@ func (s *Service) Analyze(_ context.Context, req AnalyzeRequest) (*AnalyzeRespon
 	result := newAnalyzeResponse(req, targetPath)
 	analyzeFiles(result, sourceFiles, targetPath, s.registry)
 	if req.CostEstimate {
-		estimateCosts(result)
+		estimateCosts(result, req)
 	}
 	if req.Detail == "summary" {
 		result.Files = nil
@@ -321,6 +325,42 @@ func patchFromResult(result *models.GenerationResult) *PatchOperation {
 	}
 }
 
+func buildGenerateUsageSummary(engine *generator.Engine) *llm.UsageMetrics {
+	if engine == nil {
+		return nil
+	}
+
+	usage := engine.GetUsage()
+	_, hits, misses, _ := engine.GetCacheStats()
+	if usage == nil {
+		usage = &llm.UsageMetrics{}
+	}
+
+	provider := usage.Provider
+	if provider == "" {
+		provider = engine.GetProviderName()
+	}
+	model := usage.Model
+	if model == "" {
+		model = llm.GetDefaultModel(provider)
+	}
+
+	return &llm.UsageMetrics{
+		Provider:         provider,
+		Model:            model,
+		TotalRequests:    usage.TotalRequests,
+		BatchCount:       usage.BatchCount,
+		ChunkCount:       usage.ChunkCount,
+		TotalTokensIn:    usage.TotalTokensIn,
+		TotalTokensOut:   usage.TotalTokensOut,
+		CachedTokens:     usage.CachedTokens,
+		EstimatedCostUSD: usage.EstimatedCostUSD,
+		CacheHits:        hits,
+		CacheMisses:      misses,
+		Estimated:        usage.Estimated,
+	}
+}
+
 func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath string, registry *adapters.Registry) {
 	for _, f := range files {
 		content, err := os.ReadFile(f.Path)
@@ -362,20 +402,68 @@ func analyzeFiles(result *AnalyzeResponse, files []*scanner.SourceFile, basePath
 	sort.Strings(result.Warnings)
 }
 
-func estimateCosts(result *AnalyzeResponse) {
-	tokensPerFunction := 150
-	outputPerFunction := 200
-	batchSize := 5
-	systemPromptTokens := 500
+func estimateCosts(result *AnalyzeResponse, req AnalyzeRequest) {
+	batchSize := req.BatchSize
+	if batchSize <= 0 {
+		batchSize = 5
+	}
 
-	totalInputTokens := (result.TotalFunctions * tokensPerFunction) +
-		((result.TotalFunctions / batchSize) * systemPromptTokens)
-	totalOutputTokens := result.TotalFunctions * outputPerFunction
+	provider := llm.ResolveProvider(req.Provider)
+	if provider == "" {
+		provider = "anthropic"
+	}
+	model := llm.ResolveModel(provider, req.Model)
+	usage := &llm.UsageMetrics{
+		Provider:  provider,
+		Model:     model,
+		Estimated: true,
+	}
 
-	result.EstimatedTokens = totalInputTokens + totalOutputTokens
-	inputCost := float64(totalInputTokens) * 3.00 / 1_000_000
-	outputCost := float64(totalOutputTokens) * 15.00 / 1_000_000
-	result.EstimatedCost = inputCost + outputCost
+	for idx := range result.Files {
+		file := &result.Files[idx]
+		if file.Functions == 0 {
+			continue
+		}
+		inputTokens, outputTokens, requests := estimateFileTokens(*file, batchSize)
+		file.Tokens = inputTokens + outputTokens
+		file.EstimatedCost = llm.EstimateCost(provider, model, inputTokens, outputTokens)
+
+		usage.TotalRequests += requests
+		usage.BatchCount += requests
+		usage.ChunkCount += requests
+		usage.TotalTokensIn += inputTokens
+		usage.TotalTokensOut += outputTokens
+		usage.EstimatedCostUSD += file.EstimatedCost
+	}
+
+	result.EstimatedTokens = usage.TotalTokens()
+	result.EstimatedCost = usage.EstimatedCostUSD
+	result.Usage = usage
+}
+
+func estimateFunctionTokens(functionCount int) (inputTokens int, outputTokens int) {
+	if functionCount <= 0 {
+		return 0, 0
+	}
+
+	const (
+		tokensPerFunction  = 150
+		outputPerFunction  = 200
+		batchSize          = 5
+		systemPromptTokens = 500
+	)
+
+	inputTokens = (functionCount * tokensPerFunction) +
+		(((functionCount-1)/batchSize)+1)*systemPromptTokens
+	outputTokens = functionCount * outputPerFunction
+	return inputTokens, outputTokens
+}
+
+func usageReportFromEngine(engine *generator.Engine) *llm.UsageMetrics {
+	if engine == nil {
+		return &llm.UsageMetrics{}
+	}
+	return engine.GetUsage()
 }
 
 func countFunctions(file *scanner.SourceFile, content string, registry *adapters.Registry) (int, string, string) {
@@ -428,14 +516,34 @@ func persistAnalyzeMetrics(targetPath string, result *AnalyzeResponse) {
 	collector := metrics.NewCollector()
 	collector.SetContext("analyze", targetPath, false)
 	collector.SetAnalyzeSummary(result.TotalFiles, result.ExactFunctionFiles, result.HeuristicFunctionFiles)
-	if result.EstimatedTokens > 0 {
-		collector.RecordTokens(result.EstimatedTokens, 0, false)
-	}
-	if result.EstimatedCost > 0 {
-		collector.RecordCost(result.EstimatedCost)
+	if result.Usage != nil {
+		collector.ApplyUsage(result.Usage)
+	} else {
+		if result.EstimatedTokens > 0 {
+			collector.RecordTokens(result.EstimatedTokens, 0, false)
+		}
+		if result.EstimatedCost > 0 {
+			collector.RecordCost(result.EstimatedCost)
+		}
 	}
 	if err := collector.Save(); err != nil {
 		slog.Warn("failed to persist analyze metrics", slog.String("path", targetPath), slog.String("error", err.Error()))
+	}
+}
+
+func persistGenerateMetrics(targetPath string, reportUsage bool, result *GenerateResponse) {
+	if result == nil || (!reportUsage && result.Usage == nil) {
+		return
+	}
+
+	collector := metrics.NewCollector()
+	collector.SetContext("generate", targetPath, false)
+	collector.SetGenerateSummary(len(result.SourceFiles), result.SuccessCount, result.ErrorCount)
+	if result.Usage != nil {
+		collector.ApplyUsage(result.Usage)
+	}
+	if err := collector.Save(); err != nil {
+		slog.Warn("failed to persist generate metrics", slog.String("path", targetPath), slog.String("error", err.Error()))
 	}
 }
 
@@ -457,4 +565,18 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func estimateFileTokens(file FileAnalysis, batchSize int) (inputTokens int, outputTokens int, requests int) {
+	if file.Functions <= 0 {
+		return 0, 0, 0
+	}
+
+	requests = int(math.Ceil(float64(file.Functions) / float64(max(batchSize, 1))))
+	tokensPerFunction := 120 + max(file.Lines/max(file.Functions, 1), 1)*4
+	outputPerFunction := 200
+	systemPromptTokens := 250
+	inputTokens = (file.Functions * tokensPerFunction) + (requests * systemPromptTokens)
+	outputTokens = file.Functions * outputPerFunction
+	return inputTokens, outputTokens, requests
 }

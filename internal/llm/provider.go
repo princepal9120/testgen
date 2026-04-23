@@ -61,21 +61,50 @@ type CompletionRequest struct {
 
 // CompletionResponse represents a completion response
 type CompletionResponse struct {
-	Content      string
-	TokensInput  int
-	TokensOutput int
-	Cached       bool
-	Model        string
-	FinishReason string
+	Content          string  `json:"content"`
+	TokensInput      int     `json:"tokens_input,omitempty"`
+	TokensOutput     int     `json:"tokens_output,omitempty"`
+	Cached           bool    `json:"cached,omitempty"`
+	Provider         string  `json:"provider,omitempty"`
+	Model            string  `json:"model,omitempty"`
+	FinishReason     string  `json:"finish_reason,omitempty"`
+	EstimatedCostUSD float64 `json:"estimated_cost_usd,omitempty"`
 }
 
 // UsageMetrics tracks API usage
 type UsageMetrics struct {
-	TotalRequests    int
-	TotalTokensIn    int
-	TotalTokensOut   int
-	CachedTokens     int
-	EstimatedCostUSD float64
+	Provider         string  `json:"provider"`
+	Model            string  `json:"model"`
+	Estimated        bool    `json:"estimated"`
+	TotalRequests    int     `json:"request_count"`
+	BatchCount       int     `json:"batch_count"`
+	ChunkCount       int     `json:"chunk_count"`
+	CacheHits        int     `json:"cache_hits"`
+	CacheMisses      int     `json:"cache_misses"`
+	TotalTokensIn    int     `json:"total_tokens_in"`
+	TotalTokensOut   int     `json:"total_tokens_out"`
+	CachedTokens     int     `json:"cached_tokens"`
+	EstimatedCostUSD float64 `json:"estimated_cost_usd"`
+}
+
+// Clone returns a defensive copy of usage metrics.
+func (u UsageMetrics) Clone() *UsageMetrics {
+	copy := u
+	return &copy
+}
+
+// TotalTokens returns the aggregate input and output token count.
+func (u UsageMetrics) TotalTokens() int {
+	return u.TotalTokensIn + u.TotalTokensOut
+}
+
+// CacheHitRate returns the derived cache hit rate.
+func (u UsageMetrics) CacheHitRate() float64 {
+	total := u.CacheHits + u.CacheMisses
+	if total == 0 {
+		return 0
+	}
+	return float64(u.CacheHits) / float64(total)
 }
 
 // Message represents a chat message
@@ -105,5 +134,19 @@ func GetDefaultModel(providerName string) string {
 		return GroqDefaultModel
 	default:
 		return ""
+	}
+}
+
+// NewProvider returns a concrete provider implementation for the requested provider name.
+func NewProvider(providerName string) Provider {
+	switch ResolveProvider(providerName) {
+	case "openai":
+		return NewOpenAIProvider()
+	case "gemini":
+		return NewGeminiProvider()
+	case "groq":
+		return NewGroqProvider()
+	default:
+		return NewAnthropicProvider()
 	}
 }

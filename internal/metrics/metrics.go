@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"time"
+
+	"github.com/princepal9120/testgen-cli/internal/llm"
 )
 
 // RunMetrics represents metrics for a single run
@@ -19,7 +21,15 @@ type RunMetrics struct {
 	Operation              string    `json:"operation,omitempty"`
 	TargetPath             string    `json:"target_path,omitempty"`
 	MachineMode            bool      `json:"machine_mode,omitempty"`
+	Provider               string    `json:"provider,omitempty"`
+	Model                  string    `json:"model,omitempty"`
+	Estimated              bool      `json:"estimated,omitempty"`
 	TotalFiles             int       `json:"total_files"`
+	TotalRequests          int       `json:"total_requests,omitempty"`
+	BatchCount             int       `json:"batch_count,omitempty"`
+	ChunkCount             int       `json:"chunk_count,omitempty"`
+	CacheHits              int       `json:"cache_hits,omitempty"`
+	CacheMisses            int       `json:"cache_misses,omitempty"`
 	TokensInput            int       `json:"tokens_input"`
 	TokensOutput           int       `json:"tokens_output"`
 	TokensCached           int       `json:"tokens_cached"`
@@ -71,6 +81,20 @@ func (c *Collector) SetContext(operation string, targetPath string, machineMode 
 	c.current.MachineMode = machineMode
 }
 
+// SetLLMUsage records provider/model/request metadata for the run.
+func (c *Collector) SetLLMUsage(provider string, model string, requests int, batchCount int, chunkCount int) {
+	c.current.Provider = provider
+	c.current.Model = model
+	c.current.TotalRequests = requests
+	c.current.BatchCount = batchCount
+	c.current.ChunkCount = chunkCount
+}
+
+// SetCachedTokens records cached-token totals for the run.
+func (c *Collector) SetCachedTokens(tokens int) {
+	c.current.TokensCached = tokens
+}
+
 // RecordFile records a file being processed
 func (c *Collector) RecordFile(success bool) {
 	c.current.TotalFiles++
@@ -98,6 +122,37 @@ func (c *Collector) RecordCost(costUSD float64) {
 // SetCacheHitRate sets the cache hit rate
 func (c *Collector) SetCacheHitRate(rate float64) {
 	c.current.CacheHitRate = rate
+}
+
+// ApplyUsage records a provider usage summary.
+func (c *Collector) ApplyUsage(usage *llm.UsageMetrics) {
+	if usage == nil {
+		return
+	}
+	c.current.Provider = usage.Provider
+	c.current.Model = usage.Model
+	c.current.Estimated = usage.Estimated
+	c.current.TotalRequests += usage.TotalRequests
+	c.current.BatchCount += usage.BatchCount
+	c.current.ChunkCount += usage.ChunkCount
+	c.current.CacheHits += usage.CacheHits
+	c.current.CacheMisses += usage.CacheMisses
+	if usage.Estimated {
+		c.current.TokensInput += usage.TotalTokens()
+	} else {
+		c.current.TokensInput += usage.TotalTokensIn
+		c.current.TokensOutput += usage.TotalTokensOut
+	}
+	c.current.TokensCached += usage.CachedTokens
+	c.current.TotalCostUSD += usage.EstimatedCostUSD
+	c.current.CacheHitRate = usage.CacheHitRate()
+}
+
+// SetGenerateSummary stores generation success counts.
+func (c *Collector) SetGenerateSummary(totalFiles int, successCount int, errorCount int) {
+	c.current.TotalFiles = totalFiles
+	c.current.SuccessCount = successCount
+	c.current.ErrorCount = errorCount
 }
 
 // SetAnalyzeSummary stores trust-related analysis metadata.
