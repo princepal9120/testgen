@@ -59,6 +59,10 @@ func init() {
 
 func runAnalyze(cmd *cobra.Command, args []string) error {
 	machineMode := strings.EqualFold(anaOutputFormat, "json")
+	detail := anaDetail
+	if machineMode && detail == "summary" && (cmd == nil || !cmd.Flags().Changed("detail")) {
+		detail = "per-file"
+	}
 	if machineMode {
 		previousQuiet := quiet
 		quiet = true
@@ -73,7 +77,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	log.Info("analyzing codebase",
 		slog.String("path", anaPath),
 		slog.Bool("cost-estimate", anaCostEstimate),
-		slog.String("detail", anaDetail),
+		slog.String("detail", detail),
 	)
 
 	service := app.NewService()
@@ -83,10 +87,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		CostEstimate: anaCostEstimate,
 		Provider:     viper.GetString("llm.provider"),
 		BatchSize:    viper.GetInt("generation.batch_size"),
-		Detail:       anaDetail,
-		Provider:     viper.GetString("llm.provider"),
-		Model:        viper.GetString("llm.model"),
-		BatchSize:    viper.GetInt("generation.batch_size"),
+		Detail:       detail,
 	}
 	if req.Provider == "" {
 		req.Provider = "anthropic"
@@ -103,7 +104,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output results
-	return outputAnalysisResults(result, anaOutputFormat, anaDetail)
+	return outputAnalysisResults(result, anaOutputFormat, detail)
 }
 
 func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) error {

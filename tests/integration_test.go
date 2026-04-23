@@ -345,7 +345,7 @@ func TestAnalyzeJSONIncludesProviderAwareCostFields(t *testing.T) {
 		t.Fatalf("write python file: %v", err)
 	}
 
-	stdout, stderr, err := runCmdInDir(t, dir, "analyze", "--path=.", "--cost-estimate", "--output-format=json")
+	stdout, stderr, err := runCmdInDir(t, dir, "analyze", "--path=.", "--cost-estimate", "--detail=per-file", "--output-format=json")
 	if err != nil {
 		t.Fatalf("Expected analyze json to succeed, got error: %v stderr=%s", err, stderr)
 	}
