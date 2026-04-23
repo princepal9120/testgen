@@ -15,6 +15,7 @@ Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
 - **Start safely** with `testgen analyze` and dry-run generation before writing files
 - **Work in the terminal** with either direct CLI commands or the interactive TUI
 - **Integrate with agents** through shared JSON output, optional patch artifacts, and MCP
+- **See cost-efficiency clearly** with provider-aware analysis, cache transparency, and additive usage reports
 - **Keep workflows scriptable** for CI, automation, and repeatable review-first usage
 
 ## Quick start
@@ -60,6 +61,8 @@ export ANTHROPIC_API_KEY="..."
 testgen analyze --path=./src --cost-estimate
 ```
 
+`--cost-estimate` stays offline and API-key-free. It uses the same provider pricing and batching assumptions as generation so review-first estimates stay aligned with runtime usage reporting.
+
 ### 4. Generate review-first output
 
 ```bash
@@ -67,6 +70,7 @@ testgen generate --file=./src/utils.py \
   --type=unit \
   --dry-run \
   --emit-patch \
+  --report-usage \
   --output-format json
 ```
 
@@ -85,6 +89,25 @@ In machine mode, TestGen writes the shared JSON envelope to stdout and suppresse
 
 ```bash
 testgen generate --path=./src --recursive --type=unit --validate
+```
+
+## Cost-efficiency reporting
+
+Goal 5 adds one shared cost-efficiency story across analyze, generate, and saved run metrics:
+
+- `testgen analyze --cost-estimate` reports provider-aware token and cost estimates without requiring live API calls.
+- `testgen generate --report-usage` surfaces additive usage details such as request counts, cache reuse, batching/chunking activity, and estimated cost without breaking existing machine-readable consumers.
+- `.testgen/metrics/*.json` stores per-run accounting snapshots so repeated-run and bulk-generation savings can be inspected after the command finishes.
+
+Recommended review-first command:
+
+```bash
+testgen generate --path=./src \
+  --recursive \
+  --dry-run \
+  --emit-patch \
+  --report-usage \
+  --output-format json
 ```
 
 For MCP and repo-local agent wrappers, see the integration docs for the same review-first flow and explicit write controls.
