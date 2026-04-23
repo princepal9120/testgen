@@ -112,6 +112,14 @@ testgen generate --path=./src \
 
 For MCP and repo-local agent wrappers, see the integration docs for the same review-first flow and explicit write controls.
 
+## What the machine-readable output now includes
+
+When Goal 5 reporting is enabled, callers can expect additive fields rather than a new envelope shape:
+
+- `testgen generate --report-usage --output-format json` adds a `usage` block with fields such as `provider`, `model`, `request_count`, `batch_count`, `chunk_count`, `cache_hits`, `cache_misses`, `cached_tokens`, `total_tokens_in`, `total_tokens_out`, and `estimated_cost_usd`.
+- `testgen analyze --cost-estimate --detail=per-file --output-format json` keeps the existing top-level analysis envelope and adds provider-aware totals plus per-file `estimated_tokens` / `estimated_cost_usd` values.
+- `.testgen/metrics/*.json` persists the same request, cache, and cost accounting so local inspection matches CLI and integration output.
+
 ## Where next
 
 - **Full command and flag reference** → [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md)

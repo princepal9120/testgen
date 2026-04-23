@@ -85,7 +85,7 @@ When enabled, TestGen emits a shared usage summary for the current generation ru
 
 - **Text mode** keeps the human summary concise while adding request/count/cost transparency.
 - **JSON mode** keeps the existing response envelope and adds an additive usage block so current consumers remain compatible.
-- Usage details are intended to cover request count, cache reuse, cached-token savings, batch count, chunk count, selected provider/model, and estimated cost when that data is available.
+- Usage details cover additive JSON/text fields such as `provider`, `model`, `request_count`, `batch_count`, `chunk_count`, `cache_hits`, `cache_misses`, `cached_tokens`, `total_tokens_in`, `total_tokens_out`, and `estimated_cost_usd`.
 - Per-run snapshots are also persisted under `.testgen/metrics/` for later review.
 
 Recommended machine-readable example:
@@ -210,7 +210,8 @@ testgen validate --path=./src --fail-on-missing-tests --output-format=json
 
 - Runs offline and does not require live provider credentials.
 - Uses the same pricing and batching assumptions as generation/reporting so estimates and runtime usage stay aligned.
-- Adds provider-aware totals at the top level and can include per-file token estimates when `--detail=per-file` is selected.
+- Adds provider-aware totals at the top level and can include per-file `estimated_tokens` / `estimated_cost_usd` when `--detail=per-file` is selected.
+- Exposes a `usage` block in JSON mode so integrations can reuse the same provider/model/request/cost fields that generation reporting uses.
 - Keeps text output readable and JSON output backward-compatible by adding fields instead of replacing the shared response contract.
 
 ---

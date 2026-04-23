@@ -18,7 +18,7 @@ Current JSON payloads expose the same core concepts across wrappers:
 - `artifacts`: generated test artifacts and validation flags
 - `patches`: structured write operations when dry-run or patch emission is requested
 - `success_count` / `error_count`: aggregate run status
-- additive usage/cost fields when the caller enables reporting
+- additive usage/cost fields when the caller enables reporting (`usage`, per-file `estimated_tokens`, provider/model metadata, and cost totals)
 
 Recommended safe default:
 
@@ -53,4 +53,5 @@ For large repositories or budget-sensitive workflows, prefer this sequence:
 
 1. Run `testgen analyze --cost-estimate --output-format json` to get an offline provider-aware estimate.
 2. If the estimate is acceptable, run `testgen generate --dry-run --emit-patch --report-usage --output-format json`.
-3. Only enable file writes after the caller has reviewed artifacts and usage data.
+3. Inspect the additive `usage` block plus any per-file estimate fields instead of scraping text output.
+4. Only enable file writes after the caller has reviewed artifacts and usage data.

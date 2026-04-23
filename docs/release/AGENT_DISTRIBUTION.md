@@ -85,6 +85,10 @@ If your binary is not on `PATH`, pass the explicit binary path instead:
 ./scripts/print-mcp-config.sh /absolute/path/to/testgen
 ```
 
+## Goal 5 upgrade note
+
+Goal 5 adds provider-aware analyze output and additive generate usage reporting. If you upgrade the binary in a repo that copied wrapper assets or machine-mode examples, rerun the wrapper install step so local instructions and expected JSON fields stay aligned with the shipped CLI behavior.
+
 ## What is publish-ready vs local-ready
 
 ### Local-ready now

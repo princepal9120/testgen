@@ -30,8 +30,11 @@ If you upgrade TestGen or the repo-local skill asset, re-run the install step so
 Safe review-first mode:
 
 ```bash
-testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --output-format json
+testgen analyze --path ./src --cost-estimate --output-format json
+testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
+
+That flow gives Codex an offline provider-aware budget preview first, then a shared JSON envelope with both patch artifacts and additive `usage` reporting.
 
 Write files:
 
@@ -43,4 +46,4 @@ testgen generate --file ./src/utils.py --type=unit --validate --output-format js
 
 - The skill stays thin.
 - The shared `internal/app` layer owns orchestration.
-- JSON output exposes `results`, `artifacts`, and `patches`.
+- JSON output exposes `results`, `artifacts`, `patches`, and additive `usage` fields for Goal 5 cost-efficiency reporting.
