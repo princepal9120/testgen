@@ -113,3 +113,17 @@ func GetDefaultModel(providerName string) string {
 		return ""
 	}
 }
+
+// NewProvider returns a concrete provider implementation for the requested provider name.
+func NewProvider(providerName string) Provider {
+	switch ResolveProvider(providerName) {
+	case "openai":
+		return NewOpenAIProvider()
+	case "gemini":
+		return NewGeminiProvider()
+	case "groq":
+		return NewGroqProvider()
+	default:
+		return NewAnthropicProvider()
+	}
+}

@@ -195,7 +195,7 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Output results
-	if err := outputResults(response, outputFormat, response.DryRun); err != nil {
+	if err := outputResults(response, outputFormat, response.DryRun, genReportUsage); err != nil {
 		return fmt.Errorf("failed to output results: %w", err)
 	}
 
@@ -346,12 +346,12 @@ func machineError(response *app.GenerateResponse, fallback string) error {
 	return fmt.Errorf("%s", fallback)
 }
 
-func outputResults(response *app.GenerateResponse, format string, dryRun bool) error {
+func outputResults(response *app.GenerateResponse, format string, dryRun bool, reportUsage bool) error {
 	switch strings.ToLower(format) {
 	case "json":
 		return outputJSON(response)
 	default:
-		return outputText(response, dryRun)
+		return outputText(response, dryRun, reportUsage)
 	}
 }
 
@@ -377,11 +377,7 @@ func appTargetPathHint(req app.GenerateRequest) string {
 	return ""
 }
 
-func outputText(response *app.GenerateResponse, dryRun bool) error {
-	if response == nil {
-		return nil
-	}
-
+func outputText(response *app.GenerateResponse, dryRun bool, reportUsage bool) error {
 	for _, r := range response.Results {
 		if r.Error != nil {
 			fmt.Printf("%s %s: %v\n", errorMark, r.SourceFile.Path, r.Error)
@@ -397,22 +393,23 @@ func outputText(response *app.GenerateResponse, dryRun bool) error {
 			fmt.Printf("%s %s → %s %s\n", successMark, r.SourceFile.Path, r.TestPath, funcInfo)
 		}
 	}
-	if response.Usage != nil {
-		fmt.Printf("\n--- Usage Report ---\n")
-		if response.Usage.Provider != "" {
-			fmt.Printf("Provider:        %s\n", response.Usage.Provider)
+	if reportUsage && response != nil && response.Usage != nil {
+		usage := response.Usage
+		fmt.Printf("\n--- Usage ---\n")
+		if usage.Provider != "" {
+			fmt.Printf("Provider:         %s\n", usage.Provider)
 		}
-		if response.Usage.Model != "" {
-			fmt.Printf("Model:           %s\n", response.Usage.Model)
+		if usage.Model != "" {
+			fmt.Printf("Model:            %s\n", usage.Model)
 		}
-		fmt.Printf("Requests:        %d\n", response.Usage.TotalRequests)
-		fmt.Printf("Input tokens:    %d\n", response.Usage.InputTokens)
-		fmt.Printf("Output tokens:   %d\n", response.Usage.OutputTokens)
-		fmt.Printf("Cached tokens:   %d\n", response.Usage.CachedTokens)
-		fmt.Printf("Cache hits:      %d\n", response.Usage.CacheHits)
-		fmt.Printf("Cache misses:    %d\n", response.Usage.CacheMisses)
-		fmt.Printf("Cache hit rate:  %.2f%%\n", response.Usage.CacheHitRate*100)
-		fmt.Printf("Estimated cost:  $%.4f USD\n", response.Usage.EstimatedCostUSD)
+		fmt.Printf("Requests:         %d\n", usage.TotalRequests)
+		fmt.Printf("Batches:          %d\n", usage.BatchCount)
+		fmt.Printf("Chunks:           %d\n", usage.ChunkCount)
+		fmt.Printf("Cache hits:       %d\n", usage.CacheHits)
+		fmt.Printf("Cached tokens:    %d\n", usage.CachedTokens)
+		fmt.Printf("Input tokens:     %d\n", usage.TotalTokensIn)
+		fmt.Printf("Output tokens:    %d\n", usage.TotalTokensOut)
+		fmt.Printf("Estimated cost:   $%.4f USD\n", usage.EstimatedCostUSD)
 	}
 	return nil
 }

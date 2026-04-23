@@ -81,10 +81,15 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		Path:         anaPath,
 		Recursive:    anaRecursive,
 		CostEstimate: anaCostEstimate,
+		Provider:     viper.GetString("llm.provider"),
+		BatchSize:    viper.GetInt("generation.batch_size"),
 		Detail:       anaDetail,
 		Provider:     viper.GetString("llm.provider"),
 		Model:        viper.GetString("llm.model"),
 		BatchSize:    viper.GetInt("generation.batch_size"),
+	}
+	if req.Provider == "" {
+		req.Provider = "anthropic"
 	}
 	result, err := service.Analyze(context.Background(), req)
 	if err != nil {
@@ -130,16 +135,15 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 
 		if result.EstimatedTokens > 0 {
 			fmt.Printf("\n--- Cost Estimate ---\n")
-			if result.Provider != "" {
-				fmt.Printf("Provider:         %s\n", result.Provider)
+			if result.Usage != nil {
+				if result.Usage.Provider != "" {
+					fmt.Printf("Provider:         %s\n", result.Usage.Provider)
+				}
+				if result.Usage.Model != "" {
+					fmt.Printf("Model:            %s\n", result.Usage.Model)
+				}
+				fmt.Printf("Estimated reqs:   %d\n", result.Usage.TotalRequests)
 			}
-			if result.Model != "" {
-				fmt.Printf("Model:            %s\n", result.Model)
-			}
-			fmt.Printf("Est. requests:    %d\n", result.EstimatedRequests)
-			fmt.Printf("Est. batches:     %d\n", result.EstimatedBatchCount)
-			fmt.Printf("Input tokens:     %d\n", result.EstimatedInputTokens)
-			fmt.Printf("Output tokens:    %d\n", result.EstimatedOutputTokens)
 			fmt.Printf("Estimated tokens: %d\n", result.EstimatedTokens)
 			fmt.Printf("Estimated cost:   $%.2f USD\n", result.EstimatedCost)
 		}
@@ -149,8 +153,11 @@ func outputAnalysisResults(result *app.AnalyzeResponse, format, detail string) e
 			for _, f := range result.Files {
 				fmt.Printf("  %s (%s): %d lines, ~%d functions",
 					f.Path, f.Language, f.Lines, f.Functions)
-				if result.EstimatedTokens > 0 {
-					fmt.Printf(", %d est. tokens, %d est. requests", f.Tokens, f.EstimatedRequests)
+				if f.Tokens > 0 {
+					fmt.Printf(", ~%d tokens", f.Tokens)
+				}
+				if f.EstimatedCost > 0 {
+					fmt.Printf(", $%.4f", f.EstimatedCost)
 				}
 				fmt.Println()
 			}
