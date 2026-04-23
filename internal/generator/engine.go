@@ -298,7 +298,7 @@ func (e *Engine) generateChunk(ctx context.Context, chunk generationChunk, adapt
 	results := make(map[string]string, len(chunk.tasks))
 	totalEstimated := 0
 	for _, task := range chunk.tasks {
-		totalEstimated += max(task.estimatedTokens, 1)
+		totalEstimated += maxInt(task.estimatedTokens, 1)
 	}
 	if totalEstimated == 0 {
 		totalEstimated = len(chunk.tasks)
@@ -318,7 +318,7 @@ func (e *Engine) generateChunk(ctx context.Context, chunk generationChunk, adapt
 		remainingIn -= allocatedIn
 		remainingOut -= allocatedOut
 		remainingCost -= allocatedCost
-		totalEstimated -= max(task.estimatedTokens, 1)
+		totalEstimated -= maxInt(task.estimatedTokens, 1)
 
 		cachedResp := &llm.CompletionResponse{
 			Content:          code,
@@ -342,7 +342,7 @@ func splitChunkMetrics(resp *llm.CompletionResponse, remainingIn, remainingOut i
 		return remainingIn, remainingOut, remainingCost
 	}
 
-	weight := max(taskTokens, 1)
+	weight := maxInt(taskTokens, 1)
 	if remainingWeight <= 0 {
 		remainingWeight = weight
 	}

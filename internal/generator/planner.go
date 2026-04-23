@@ -40,7 +40,7 @@ type batchedTest struct {
 }
 
 func buildGenerationTasks(provider llm.Provider, config EngineConfig, adapter adapters.LanguageAdapter, definitions []*models.Definition, packageName string) []generationTask {
-	tasks := make([]generationTask, 0, len(definitions)*max(1, len(config.TestTypes)))
+	tasks := make([]generationTask, 0, len(definitions)*maxInt(1, len(config.TestTypes)))
 	model := llm.ResolveModel(config.Provider, "")
 	language := adapter.GetLanguage()
 
@@ -95,7 +95,7 @@ func planGenerationChunks(provider llm.Provider, config EngineConfig, adapter ad
 	}
 
 	systemRole := defaultSystemRole(adapter)
-	maxChunkTokens := max(batchSize*1200, 1200)
+	maxChunkTokens := maxInt(batchSize*1200, 1200)
 	chunks := make([]generationChunk, 0, len(tasks))
 	current := make([]generationTask, 0, batchSize)
 	currentTokens := 0
@@ -115,7 +115,7 @@ func planGenerationChunks(provider llm.Provider, config EngineConfig, adapter ad
 	}
 
 	for _, task := range tasks {
-		taskTokens := max(task.estimatedTokens, 1)
+		taskTokens := maxInt(task.estimatedTokens, 1)
 		if len(current) > 0 && (len(current) >= batchSize || currentTokens+taskTokens > maxChunkTokens) {
 			flush()
 		}
@@ -242,4 +242,11 @@ func extractJSONPayload(content string) string {
 
 func normalizeWhitespace(value string) string {
 	return strings.Join(strings.Fields(value), " ")
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
