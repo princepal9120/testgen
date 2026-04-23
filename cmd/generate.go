@@ -15,7 +15,6 @@ import (
 	"github.com/princepal9120/testgen-cli/internal/app"
 	"github.com/princepal9120/testgen-cli/internal/llm"
 	"github.com/princepal9120/testgen-cli/internal/ui"
-	"github.com/princepal9120/testgen-cli/pkg/models"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
