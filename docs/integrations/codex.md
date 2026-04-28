@@ -1,10 +1,10 @@
 # Codex integration
 
-TestGen ships a repo-local Codex skill for review-first test generation.
+TestGen installs a repo-local Codex skill for agent-native test generation.
 
-Use it when Codex should inspect a codebase, estimate generation cost, create tests, emit reviewable patches, or validate generated tests without hand-writing the whole workflow from scratch.
+The user-facing flow is simple: install the skill into a repo, then ask Codex to generate review-first tests. Codex uses the local TestGen engine for analysis, dry-run patches, JSON output, and validation.
 
-## Install TestGen
+## Install the engine
 
 Linux/macOS:
 
@@ -12,65 +12,68 @@ Linux/macOS:
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash
 ```
 
-Windows PowerShell:
-
-```powershell
-irm https://raw.githubusercontent.com/princepal9120/testgen/main/install.ps1 | iex
-```
-
-Go install:
+Go install alternative:
 
 ```bash
 go install github.com/princepal9120/testgen-cli@latest
 ```
 
-Verify:
+## Install the Codex skill
+
+From inside the repo where Codex should generate tests:
 
 ```bash
-testgen --version
-testgen --help
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent codex
 ```
 
-## Install the Codex skill into a repo
+This creates:
 
-From the TestGen source repo:
+```text
+.codex/skills/testgen/SKILL.md
+```
+
+Install into another repo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --target /path/to/repo --agent codex
+```
+
+From a cloned TestGen repo, local copy mode also works:
 
 ```bash
 ./scripts/install-agent-integrations.sh /path/to/target-repo copy
 ```
 
-This installs:
+## Ask Codex
 
 ```text
-/path/to/target-repo/.codex/skills/testgen/SKILL.md
+Use TestGen to analyze this repo and generate review-first unit tests for ./src.
+Do not write files until you inspect the dry-run patch.
 ```
 
-Manual install:
+Single file:
 
-```bash
-mkdir -p /path/to/target-repo/.codex/skills/testgen
-cp .codex/skills/testgen/SKILL.md /path/to/target-repo/.codex/skills/testgen/SKILL.md
+```text
+Use TestGen to create unit tests for ./src/utils.py.
+Start with a dry-run patch, then validate the generated test after review.
 ```
 
-For local wrapper development, use symlinks:
+Cost-aware bulk run:
 
-```bash
-./scripts/install-agent-integrations.sh /path/to/target-repo symlink
+```text
+Use TestGen to estimate generation cost for ./src first.
+Then generate review-first patches folder by folder.
 ```
 
-If you upgrade TestGen or edit the skill asset, rerun the install command so copied repos stay aligned.
+## Expected Codex behavior
 
-## Recommended Codex workflow
-
-### 1. Analyze first
+Codex should first run:
 
 ```bash
 testgen analyze --path=./src --cost-estimate --output-format json
 ```
 
-Use this before generation so Codex can reason about scope, language mix, and estimated provider cost.
-
-### 2. Generate review-first artifacts
+Then generate reviewable artifacts:
 
 ```bash
 testgen generate --path=./src \
@@ -84,7 +87,7 @@ testgen generate --path=./src \
 
 Codex should inspect `results`, `artifacts`, `patches`, and usage data before applying writes.
 
-### 3. Write and validate when approved
+Write and validate only after review or explicit user instruction:
 
 ```bash
 testgen generate --path=./src \
@@ -94,38 +97,16 @@ testgen generate --path=./src \
   --output-format json
 ```
 
-For one file:
-
-```bash
-testgen generate --file ./src/utils.py --type=unit --validate --output-format json
-```
-
-## Machine request mode
-
-When Codex has a structured request payload:
-
-```bash
-cat request.json | testgen generate --request-file=-
-```
-
-or:
-
-```bash
-testgen generate --request-file=./request.json
-```
-
-Machine mode writes the shared JSON envelope to stdout and suppresses human-oriented Cobra banners on stderr.
-
 ## Why this works well for Codex
 
-- The skill is thin and procedural.
-- TestGen owns scanning, generation, validation, and cost reporting.
+- The skill is repo-local and discoverable.
+- The CLI remains an engine, not the user-facing product.
 - Dry-run patches make file writes explicit and reviewable.
 - JSON output gives Codex stable fields for reasoning and follow-up edits.
 
 ## Troubleshooting
 
-- `testgen: command not found`: install TestGen or add `~/.local/bin` to PATH.
+- `testgen: command not found`: install the engine or add `~/.local/bin` to PATH.
 - Missing provider key: export one of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `GROQ_API_KEY`.
-- Large repo: start with `testgen analyze --path=./src --cost-estimate --output-format json`, then generate per folder.
+- Large repo: analyze a narrow path first, then generate per folder.
 - Validation failure: inspect generated tests, run the repo-native test command, patch the tests, then rerun validation.
