@@ -100,7 +100,7 @@ testgen generate --path=./src \
 ## Why this works well for Codex
 
 - The skill is repo-local and discoverable.
-- The CLI remains an engine, not the user-facing product.
+- The local engine stays behind the skill, not in front of the user experience.
 - Dry-run patches make file writes explicit and reviewable.
 - JSON output gives Codex stable fields for reasoning and follow-up edits.
 
