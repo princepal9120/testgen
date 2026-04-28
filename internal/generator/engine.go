@@ -119,8 +119,10 @@ func (e *Engine) GenerateArtifact(sourceFile *models.SourceFile, adapter adapter
 		slog.Int("count", len(definitions)),
 	)
 
-	// Generate tests for each definition
-	tasks := buildGenerationTasks(e.provider, e.config, adapter, definitions, ast.Package)
+	// Generate tests for each definition. Include existing test context so generated
+	// tests adapt to the repo's framework, fixtures, naming, and assertion style.
+	testContext := discoverExistingTestContext(sourceFile.Path, adapter, e.config.Framework)
+	tasks := buildGenerationTasks(e.provider, e.config, adapter, definitions, ast.Package, testContext)
 	generated := make(map[string]string, len(tasks))
 	var allTests strings.Builder
 	functionsTested := make([]string, 0)
