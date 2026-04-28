@@ -2,7 +2,7 @@
 
 TestGen is agent-first. Users install a small repo-local skill or command wrapper, then ask their coding agent to generate review-first tests.
 
-The `testgen` binary is the local engine behind the skill. Agent wrappers should stay thin and let the engine own scanning, generation, validation, JSON output, patches, and usage reporting.
+The `testgen` binary is the local engine behind the skill. Agent wrappers should stay thin and let the engine own scanning, existing-test style detection, generation, validation, JSON output, patches, and usage reporting.
 
 ## Install into a repo
 
@@ -68,6 +68,7 @@ All integrations use the same contract:
 - review-first dry-run flows before file writes
 - machine-readable JSON output
 - optional patch-style artifacts for agent application
+- existing test context so generated tests follow the repo's framework, helpers, fixtures, mocks, and naming style
 - provider-aware usage and cost transparency
 - validation metadata after generated tests run
 
@@ -108,4 +109,5 @@ testgen generate --path=./src --recursive --type=unit --validate --output-format
 - Do not duplicate TestGen business logic in prompt files.
 - Prefer dry-run JSON output for agent reasoning.
 - Prefer `testgen analyze --cost-estimate --output-format json` before large generation runs.
+- Let the engine adapt to existing tests instead of hard-coding framework-specific prompt branches in each wrapper.
 - Rerun the installer when the repo-local skill files change.

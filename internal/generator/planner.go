@@ -39,10 +39,12 @@ type batchedTest struct {
 	Code string `json:"code"`
 }
 
-func buildGenerationTasks(provider llm.Provider, config EngineConfig, adapter adapters.LanguageAdapter, definitions []*models.Definition, packageName string) []generationTask {
+func buildGenerationTasks(provider llm.Provider, config EngineConfig, adapter adapters.LanguageAdapter, definitions []*models.Definition, packageName string, testContext existingTestContext) []generationTask {
 	tasks := make([]generationTask, 0, len(definitions)*maxInt(1, len(config.TestTypes)))
 	model := llm.ResolveModel(config.Provider, "")
 	language := adapter.GetLanguage()
+	framework := firstNonEmpty(config.Framework, testContext.Framework)
+	styleFingerprint := normalizeWhitespace(strings.Join(append([]string{framework}, testContext.Paths...), "|")) + "|" + normalizeWhitespace(testContext.Snippet)
 
 	for _, def := range definitions {
 		if def == nil {
@@ -51,7 +53,8 @@ func buildGenerationTasks(provider llm.Provider, config EngineConfig, adapter ad
 		for _, testType := range config.TestTypes {
 			promptTemplate := adapter.GetPromptTemplate(testType)
 			prompt := fmt.Sprintf(promptTemplate, def.Body, packageName)
-			fingerprint := stableDefinitionFingerprint(config.Provider, model, language, packageName, testType, config.Framework, def)
+			prompt = augmentPromptWithTestContext(prompt, framework, testContext)
+			fingerprint := stableDefinitionFingerprint(config.Provider, model, language, packageName, testType, framework, styleFingerprint, def)
 			tasks = append(tasks, generationTask{
 				id:              strconv.Itoa(len(tasks) + 1),
 				def:             def,
@@ -66,7 +69,7 @@ func buildGenerationTasks(provider llm.Provider, config EngineConfig, adapter ad
 	return tasks
 }
 
-func stableDefinitionFingerprint(provider, model, language, packageName, testType, framework string, def *models.Definition) string {
+func stableDefinitionFingerprint(provider, model, language, packageName, testType, framework, styleFingerprint string, def *models.Definition) string {
 	if def == nil {
 		return ""
 	}
@@ -77,6 +80,7 @@ func stableDefinitionFingerprint(provider, model, language, packageName, testTyp
 		strings.TrimSpace(packageName),
 		strings.TrimSpace(testType),
 		strings.TrimSpace(framework),
+		normalizeWhitespace(styleFingerprint),
 		strings.TrimSpace(def.Name),
 		normalizeWhitespace(def.Signature),
 		normalizeWhitespace(def.Body),
@@ -135,7 +139,7 @@ func buildChunkPrompt(adapter adapters.LanguageAdapter, framework, packageName s
 	var b strings.Builder
 	b.WriteString("Generate production-quality ")
 	b.WriteString(adapter.GetLanguage())
-	b.WriteString(" tests for each target below.\n")
+	b.WriteString(" tests for each target below. Adapt to the repository's existing test style, fixtures, mocks, naming, and assertion patterns when style context is provided.\n")
 	if strings.TrimSpace(packageName) != "" {
 		b.WriteString("Package/module context: ")
 		b.WriteString(packageName)
@@ -169,7 +173,7 @@ func buildChunkPrompt(adapter adapters.LanguageAdapter, framework, packageName s
 }
 
 func defaultSystemRole(adapter adapters.LanguageAdapter) string {
-	return fmt.Sprintf("You are an expert %s developer. Generate production-quality tests that follow best practices. Output only the requested artifact.", adapter.GetLanguage())
+	return fmt.Sprintf("You are an expert %s test engineer. Generate production-grade tests that match the repository's existing test style, framework, fixtures, mocks, naming conventions, and file organization. Prefer meaningful behavior coverage over shallow assertions. Output only the requested artifact.", adapter.GetLanguage())
 }
 
 func parseChunkResponse(content, language string, tasks []generationTask) (map[string]string, error) {

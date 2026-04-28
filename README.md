@@ -23,9 +23,9 @@
 
 ---
 
-TestGen gives coding agents a safe test-generation skill.
+TestGen gives coding agents a production-safe test-generation skill.
 
-Install it into a repo, then ask your agent to analyze the codebase and generate review-first tests. TestGen handles source scanning, cost-aware planning, generated test artifacts, patch output, and validation through one agent-friendly workflow.
+Install it into a repo, then ask Codex, Claude Code, OpenCode, or an MCP host to analyze the codebase and generate review-first tests. TestGen handles source scanning, existing-test style detection, cost-aware planning, generated test artifacts, patch output, and validation through one agent-friendly workflow.
 
 The public product is the **agent skill**. The `testgen` binary is the local engine that the skill calls behind the scenes.
 
@@ -33,14 +33,27 @@ Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
 
 ## Why TestGen
 
+Plain agent prompts are good for one-off test files. TestGen is for repeatable, production-grade test generation inside real repos.
+
 | Agent need | What TestGen provides |
 |------------|------------------------|
 | Generate tests safely | Dry-run first, patch artifacts, explicit write controls |
+| Match the repo | Detects nearby test files and adapts to existing framework, fixtures, mocks, naming, and assertions |
 | Avoid blind edits | Agents inspect JSON results before touching files |
 | Plan cost before API calls | Offline code analysis and provider-aware cost estimates |
 | Work across stacks | JS/TS, Python, Go, Rust, and Java adapters |
 | Fit agent workflows | Codex skill, Claude command, OpenCode command, and MCP server |
 | Keep logic consistent | One shared engine across every agent integration |
+
+### Why not just ask Claude or Codex directly?
+
+You still use Claude, Codex, or OpenCode. TestGen gives them a dedicated workflow instead of a loose prompt:
+
+- analyze first, so the agent knows what files and functions exist
+- reuse existing tests as style context, so output fits the repo
+- dry-run patches before writes, so changes are reviewable
+- report token and cost usage, so large repos stay controlled
+- validate generated tests through the local project toolchain
 
 ## Installation
 
@@ -70,6 +83,12 @@ From inside the repo you want your agent to work on:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash
+```
+
+If you cloned the repo, you can use the shorter local entrypoint:
+
+```bash
+./skills.sh --agent all
 ```
 
 Codex only:

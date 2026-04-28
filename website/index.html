@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TestGen - Agent-native test generation skill</title>
     <meta name="description"
-        content="TestGen is an agent-native test generation skill for Codex, Claude Code, OpenCode, and MCP. Install it into a repo, let your agent analyze first, then review patches before writing tests.">
+        content="TestGen is an agent-native test generation skill for Codex, Claude Code, OpenCode, and MCP. Install it into a repo, let your agent analyze first, match existing test style, then review patches before writing tests.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -41,7 +41,7 @@
             </h1>
             <p class="hero-subtitle wide">
                 TestGen is a repo-local skill for Codex, Claude Code, OpenCode, and MCP clients. Your agent analyzes the codebase,
-                estimates scope, creates review-first patches, and validates tests only when writing is allowed.
+                adapts to existing tests, estimates scope, creates review-first patches, and validates tests only when writing is allowed.
             </p>
             <div class="agent-badges">
                 <span class="agent-badge">Codex</span>
@@ -73,8 +73,8 @@
                             <div class="result-value">scope, language mix, cost estimate</div>
                         </div>
                         <div class="result-card">
-                            <div class="result-label">dry run</div>
-                            <div class="result-value">generated tests without file writes</div>
+                            <div class="result-label">style match</div>
+                            <div class="result-value">uses nearby tests as framework and fixture context</div>
                         </div>
                         <div class="result-card">
                             <div class="result-label">patches</div>
@@ -134,6 +134,11 @@
                     <div class="feature-icon">🧪</div>
                     <h3>Review-first generation</h3>
                     <p>Agents start with dry-run artifacts and patches, not silent file writes.</p>
+                </div>
+                <div class="integration-card">
+                    <div class="feature-icon">🧬</div>
+                    <h3>Repo-style adaptation</h3>
+                    <p>Generated tests follow existing frameworks, helpers, fixtures, mocks, names, and assertions.</p>
                 </div>
                 <div class="integration-card">
                     <div class="feature-icon">📊</div>
