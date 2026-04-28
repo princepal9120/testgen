@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestGen Docs Overview</title>
+    <title>TestGen Docs - Agent skill onboarding</title>
     <meta name="description"
-        content="High-level TestGen docs for installation, workflow, supported usage modes, and where to find the current source-of-truth docs in the repo.">
+        content="Install and use TestGen as an agent-native test generation skill for Codex, Claude Code, OpenCode, and MCP.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -38,98 +38,110 @@
                 <ul>
                     <li><a href="#overview" class="active">Overview</a></li>
                     <li><a href="#installation">Installation</a></li>
-                    <li><a href="#configuration">Configuration</a></li>
                     <li><a href="#quick-start">Quick Start</a></li>
+                    <li><a href="#configuration">Provider Keys</a></li>
                 </ul>
             </div>
             <div class="sidebar-group">
-                <h3>Use TestGen</h3>
+                <h3>Agent Flow</h3>
                 <ul>
-                    <li><a href="#usage-modes">Usage Modes</a></li>
+                    <li><a href="#agents">Supported Agents</a></li>
                     <li><a href="#workflow">Review-first Workflow</a></li>
-                    <li><a href="#integrations">Integrations</a></li>
+                    <li><a href="#integrations">Integration Files</a></li>
                     <li><a href="#supported-languages">Supported Languages</a></li>
                 </ul>
             </div>
-        
         </aside>
 
         <main class="docs-content">
             <section id="overview">
-                <h1>Docs Overview</h1>
+                <h1>TestGen is an agent skill.</h1>
                 <p>
-                    This page is the high-level guide to TestGen. It explains what the tool is, how to get started,
-                    the main ways to use it, and where to find the current source-of-truth docs in the repository.
+                    TestGen helps coding agents generate tests safely. Install the skill into a repo, then ask Codex,
+                    Claude Code, OpenCode, or an MCP host to analyze the project and create review-first tests.
                 </p>
                 <p>
-                    TestGen is a multi-language tool for inspecting code, generating tests, validating coverage,
-                    and supporting both human and agent-driven workflows through the TUI, CLI, repo-local wrappers,
-                    and an MCP server.
+                    The <code>testgen</code> binary is the local engine. The product experience is the repo-local agent skill,
+                    command, or MCP tool that calls the engine with safe defaults.
                 </p>
             </section>
 
             <section id="installation">
                 <h2>Installation</h2>
-                <p>Install TestGen locally, then set one provider key before generating tests.</p>
+                <p>Install the local engine once, then install the agent skill into each repo where agents should generate tests.</p>
 
+                <h3>1. Install the local engine</h3>
                 <div class="docs-tabs">
                     <button class="docs-tab active" onclick="switchTab('unix', this)">macOS / Linux</button>
                     <button class="docs-tab" onclick="switchTab('windows', this)">Windows</button>
-                    <button class="docs-tab" onclick="switchTab('source', this)">From Source</button>
+                    <button class="docs-tab" onclick="switchTab('source', this)">Go install</button>
                 </div>
 
                 <div id="unix" class="tab-content active">
                     <div class="code-block-minimal">
                         <pre><code>curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash</code></pre>
-                        <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
+                        <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">Copy</button>
                     </div>
                 </div>
 
                 <div id="windows" class="tab-content">
                     <div class="code-block-minimal">
                         <pre><code>irm https://raw.githubusercontent.com/princepal9120/testgen/main/install.ps1 | iex</code></pre>
-                        <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
+                        <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">Copy</button>
                     </div>
                 </div>
 
                 <div id="source" class="tab-content">
                     <div class="code-block-minimal">
                         <pre><code>go install github.com/princepal9120/testgen-cli@latest</code></pre>
-                        <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
+                        <button class="copy-icon" onclick="copyCode(this)" title="Copy to clipboard">Copy</button>
                     </div>
                 </div>
 
+                <h3>2. Install the agent skill into your repo</h3>
                 <div class="code-block">
-                    <pre><code>Compatibility note:
-- GitHub repo: github.com/princepal9120/testgen
-- Go module:  github.com/princepal9120/testgen-cli</code></pre>
+                    <pre><code>curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash</code></pre>
+                </div>
+
+                <p>Install one integration only:</p>
+                <div class="code-block">
+                    <pre><code># Codex
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent codex
+
+# Claude Code
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent claude
+
+# OpenCode
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent opencode</code></pre>
+                </div>
+            </section>
+
+            <section id="quick-start">
+                <h2>Quick Start</h2>
+                <p>After installation, talk to your coding agent in plain language.</p>
+
+                <h3>Generate tests for a folder</h3>
+                <div class="code-block">
+                    <pre><code>Use TestGen to analyze this repo and generate review-first unit tests for ./src.
+Do not write files until you inspect the dry-run patch.</code></pre>
+                </div>
+
+                <h3>Generate tests for one file</h3>
+                <div class="code-block">
+                    <pre><code>Use TestGen to create unit tests for ./src/utils.py.
+Start with a dry-run patch, then validate the generated test after review.</code></pre>
+                </div>
+
+                <h3>Large repo or budget-sensitive run</h3>
+                <div class="code-block">
+                    <pre><code>Use TestGen to estimate test generation cost for ./src first.
+Then generate review-first patches folder by folder.</code></pre>
                 </div>
             </section>
 
             <section id="configuration">
-                <h2>Configuration</h2>
-                <p>Set one provider API key before generating tests. TestGen supports Anthropic, OpenAI, Gemini, and Groq.</p>
+                <h2>Provider Keys</h2>
+                <p>Set one provider key before generation. Analyze and cost-estimate flows can run offline.</p>
 
                 <div class="code-block">
                     <pre><code># Choose one provider
@@ -138,153 +150,69 @@ export OPENAI_API_KEY="sk-..."
 export GEMINI_API_KEY="AIza..."
 export GROQ_API_KEY="gsk_..."</code></pre>
                 </div>
-
-                <ul>
-                    <li><strong>Anthropic Claude:</strong> strong default quality for many repositories</li>
-                    <li><strong>OpenAI:</strong> common general-purpose option</li>
-                    <li><strong>Gemini:</strong> useful when you want a Google-hosted option</li>
-                    <li><strong>Groq:</strong> useful when low latency matters</li>
-                </ul>
             </section>
 
-            <section id="quick-start">
-                <h2>Quick Start</h2>
-                <p>Keep the workflow simple: inspect first, preview generation second, write and validate last.</p>
-
-                <h3>1. Inspect a codebase</h3>
-                <div class="code-block">
-                    <pre><code>testgen analyze --path=./examples --cost-estimate --recursive</code></pre>
-                </div>
-
-                <h3>2. Preview generated tests without writing</h3>
-                <div class="code-block">
-                    <pre><code>testgen generate --file=./examples/python/calculator.py \
-  --type=unit \
-  --dry-run \
-  --emit-patch \
-  --output-format json</code></pre>
-                </div>
-
-                <h3>3. Generate and validate when ready</h3>
-                <div class="code-block">
-                    <pre><code>testgen generate --path=./src --recursive --type=unit --validate</code></pre>
-                </div>
-
-                <h3>4. Prefer a guided UI?</h3>
-                <div class="code-block">
-                    <pre><code>testgen tui</code></pre>
-                </div>
-            </section>
-
-            <section id="usage-modes">
-                <h2>Usage Modes</h2>
-                <p>TestGen supports four practical usage modes today:</p>
+            <section id="agents">
+                <h2>Supported Agents</h2>
                 <ul>
-                    <li><strong>TUI:</strong> best for first-time human users who want a guided terminal flow</li>
-                    <li><strong>CLI:</strong> best for local development, scripting, and CI automation</li>
-                    <li><strong>Agent wrappers:</strong> best when coding agents should inspect dry-run artifacts before applying writes</li>
-                    <li><strong>MCP:</strong> best when your client prefers tool calls over shell execution</li>
+                    <li><strong>Codex:</strong> installs <code>.codex/skills/testgen/SKILL.md</code></li>
+                    <li><strong>Claude Code:</strong> installs <code>.claude/commands/testgen.md</code></li>
+                    <li><strong>OpenCode:</strong> installs <code>.opencode/commands/testgen.md</code></li>
+                    <li><strong>MCP:</strong> use <code>testgen mcp</code> for tool-call based hosts</li>
                 </ul>
             </section>
 
             <section id="workflow">
                 <h2>Review-first Workflow</h2>
                 <p>
-                    The clearest default workflow is also the safest one: analyze the repo, generate dry-run output,
-                    inspect the results, and only then write files with validation.
+                    Agents should avoid blind edits. The safe default is analyze, dry-run, inspect, then write and validate.
                 </p>
 
                 <div class="code-block">
-                    <pre><code># 1) inspect the repo
-testgen analyze --path=./src --cost-estimate
+                    <pre><code># 1. Agent analyzes scope and cost
+testgen analyze --path=./src --cost-estimate --output-format json
 
-# 2) preview structured output
-testgen generate --file=./src/utils.py --type=unit --dry-run --emit-patch --output-format json
+# 2. Agent creates reviewable artifacts
+testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 
-# 3) write files and validate later
-testgen generate --path=./src --recursive --type=unit --validate</code></pre>
+# 3. Agent writes only after review or explicit instruction
+testgen generate --path=./src --recursive --type=unit --validate --output-format json</code></pre>
                 </div>
             </section>
 
             <section id="integrations">
-                <h2>Integrations</h2>
-                <p>All current integrations rely on the same app layer and the same review-first model.</p>
+                <h2>Integration Files</h2>
+                <p>All wrappers are thin. They tell agents how to call the local engine safely.</p>
 
                 <ul>
-                    <li><strong>Codex:</strong> <code>.codex/skills/testgen/SKILL.md</code></li>
-                    <li><strong>Claude Code:</strong> <code>.claude/commands/testgen.md</code></li>
-                    <li><strong>OpenCode:</strong> <code>.opencode/commands/testgen.md</code></li>
-                    <li><strong>MCP:</strong> <code>testgen mcp</code> exposes <code>testgen_generate</code>, <code>testgen_analyze</code>, and <code>testgen_validate</code></li>
+                    <li><a href="https://github.com/princepal9120/testgen/blob/main/docs/integrations/codex.md" target="_blank" rel="noreferrer">Codex integration</a></li>
+                    <li><a href="https://github.com/princepal9120/testgen/blob/main/docs/integrations/claude-code.md" target="_blank" rel="noreferrer">Claude Code integration</a></li>
+                    <li><a href="https://github.com/princepal9120/testgen/blob/main/docs/integrations/opencode.md" target="_blank" rel="noreferrer">OpenCode integration</a></li>
+                    <li><a href="https://github.com/princepal9120/testgen/blob/main/docs/integrations/mcp.md" target="_blank" rel="noreferrer">MCP integration</a></li>
                 </ul>
-
-                <h3>Recommended safe mode for agents</h3>
-                <div class="code-block">
-                    <pre><code>testgen generate --file=./src/utils.py --type=unit --dry-run --emit-patch --output-format json</code></pre>
-                </div>
-
-                <h3>Install wrappers into another repo</h3>
-                <div class="code-block">
-                    <pre><code>./scripts/install-agent-integrations.sh /path/to/target-repo copy</code></pre>
-                </div>
             </section>
 
             <section id="supported-languages">
                 <h2>Supported Languages</h2>
-                <p>TestGen currently detects and generates tests for these languages:</p>
-
-                <ul>
-                    <li><strong>JavaScript / TypeScript:</strong> Jest, Vitest, Mocha</li>
-                    <li><strong>Python:</strong> pytest, unittest</li>
-                    <li><strong>Go:</strong> testing, testify</li>
-                    <li><strong>Rust:</strong> cargo test</li>
-                    <li><strong>Java:</strong> JUnit 5-oriented generation via the Java adapter</li>
-                </ul>
+                <p>TestGen currently supports JavaScript/TypeScript, Python, Go, Rust, and Java.</p>
             </section>
-
-
         </main>
     </div>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-logo">
-                <img src="images/logo.png" alt="TestGen Logo">
-            </div>
-            <p>High-level docs on the site. Detailed references in the repository.</p>
-        </div>
-    </footer>
-
     <script>
-        function switchTab(os, button) {
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.style.display = 'none';
-                el.classList.remove('active');
-            });
-            document.querySelectorAll('.docs-tab').forEach(el => el.classList.remove('active'));
-
-            const selected = document.getElementById(os);
-            selected.style.display = 'block';
-            selected.classList.add('active');
+        function switchTab(tabId, button) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.docs-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
             button.classList.add('active');
         }
 
-        function copyCode(btn) {
-            const codeBlock = btn.parentElement.querySelector('code');
-            const text = codeBlock.innerText;
-
-            navigator.clipboard.writeText(text).then(() => {
-                btn.classList.add('copied');
-                const originalSvg = btn.innerHTML;
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>`;
-
-                setTimeout(() => {
-                    btn.innerHTML = originalSvg;
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
+        function copyCode(button) {
+            const code = button.parentElement.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const original = button.textContent;
+                button.textContent = 'Copied';
+                setTimeout(() => button.textContent = original, 1200);
             });
         }
     </script>
