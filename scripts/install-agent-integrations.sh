@@ -31,9 +31,13 @@ Files:
 - .claude/commands/testgen.md
 - .opencode/commands/testgen.md
 
-Recommended safe command:
-  testgen generate --file ./path/to/file --type=unit --dry-run --emit-patch --output-format json
+Recommended agent flow:
+  testgen analyze --path ./src --cost-estimate --output-format json
+  testgen generate --path ./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 
-Experimental MCP server:
+Write after review:
+  testgen generate --path ./src --recursive --type=unit --validate --output-format json
+
+MCP server:
   testgen mcp
 MSG
