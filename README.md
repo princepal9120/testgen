@@ -17,7 +17,6 @@
   <a href="#installation">Install</a> &bull;
   <a href="#quick-start">Quick Start</a> &bull;
   <a href="#agent-skills">Agent Skills</a> &bull;
-  <a href="docs/FUTURE_PROJECT_WORKFLOW.md">Future Projects</a> &bull;
   <a href="#how-it-works">How It Works</a> &bull;
   <a href="docs/integrations/README.md">Docs</a>
 </p>
@@ -157,8 +156,6 @@ For a larger repo:
 Use TestGen to estimate test generation cost for ./src first.
 Then generate review-first patches folder by folder.
 ```
-
-For future projects, use the repeatable onboarding flow in [`docs/FUTURE_PROJECT_WORKFLOW.md`](docs/FUTURE_PROJECT_WORKFLOW.md).
 
 The agent skill will run the safe flow:
 
