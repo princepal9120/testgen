@@ -1,130 +1,247 @@
-# TestGen
-
 <p align="center">
-  <img src="website/images/logo.png" alt="TestGen Logo" width="120" />
+  <img src="website/images/logo.png" alt="TestGen logo" width="140">
 </p>
 
-**AI-powered test generation for humans, CI pipelines, and coding agents.**
+<p align="center">
+  <strong>Agent-native test generation for Codex, Claude Code, OpenCode, and MCP</strong>
+</p>
 
-TestGen is a multi-language CLI for inspecting code, generating tests, validating coverage, and fitting cleanly into local workflows, CI, and agent tooling. The CLI, TUI, and MCP server all ride on the same shared application layer, so teams can use one review-first backend across human and machine callers.
+<p align="center">
+  <a href="https://github.com/princepal9120/testgen/actions"><img src="https://github.com/princepal9120/testgen/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/princepal9120/testgen/releases"><img src="https://img.shields.io/github/v/release/princepal9120/testgen" alt="Release"></a>
+  <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"></a>
+  <a href="https://github.com/princepal9120/testgen"><img src="https://img.shields.io/github/stars/princepal9120/testgen?style=social" alt="GitHub stars"></a>
+</p>
+
+<p align="center">
+  <a href="#installation">Install</a> &bull;
+  <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#agent-skills">Agent Skills</a> &bull;
+  <a href="#how-it-works">How It Works</a> &bull;
+  <a href="docs/integrations/README.md">Docs</a>
+</p>
+
+---
+
+TestGen gives coding agents a safe test-generation skill.
+
+Install it into a repo, then ask your agent to analyze the codebase and generate review-first tests. TestGen handles source scanning, cost-aware planning, generated test artifacts, patch output, and validation through one agent-friendly workflow.
+
+The public product is the **agent skill**. The `testgen` binary is the local engine that the skill calls behind the scenes.
 
 Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
 
-## Why teams use TestGen
+## Why TestGen
 
-- **Start safely** with `testgen analyze` and dry-run generation before writing files
-- **Work in the terminal** with either direct CLI commands or the interactive TUI
-- **Integrate with agents** through shared JSON output, optional patch artifacts, and MCP
-- **See cost-efficiency clearly** with provider-aware analysis, cache transparency, and additive usage reports
-- **Keep workflows scriptable** for CI, automation, and repeatable review-first usage
+| Agent need | What TestGen provides |
+|------------|------------------------|
+| Generate tests safely | Dry-run first, patch artifacts, explicit write controls |
+| Avoid blind edits | Agents inspect JSON results before touching files |
+| Plan cost before API calls | Offline code analysis and provider-aware cost estimates |
+| Work across stacks | JS/TS, Python, Go, Rust, and Java adapters |
+| Fit agent workflows | Codex skill, Claude command, OpenCode command, and MCP server |
+| Keep logic consistent | One shared engine across every agent integration |
 
-## Quick start
+## Installation
 
-### 1. Install the latest release or build from source
+### 1. Install the TestGen engine
 
-**macOS / Linux**
+Linux/macOS:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash
 ```
 
-**Windows (PowerShell)**
+Windows PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/princepal9120/testgen/main/install.ps1 | iex
 ```
 
-Or build from source:
+Go install alternative:
 
 ```bash
-git clone https://github.com/princepal9120/testgen.git
-cd testgen
-go build -o testgen .
+go install github.com/princepal9120/testgen-cli@latest
 ```
 
-Upgrade story:
+### 2. Install the agent skill into your repo
 
-- Re-run the platform installer to fetch the latest GitHub release.
-- Or use Go directly: `go install github.com/princepal9120/testgen-cli@latest`
-- If you copied repo-local agent wrapper files into another repo, re-run `./scripts/install-agent-integrations.sh` after upgrading so those wrapper assets stay aligned.
+From inside the repo you want your agent to work on:
 
-### 2. Set one provider API key
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash
+```
+
+Codex only:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent codex
+```
+
+Claude Code only:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent claude
+```
+
+OpenCode only:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent opencode
+```
+
+Install into another repo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --target /path/to/repo --agent all
+```
+
+Installed files:
+
+- `.codex/skills/testgen/SKILL.md`
+- `.claude/commands/testgen.md`
+- `.opencode/commands/testgen.md`
+
+### 3. Set one provider key
 
 ```bash
 export ANTHROPIC_API_KEY="..."
 # or OPENAI_API_KEY / GEMINI_API_KEY / GROQ_API_KEY
 ```
 
-### 3. Inspect the codebase first
+## Quick Start
 
-```bash
-testgen analyze --path=./src --cost-estimate
+Ask your coding agent:
+
+```text
+Use TestGen to analyze this repo and generate review-first unit tests for ./src.
+Do not write files until you inspect the dry-run patch.
 ```
 
-`--cost-estimate` stays offline and API-key-free. It uses the same provider pricing and batching assumptions as generation so review-first estimates stay aligned with runtime usage reporting.
+For a single file:
 
-### 4. Generate review-first output
-
-```bash
-testgen generate --file=./src/utils.py \
-  --type=unit \
-  --dry-run \
-  --emit-patch \
-  --report-usage \
-  --output-format json
+```text
+Use TestGen to create unit tests for ./src/utils.py.
+Start with a dry-run patch, then validate the generated test after review.
 ```
 
-This is the recommended safe default for agents and automation because it keeps file writes reviewable.
+For a larger repo:
 
-Explicit machine-input lane:
-
-```bash
-cat request.json | testgen generate --request-file=-
-# or: testgen generate --request-file=./request.json
+```text
+Use TestGen to estimate test generation cost for ./src first.
+Then generate review-first patches folder by folder.
 ```
 
-In machine mode, TestGen writes the shared JSON envelope to stdout and suppresses human-oriented Cobra banners on stderr.
-
-### 5. Write and validate when ready
+The agent skill will run the safe flow:
 
 ```bash
-testgen generate --path=./src --recursive --type=unit --validate
+testgen analyze --path=./src --cost-estimate --output-format json
+testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
 
-## Cost-efficiency reporting
-
-Goal 5 adds one shared cost-efficiency story across analyze, generate, and saved run metrics:
-
-- `testgen analyze --cost-estimate` reports provider-aware token and cost estimates without requiring live API calls.
-- `testgen generate --report-usage` surfaces additive usage details such as request counts, cache reuse, batching/chunking activity, and estimated cost without breaking existing machine-readable consumers.
-- `.testgen/metrics/*.json` stores per-run accounting snapshots so repeated-run and bulk-generation savings can be inspected after the command finishes.
-
-Recommended review-first command:
+Then it writes only when approved or explicitly requested:
 
 ```bash
-testgen generate --path=./src \
-  --recursive \
-  --dry-run \
-  --emit-patch \
-  --report-usage \
-  --output-format json
+testgen generate --path=./src --recursive --type=unit --validate --output-format json
 ```
 
-For MCP and repo-local agent wrappers, see the integration docs for the same review-first flow and explicit write controls.
+## Agent Skills
 
-## Where next
+### Codex
 
-- **Full command and flag reference** → [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md)
-- **Agent and MCP integrations** → [`docs/integrations/README.md`](docs/integrations/README.md)
-- **Release and distribution guide** → [`docs/release/AGENT_DISTRIBUTION.md`](docs/release/AGENT_DISTRIBUTION.md)
-- **Architecture** → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **Full docs map** → [`docs/INDEX.md`](docs/INDEX.md)
-- **Contributing guide** → [`CONTRIBUTING.md`](CONTRIBUTING.md)
+TestGen installs a repo-local skill at:
 
-## Project links
+```text
+.codex/skills/testgen/SKILL.md
+```
 
-- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- Security policy: [SECURITY.md](SECURITY.md)
-- Support: [SUPPORT.md](SUPPORT.md)
-- Roadmap: [ROADMAP.md](ROADMAP.md)
-- Quality standards: [QUALITY.md](QUALITY.md)
+Codex uses this skill when you ask for AI-generated tests, dry-run patches, test coverage improvement, or validation.
+
+### Claude Code
+
+TestGen installs a command wrapper at:
+
+```text
+.claude/commands/testgen.md
+```
+
+Use it when you want Claude Code to run the same review-first generation flow.
+
+### OpenCode
+
+TestGen installs a command wrapper at:
+
+```text
+.opencode/commands/testgen.md
+```
+
+Use it for the same agent-safe workflow in OpenCode.
+
+### MCP
+
+Run the MCP server for MCP-compatible hosts:
+
+```bash
+testgen mcp
+```
+
+Print a config snippet from the TestGen repo:
+
+```bash
+./scripts/print-mcp-config.sh testgen
+```
+
+## How It Works
+
+```
+Coding agent
+     |
+     v
+TestGen skill or command wrapper
+     |
+     v
+Local TestGen engine
+     |
+     +--> analyze code and estimate cost
+     +--> generate dry-run test artifacts
+     +--> emit structured patches
+     +--> validate generated tests when writing is allowed
+     |
+     v
+Agent reviews JSON, explains the patch, then applies changes
+```
+
+Four principles guide the workflow:
+
+1. **Agent-first onboarding**. Users install a skill into their repo and talk to their agent.
+2. **Review before write**. Dry-run and patch artifacts come before file edits.
+3. **Machine-readable by default**. Agents get JSON results, artifacts, patches, usage, and errors.
+4. **One engine, many agents**. Codex, Claude Code, OpenCode, and MCP all use the same behavior.
+
+## Upgrade
+
+Update the local engine:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash
+```
+
+Refresh the repo-local agent skill:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash
+```
+
+## Documentation
+
+- [Agent integrations](docs/integrations/README.md)
+- [Codex integration](docs/integrations/codex.md)
+- [Claude Code integration](docs/integrations/claude-code.md)
+- [OpenCode integration](docs/integrations/opencode.md)
+- [MCP integration](docs/integrations/mcp.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Release and distribution guide](docs/release/AGENT_DISTRIBUTION.md)
+
+## License
+
+Apache 2.0. See [LICENSE](LICENSE).
