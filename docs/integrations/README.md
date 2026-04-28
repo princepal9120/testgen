@@ -6,6 +6,14 @@ The `testgen` binary is the local engine behind the skill. Agent wrappers should
 
 ## Install into a repo
 
+Skills CLI:
+
+```bash
+npx skills add princepal9120/testgen@testgen
+```
+
+Repo-local installer:
+
 From inside the target repo:
 
 ```bash

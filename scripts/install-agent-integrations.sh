@@ -18,7 +18,7 @@ install_file() {
   fi
 }
 
-install_file "$ROOT/.codex/skills/testgen/SKILL.md" "$TARGET/.codex/skills/testgen/SKILL.md"
+install_file "$ROOT/skills/testgen/SKILL.md" "$TARGET/.codex/skills/testgen/SKILL.md"
 install_file "$ROOT/.claude/commands/testgen.md" "$TARGET/.claude/commands/testgen.md"
 install_file "$ROOT/.opencode/commands/testgen.md" "$TARGET/.opencode/commands/testgen.md"
 
