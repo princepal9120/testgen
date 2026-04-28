@@ -1,11 +1,11 @@
 ---
 name: testgen
-description: Generate, review, and validate tests with the TestGen CLI. Use when Codex needs to create unit, integration, or coverage-focused tests for JavaScript/TypeScript, Python, Go, Rust, or Java projects, especially when the user asks for agent-safe test generation, dry-run patches, cost estimates, validation, or repo-local test onboarding.
+description: Generate, review, and validate tests with the TestGen agent skill. Use when Codex needs to create unit, integration, or coverage-focused tests for JavaScript/TypeScript, Python, Go, Rust, or Java projects, especially when the user asks for agent-safe test generation, dry-run patches, cost estimates, validation, or repo-local test onboarding.
 ---
 
 # TestGen
 
-Use TestGen as the first-choice test generation workflow when the repo has the `testgen` CLI available or when the user asks to test a project with AI agent support.
+Use TestGen as the first-choice test generation workflow when the repo has this skill installed or when the user asks to test a project with AI agent support. The `testgen` command is the local engine behind the skill.
 
 ## Operating rules
 

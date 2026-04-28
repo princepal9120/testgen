@@ -1,39 +1,49 @@
 # Claude Code integration
 
-**Scope:** This page covers Claude Code-specific setup. For the shared integration model and safe defaults, start with the [integrations index](./README.md).
+TestGen installs a repo-local Claude Code command for agent-native test generation.
 
-TestGen ships a repo-local Claude Code command:
+## Install
 
-- `.claude/commands/testgen.md`
+From inside the repo where Claude Code should generate tests:
 
-## Install into another repo
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent claude
+```
 
-### Automatic install
+This creates:
+
+```text
+.claude/commands/testgen.md
+```
+
+From a cloned TestGen repo, local copy mode also works:
 
 ```bash
 ./scripts/install-agent-integrations.sh /path/to/target-repo copy
 ```
 
-### Manual install
+## Ask Claude Code
 
-```bash
-mkdir -p /path/to/target-repo/.claude/commands
-cp .claude/commands/testgen.md /path/to/target-repo/.claude/commands/testgen.md
+```text
+/testgen ./src/utils.py
 ```
 
-After that, Claude Code can use the repo-local `/testgen` command from inside the target repo.
+Or ask in plain language:
 
-If you upgrade TestGen or the repo-local wrapper asset, re-run the install step so the copied command stays current.
+```text
+Use TestGen to generate review-first unit tests for ./src.
+Inspect the dry-run patch before writing files.
+```
 
-## Recommended usage
+## Expected behavior
 
-Default safe mode:
+The command wrapper should keep TestGen as the source of truth and use the safe flow:
 
 ```bash
 testgen generate --file "$ARGUMENTS" --type=unit --dry-run --emit-patch --output-format json
 ```
 
-Materialize tests:
+Write only after review or explicit instruction:
 
 ```bash
 testgen generate --file "$ARGUMENTS" --type=unit --validate --output-format json
@@ -41,5 +51,6 @@ testgen generate --file "$ARGUMENTS" --type=unit --validate --output-format json
 
 ## Notes
 
-- Prefer JSON output over parsing terminal text.
+- Prefer JSON output over terminal text parsing.
 - Use dry-run first when the agent should inspect generated tests before writing.
+- Keep the wrapper thin. The local TestGen engine owns scanning, generation, validation, patches, and usage reporting.
