@@ -1,46 +1,112 @@
-# Codex / oh-my-codex integration
+# Codex integration
 
-**Scope:** This page covers Codex-specific setup. For the shared integration model and safe defaults, start with the [integrations index](./README.md).
+TestGen installs a repo-local Codex skill for agent-native test generation.
 
-TestGen ships a repo-local Codex skill:
+The user-facing flow is simple: install the skill into a repo, then ask Codex to generate review-first tests. Codex uses the local TestGen engine for analysis, dry-run patches, JSON output, and validation.
 
-- `.codex/skills/testgen/SKILL.md`
+## Install the engine
 
-## Install into another repo
+Linux/macOS:
 
-### Automatic install
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/install.sh | bash
+```
+
+Go install alternative:
+
+```bash
+go install github.com/princepal9120/testgen-cli@latest
+```
+
+## Install the Codex skill
+
+From inside the repo where Codex should generate tests:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent codex
+```
+
+This creates:
+
+```text
+.codex/skills/testgen/SKILL.md
+```
+
+Install into another repo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --target /path/to/repo --agent codex
+```
+
+From a cloned TestGen repo, local copy mode also works:
 
 ```bash
 ./scripts/install-agent-integrations.sh /path/to/target-repo copy
 ```
 
-### Manual install
+## Ask Codex
 
-```bash
-mkdir -p /path/to/target-repo/.codex/skills/testgen
-cp .codex/skills/testgen/SKILL.md /path/to/target-repo/.codex/skills/testgen/SKILL.md
+```text
+Use TestGen to analyze this repo and generate review-first unit tests for ./src.
+Do not write files until you inspect the dry-run patch.
 ```
 
-After that, invoke the repo-local `testgen` skill from Codex / oh-my-codex inside the target repo.
+Single file:
 
-If you upgrade TestGen or the repo-local skill asset, re-run the install step so the copied skill stays aligned.
-
-## Recommended usage
-
-Safe review-first mode:
-
-```bash
-testgen generate --file ./src/utils.py --type=unit --dry-run --emit-patch --output-format json
+```text
+Use TestGen to create unit tests for ./src/utils.py.
+Start with a dry-run patch, then validate the generated test after review.
 ```
 
-Write files:
+Cost-aware bulk run:
 
-```bash
-testgen generate --file ./src/utils.py --type=unit --validate --output-format json
+```text
+Use TestGen to estimate generation cost for ./src first.
+Then generate review-first patches folder by folder.
 ```
 
-## Why this works
+## Expected Codex behavior
 
-- The skill stays thin.
-- The shared `internal/app` layer owns orchestration.
-- JSON output exposes `results`, `artifacts`, and `patches`.
+Codex should first run:
+
+```bash
+testgen analyze --path=./src --cost-estimate --output-format json
+```
+
+Then generate reviewable artifacts:
+
+```bash
+testgen generate --path=./src \
+  --recursive \
+  --type=unit \
+  --dry-run \
+  --emit-patch \
+  --report-usage \
+  --output-format json
+```
+
+Codex should inspect `results`, `artifacts`, `patches`, and usage data before applying writes.
+
+Write and validate only after review or explicit user instruction:
+
+```bash
+testgen generate --path=./src \
+  --recursive \
+  --type=unit \
+  --validate \
+  --output-format json
+```
+
+## Why this works well for Codex
+
+- The skill is repo-local and discoverable.
+- The local engine stays behind the skill, not in front of the user experience.
+- Dry-run patches make file writes explicit and reviewable.
+- JSON output gives Codex stable fields for reasoning and follow-up edits.
+
+## Troubleshooting
+
+- `testgen: command not found`: install the engine or add `~/.local/bin` to PATH.
+- Missing provider key: export one of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `GROQ_API_KEY`.
+- Large repo: analyze a narrow path first, then generate per folder.
+- Validation failure: inspect generated tests, run the repo-native test command, patch the tests, then rerun validation.
