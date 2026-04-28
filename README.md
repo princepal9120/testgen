@@ -91,6 +91,12 @@ If you cloned the repo, you can use the shorter local entrypoint:
 ./skills.sh --agent all
 ```
 
+Skills CLI install alternative:
+
+```bash
+npx skills add princepal9120/testgen@testgen
+```
+
 Codex only:
 
 ```bash
@@ -165,6 +171,14 @@ testgen generate --path=./src --recursive --type=unit --validate --output-format
 ```
 
 ## Agent Skills
+
+### Skills CLI
+
+TestGen is also packaged as a standard agent skill at `skills/testgen/SKILL.md`:
+
+```bash
+npx skills add princepal9120/testgen@testgen
+```
 
 ### Codex
 

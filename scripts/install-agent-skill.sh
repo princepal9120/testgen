@@ -87,7 +87,7 @@ install_file() {
 }
 
 if [[ "$AGENT" == "all" || "$AGENT" == "codex" ]]; then
-  install_file ".codex/skills/testgen/SKILL.md" "$TARGET/.codex/skills/testgen/SKILL.md"
+  install_file "skills/testgen/SKILL.md" "$TARGET/.codex/skills/testgen/SKILL.md"
 fi
 
 if [[ "$AGENT" == "all" || "$AGENT" == "claude" ]]; then
