@@ -31,17 +31,21 @@ export PATH="$PWD/bin:$PATH"
 
 ## Safe workflow
 
-### 1. Analyze first
+### 1. Estimate cost first
+
+Prefer the dedicated cost command for user-facing cost requests:
 
 ```bash
-testgen analyze --path=. --cost-estimate --output-format json
+testgen cost --path=. --output-format json
 ```
 
 Use a narrower path for large repos:
 
 ```bash
-testgen analyze --path=./src --cost-estimate --output-format json
+testgen cost --path=./src --provider=gemini --output-format json
 ```
+
+`testgen analyze --path=./src --cost-estimate --output-format json` remains supported for backward compatibility.
 
 ### 2. Generate a reviewable patch
 
@@ -55,6 +59,8 @@ testgen generate --file ./src/utils.py \
   --report-usage \
   --output-format json
 ```
+
+`testgen testcase`, `testgen testcases`, and `testgen tests` are friendly aliases for `testgen generate`.
 
 For a directory:
 
@@ -79,6 +85,18 @@ For bulk writes:
 ```bash
 testgen generate --path ./src --recursive --type=unit --validate --output-format json
 ```
+
+## LLM vs TestGen skill comparison
+
+When the user asks why TestGen is better than asking an LLM directly, or asks for a comparison report, use:
+
+```bash
+testgen comparison --path=./src --output-format json
+```
+
+Aliases: `testgen compare` and `testgen vs`.
+
+The report includes plain LLM vs TestGen rows, recommended commands, next steps, and an offline cost estimate for the target path.
 
 ## Machine-input lane
 
@@ -119,6 +137,14 @@ Read the JSON envelope and look for:
 - `patches`: structured write operations for review-first flows.
 - `success_count` and `error_count`: aggregate result status.
 - usage and cost fields when `--report-usage` is enabled.
+
+## Common commands
+
+- `testgen cost`: direct offline cost estimate command.
+- `testgen generate`: generate test cases. Aliases: `testcase`, `testcases`, `tests`.
+- `testgen comparison`: compare plain LLM generation with the TestGen skill. Aliases: `compare`, `vs`.
+- `testgen validate`: validate existing/generated tests.
+- `testgen mcp`: run the MCP server.
 
 ## Common flags
 

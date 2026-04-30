@@ -160,8 +160,15 @@ Then generate review-first patches folder by folder.
 The agent skill will run the safe flow:
 
 ```bash
-testgen analyze --path=./src --cost-estimate --output-format json
+testgen cost --path=./src --output-format json
 testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
+```
+
+Friendly command aliases are included for agent and human workflows:
+
+```bash
+testgen testcase --file=./src/utils.py --dry-run --emit-patch
+testgen comparison --path=./src
 ```
 
 Then it writes only when approved or explicitly requested:
@@ -235,8 +242,9 @@ TestGen skill or command wrapper
      v
 Local TestGen engine
      |
-     +--> analyze code and estimate cost
-     +--> generate dry-run test artifacts
+     +--> estimate cost with testgen cost
+     +--> generate dry-run test artifacts with testgen generate/testcase
+     +--> compare plain LLM vs TestGen skill with testgen comparison
      +--> emit structured patches
      +--> validate generated tests when writing is allowed
      |

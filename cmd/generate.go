@@ -51,8 +51,9 @@ var (
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate tests for source files",
+	Use:     "generate",
+	Aliases: []string{"testcase", "testcases", "tests"},
+	Short:   "Generate tests for source files",
 	Long: `Generate tests for specified source files or directories.
 
 TestGen analyzes your source code, extracts function definitions, and
