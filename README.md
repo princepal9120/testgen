@@ -18,6 +18,7 @@
   <a href="#quick-start">Quick Start</a> &bull;
   <a href="#agent-skills">Agent Skills</a> &bull;
   <a href="#how-it-works">How It Works</a> &bull;
+  <a href="docs/LLM_AGENT_ADOPTION.md">LLM Adoption Roadmap</a> &bull;
   <a href="docs/integrations/README.md">Docs</a>
 </p>
 
@@ -41,9 +42,12 @@ Plain agent prompts are good for one-off test files. TestGen is for repeatable, 
 | Match the repo | Detects nearby test files and adapts to existing framework, fixtures, mocks, naming, and assertions |
 | Avoid blind edits | Agents inspect JSON results before touching files |
 | Plan cost before API calls | Offline code analysis and provider-aware cost estimates |
-| Work across stacks | JS/TS, Python, Go, Rust, and Java adapters |
+| Work across stacks | JS/TS, Python, Go, Rust, Java, C#, PHP, Ruby, C++, and Kotlin adapters |
 | Fit agent workflows | Codex skill, Claude command, OpenCode command, and MCP server |
+| Help LLM hosts discover capabilities | `testgen languages --output-format=json` and planned capability manifests |
 | Keep logic consistent | One shared engine across every agent integration |
+
+For the open-source roadmap that makes TestGen easier to use from LLM tools like Cursor, Cline, Continue, Roo Code, and Gemini CLI, see [`docs/LLM_AGENT_ADOPTION.md`](docs/LLM_AGENT_ADOPTION.md).
 
 ### Why not just ask Claude or Codex directly?
 
