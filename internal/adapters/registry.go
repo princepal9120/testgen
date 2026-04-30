@@ -27,6 +27,11 @@ func DefaultRegistry() *Registry {
 		defaultRegistry.Register(NewJavaScriptAdapter())
 		defaultRegistry.Register(NewRustAdapter())
 		defaultRegistry.Register(NewJavaAdapter())
+		defaultRegistry.Register(NewCSharpAdapter())
+		defaultRegistry.Register(NewPHPAdapter())
+		defaultRegistry.Register(NewRubyAdapter())
+		defaultRegistry.Register(NewCPPAdapter())
+		defaultRegistry.Register(NewKotlinAdapter())
 	})
 	return defaultRegistry
 }
