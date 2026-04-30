@@ -44,6 +44,11 @@ Supported languages:
   • Go (testing + testify)
   • Rust (cargo test)
   • Java (JUnit 5)
+  • C# (xUnit, NUnit, MSTest)
+  • PHP (PHPUnit, Pest)
+  • Ruby (RSpec, Minitest)
+  • C++ (GoogleTest, Catch2, doctest)
+  • Kotlin (JUnit 5, Kotest, MockK)
 
 Ways to use TestGen:
   • Interactive TUI for guided generation

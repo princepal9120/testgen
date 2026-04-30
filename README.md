@@ -29,7 +29,7 @@ Install it into a repo, then ask Codex, Claude Code, OpenCode, or an MCP host to
 
 The public product is the **agent skill**. The `testgen` binary is the local engine that the skill calls behind the scenes.
 
-Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
+Supported languages: **JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, and Kotlin**.
 
 ## Why TestGen
 

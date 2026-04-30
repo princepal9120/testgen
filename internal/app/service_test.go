@@ -211,8 +211,8 @@ func TestServiceGenerateReturnsUnsupportedLanguageForUnsupportedFile(t *testing.
 	t.Parallel()
 
 	dir := t.TempDir()
-	file := filepath.Join(dir, "sample.rb")
-	if err := os.WriteFile(file, []byte("def add(a, b)\n  a + b\nend\n"), 0o644); err != nil {
+	file := filepath.Join(dir, "sample.lua")
+	if err := os.WriteFile(file, []byte("function add(a, b)\n  return a + b\nend\n"), 0o644); err != nil {
 		t.Fatalf("write sample file: %v", err)
 	}
 

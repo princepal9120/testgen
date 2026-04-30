@@ -218,9 +218,7 @@ func (s *Scanner) shouldInclude(path string) bool {
 
 func (s *Scanner) isSourceFile(path string) bool {
 	ext := strings.ToLower(filepath.Ext(path))
-	sourceExts := []string{
-		".go", ".py", ".js", ".ts", ".jsx", ".tsx", ".rs", ".java",
-	}
+	sourceExts := GetSupportedExtensions()
 	for _, e := range sourceExts {
 		if ext == e {
 			return true
@@ -257,11 +255,24 @@ func (s *Scanner) isTestFile(path string) bool {
 		return true
 	}
 
-	// Java test files
-	if strings.HasSuffix(lower, "test.java") || strings.HasSuffix(lower, "tests.java") {
+	// Java and JVM/.NET style test files
+	for _, ext := range []string{".java", ".cs", ".kt", ".kts"} {
+		if strings.HasSuffix(lower, "test"+ext) || strings.HasSuffix(lower, "tests"+ext) {
+			return true
+		}
+		if strings.HasPrefix(lower, "test") && strings.HasSuffix(lower, ext) {
+			return true
+		}
+	}
+
+	// PHP, Ruby, and C++ common test naming conventions
+	if strings.HasSuffix(lower, "test.php") || strings.HasSuffix(lower, "_test.php") || strings.HasSuffix(lower, "pest.php") {
 		return true
 	}
-	if strings.HasPrefix(lower, "test") && strings.HasSuffix(lower, ".java") {
+	if strings.HasSuffix(lower, "_spec.rb") || strings.HasSuffix(lower, "_test.rb") {
+		return true
+	}
+	if strings.HasSuffix(lower, "_test.cpp") || strings.HasSuffix(lower, "_test.cc") || strings.HasSuffix(lower, "_test.cxx") || strings.HasSuffix(lower, "test.cpp") {
 		return true
 	}
 
