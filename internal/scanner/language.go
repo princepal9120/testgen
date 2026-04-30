@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -70,6 +71,19 @@ func GetLanguagesForExtension(ext string) []string {
 		return []string{lang}
 	}
 	return nil
+}
+
+// GetExtensionsForLanguage returns sorted file extensions for a language.
+func GetExtensionsForLanguage(lang string) []string {
+	normalized := NormalizeLanguage(lang)
+	exts := make([]string, 0)
+	for ext, mappedLang := range extensionMap {
+		if mappedLang == normalized {
+			exts = append(exts, ext)
+		}
+	}
+	sort.Strings(exts)
+	return exts
 }
 
 // NormalizeLanguage converts language aliases to standard names

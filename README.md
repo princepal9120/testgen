@@ -164,11 +164,12 @@ testgen cost --path=./src --output-format json
 testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
 
-Friendly command aliases are included for agent and human workflows:
+Friendly command aliases and capability discovery are included for agent and human workflows:
 
 ```bash
 testgen testcase --file=./src/utils.py --dry-run --emit-patch
 testgen comparison --path=./src
+testgen languages --output-format json
 ```
 
 Then it writes only when approved or explicitly requested:

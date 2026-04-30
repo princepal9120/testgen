@@ -142,6 +142,7 @@ Read the JSON envelope and look for:
 
 ## Common commands
 
+- `testgen languages`: list supported languages, extensions, frameworks, aliases, and validation commands. Use `--output-format json` for agent workflows.
 - `testgen cost`: direct offline cost estimate command.
 - `testgen generate`: generate test cases. Aliases: `testcase`, `testcases`, `tests`.
 - `testgen comparison`: compare plain LLM generation with the TestGen skill. Aliases: `compare`, `vs`.
