@@ -436,8 +436,19 @@ func estimateCosts(result *AnalyzeResponse, req AnalyzeRequest) {
 		usage.EstimatedCostUSD += file.EstimatedCost
 	}
 
+	rateEstimate := llm.EstimateOfflineUsage(provider, model, 0, batchSize)
+	result.Provider = provider
+	result.Model = model
+	result.EstimatedRequests = usage.TotalRequests
+	result.EstimatedBatchCount = usage.BatchCount
+	result.EstimatedChunkCount = usage.ChunkCount
+	result.EstimatedInputTokens = usage.TotalTokensIn
+	result.EstimatedOutputTokens = usage.TotalTokensOut
 	result.EstimatedTokens = usage.TotalTokens()
 	result.EstimatedCost = usage.EstimatedCostUSD
+	result.InputCostPerMTokens = rateEstimate.InputCostPerMillionUSD
+	result.OutputCostPerMTokens = rateEstimate.OutputCostPerMillionUSD
+	result.CostEstimateOffline = true
 	result.Usage = usage
 }
 

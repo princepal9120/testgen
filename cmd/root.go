@@ -58,8 +58,14 @@ Examples:
   # Generate tests for entire directory recursively
   testgen generate --path=./src --recursive --type=unit,edge-cases
 
-  # Analyze cost before generation
-  testgen analyze --path=./src --cost-estimate
+  # Estimate cost before generation
+  testgen cost --path=./src
+
+  # Generate test cases through the friendly alias
+  testgen testcase --file=./src/utils.py --dry-run --emit-patch
+
+  # Compare plain LLM generation with the TestGen skill
+  testgen comparison --path=./src
 
   # Validate tests and check coverage
   testgen validate --path=./src --min-coverage=80
