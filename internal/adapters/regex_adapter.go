@@ -47,7 +47,7 @@ func (a *regexLanguageAdapter) ParseFile(content string) (*models.AST, error) {
 
 	if a.importPattern != nil {
 		for _, line := range lines {
-			if match := a.importPattern.FindStringSubmatch(strings.TrimSpace(line)); match != nil && len(match) > 1 {
+			if match := a.importPattern.FindStringSubmatch(strings.TrimSpace(line)); len(match) > 1 {
 				ast.Imports = append(ast.Imports, strings.TrimSpace(match[1]))
 			}
 		}
@@ -56,7 +56,7 @@ func (a *regexLanguageAdapter) ParseFile(content string) (*models.AST, error) {
 	var currentClass string
 	if a.classPattern != nil {
 		for _, line := range lines {
-			if match := a.classPattern.FindStringSubmatch(line); match != nil && len(match) > 1 {
+			if match := a.classPattern.FindStringSubmatch(line); len(match) > 1 {
 				currentClass = strings.TrimSpace(match[1])
 				break
 			}
@@ -76,7 +76,7 @@ func (a *regexLanguageAdapter) ParseFile(content string) (*models.AST, error) {
 				continue
 			}
 			match := candidate.pattern.FindStringSubmatch(line)
-			if match == nil || len(match) < 2 {
+			if len(match) < 2 {
 				continue
 			}
 
