@@ -1,6 +1,6 @@
 ---
 name: testgen
-description: Generate, review, and validate tests with the TestGen agent skill. Use when Codex needs to create unit, integration, or coverage-focused tests for JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, or Kotlin projects, especially when the user asks for agent-safe test generation, dry-run patches, cost estimates, validation, or repo-local test onboarding.
+description: Generate, review, validate, inspect readiness, estimate cost, analyze scope, and discover capabilities with the TestGen agent skill. Use when Codex needs `testgen doctor`, `testgen capabilities`, `testgen cost`, `testgen analyze`, `testgen generate`, or `testgen validate` for JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, or Kotlin projects.
 ---
 
 # TestGen
@@ -12,7 +12,7 @@ Supported languages: JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Rub
 ## Operating rules
 
 1. Prefer review-first commands before writing files.
-2. Run `testgen analyze` before bulk generation or unfamiliar repos.
+2. Run `testgen doctor`, `testgen capabilities`, and `testgen analyze` before bulk generation or unfamiliar repos.
 3. Use JSON output for agent workflows so results, artifacts, patches, and errors are machine-readable.
 4. Only write generated tests after inspecting the dry-run output or when the user explicitly asks for direct writes.
 5. Validate generated tests when the project has a runnable test command.
@@ -33,14 +33,16 @@ export PATH="$PWD/bin:$PATH"
 
 ## Safe workflow
 
-### 1. Check repo readiness first
+### 1. Check repo readiness and skill capabilities first
+
+`testgen doctor` and `testgen capabilities` are first-class skill commands, just like `testgen cost` and `testgen analyze`.
 
 ```bash
 testgen doctor --path=. --output-format json
 testgen capabilities --output-format json
 ```
 
-### 2. Estimate cost
+### 2. Estimate cost and analyze scope
 
 Prefer the dedicated cost command for user-facing cost requests:
 
@@ -52,6 +54,12 @@ Use a narrower path for large repos:
 
 ```bash
 testgen cost --path=./src --provider=gemini --output-format json
+```
+
+Use analyze when the agent needs scope and language breakdowns:
+
+```bash
+testgen analyze --path=./src --cost-estimate --output-format json
 ```
 
 `testgen analyze --path=./src --cost-estimate --output-format json` remains supported for backward compatibility.
