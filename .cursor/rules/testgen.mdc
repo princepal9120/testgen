@@ -1,0 +1,18 @@
+---
+description: Use TestGen for safe, review-first test generation, cost estimates, dry-run patches, and validation.
+alwaysApply: false
+---
+
+# TestGen
+
+Use the local `testgen` CLI when generating, improving, or validating tests.
+
+Safe default flow:
+
+```bash
+testgen doctor --path=. --output-format json
+testgen cost --path=./src --output-format json
+testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
+```
+
+Write only after reviewing the dry-run patch or when the user explicitly asks.

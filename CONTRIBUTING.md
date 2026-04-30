@@ -63,6 +63,8 @@ make ci
 - If commands, flags, output, or config behavior change, update `docs/CLI_REFERENCE.md`.
 - If architecture boundaries change, update `docs/ARCHITECTURE.md`.
 - If LLM-agent adoption, integration targets, capability manifests, or agent install flows change, update `docs/LLM_AGENT_ADOPTION.md`.
+- If JSON command output changes, update `docs/schemas/`.
+- If language adapter behavior changes, update `docs/contributing/ADAPTER_SDK.md` and the related contributing guide.
 - If integration surfaces change, update the relevant file under `docs/integrations/`.
 - Do not present `PRD-TestGen.md` or `TechSpec-TestGen.md` as current implementation truth unless they are fully synchronized.
 

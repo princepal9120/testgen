@@ -35,14 +35,14 @@ Add copy-paste installation and config files for popular LLM tools:
 
 Why this matters: people should not have to translate TestGen into their agent's format manually.
 
-Suggested output:
+Install targets are exposed through the repo installer:
 
 ```bash
-testgen agent install --agent cursor
-testgen agent install --agent cline
-testgen agent install --agent continue
-testgen agent install --agent roo
-testgen agent install --agent all
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cursor
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cline
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent continue
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent roo
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent all
 ```
 
 ### 2. Capability manifest for agents
@@ -55,7 +55,7 @@ Already started:
 testgen languages --output-format=json
 ```
 
-Next:
+Now available:
 
 ```bash
 testgen capabilities --output-format=json
@@ -75,7 +75,7 @@ Why this matters: agents can adapt instead of guessing.
 
 ### 3. Repo onboarding report
 
-Add a command that tells users whether their repo is ready for agent-native test generation.
+TestGen includes a command that tells users whether their repo is ready for agent-native test generation.
 
 ```bash
 testgen doctor --path=. --output-format=json

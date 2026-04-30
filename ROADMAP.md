@@ -14,8 +14,8 @@ For LLM-tool-specific adoption work, see [`docs/LLM_AGENT_ADOPTION.md`](docs/LLM
 
 ## 2026 Q2: Reliability and Coverage
 
-- Add `testgen doctor` for repo readiness checks, provider-key checks, framework detection, and suggested safe next commands
-- Add `testgen capabilities --output-format=json` so LLM hosts can discover supported commands, flags, schemas, and limitations
+- Expand `testgen doctor` with deeper repo readiness checks, provider-key checks, framework detection, and suggested safe next commands
+- Expand `testgen capabilities --output-format=json` so LLM hosts can discover supported commands, flags, schemas, and limitations
 - Increase unit coverage in `internal/generator`, `internal/llm`, `internal/validation`
 - Introduce deterministic tests for prompt and output parsing
 - Add regression tests for known edge cases per language adapter

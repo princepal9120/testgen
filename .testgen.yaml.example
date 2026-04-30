@@ -1,6 +1,25 @@
 # TestGen Example Configuration
 # Place this file as .testgen.yaml in your project root
 
+# Outcome-oriented profiles are documented in docs/PROFILES.md.
+# Runtime precedence target: flags > profile > config file > defaults.
+profiles:
+  cheap:
+    llm:
+      provider: gemini
+      model: gemini-2.5-flash
+      temperature: 0.2
+  quality:
+    llm:
+      provider: anthropic
+      model: claude-sonnet-4-6
+      temperature: 0.2
+  ci-safe:
+    generation:
+      dry_run: true
+      emit_patch: true
+      validate: false
+
 # LLM Provider Settings
 llm:
   # Provider to use: "anthropic", "openai", "gemini", or "groq"

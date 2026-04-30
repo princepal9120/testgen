@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestGen Docs - Agent skill onboarding</title>
+    <title>TestGen Docs - Agent-native test generation platform</title>
     <meta name="description"
-        content="Install and use TestGen as an agent-native test generation skill for Codex, Claude Code, OpenCode, and MCP.">
+        content="Install and use TestGen as an agent-native test generation layer for Codex, Claude Code, Cursor, Cline, Continue, Roo Code, Gemini CLI, OpenCode, and MCP.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -47,7 +47,10 @@
                 <ul>
                     <li><a href="#agents">Supported Agents</a></li>
                     <li><a href="#workflow">Review-first Workflow</a></li>
+                    <li><a href="#doctor">Doctor and Capabilities</a></li>
                     <li><a href="#integrations">Integration Files</a></li>
+                    <li><a href="#schemas">Schemas and Profiles</a></li>
+                    <li><a href="#adapter-sdk">Adapter SDK</a></li>
                     <li><a href="#supported-languages">Supported Languages</a></li>
                 </ul>
             </div>
@@ -55,10 +58,9 @@
 
         <main class="docs-content">
             <section id="overview">
-                <h1>TestGen is an agent skill.</h1>
+                <h1>TestGen is the test-generation layer for coding agents.</h1>
                 <p>
-                    TestGen helps coding agents generate tests safely. Install the skill into a repo, then ask Codex,
-                    Claude Code, OpenCode, or an MCP host to analyze the project and create review-first tests.
+                    TestGen is the local test-generation engine for LLM coding agents. It helps agents inspect a repository, understand available capabilities, detect frameworks, estimate scope, generate reviewable patches, and validate tests without surprise writes.
                 </p>
                 <p>
                     The <code>testgen</code> binary is the local engine. The product experience is the repo-local agent skill,
@@ -112,7 +114,14 @@ curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent claude
 
 # OpenCode
-curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent opencode</code></pre>
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent opencode
+
+# Cursor, Cline, Continue, Roo Code, Gemini CLI
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cursor
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cline
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent continue
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent roo
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent gemini</code></pre>
                 </div>
             </section>
 
@@ -158,6 +167,11 @@ export GROQ_API_KEY="gsk_..."</code></pre>
                     <li><strong>Codex:</strong> installs <code>.codex/skills/testgen/SKILL.md</code></li>
                     <li><strong>Claude Code:</strong> installs <code>.claude/commands/testgen.md</code></li>
                     <li><strong>OpenCode:</strong> installs <code>.opencode/commands/testgen.md</code></li>
+                    <li><strong>Cursor:</strong> installs <code>.cursor/rules/testgen.mdc</code></li>
+                    <li><strong>Cline:</strong> installs <code>.clinerules/testgen.md</code></li>
+                    <li><strong>Continue:</strong> installs <code>.continue/prompts/testgen.md</code></li>
+                    <li><strong>Roo Code:</strong> installs <code>.roo/commands/testgen.md</code></li>
+                    <li><strong>Gemini CLI:</strong> installs <code>GEMINI.md</code></li>
                     <li><strong>MCP:</strong> use <code>testgen mcp</code> for tool-call based hosts</li>
                 </ul>
             </section>
@@ -169,14 +183,27 @@ export GROQ_API_KEY="gsk_..."</code></pre>
                 </p>
 
                 <div class="code-block">
-                    <pre><code># 1. Agent analyzes scope and cost
+                    <pre><code># 1. Agent checks repo readiness and available capabilities
+testgen doctor --path=. --output-format json
+testgen capabilities --output-format json
+
+# 2. Agent analyzes scope and cost
 testgen analyze --path=./src --cost-estimate --output-format json
 
-# 2. Agent creates reviewable artifacts
+# 3. Agent creates reviewable artifacts
 testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 
-# 3. Agent writes only after review or explicit instruction
+# 4. Agent writes only after review or explicit instruction
 testgen generate --path=./src --recursive --type=unit --validate --output-format json</code></pre>
+                </div>
+            </section>
+
+            <section id="doctor">
+                <h2>Doctor and Capabilities</h2>
+                <p>Use these commands when an LLM tool needs to inspect the repo before generating tests.</p>
+                <div class="code-block">
+                    <pre><code>testgen doctor --path=. --output-format=json
+testgen capabilities --output-format=json</code></pre>
                 </div>
             </section>
 
@@ -190,6 +217,21 @@ testgen generate --path=./src --recursive --type=unit --validate --output-format
                     <li><a href="https://github.com/princepal9120/testgen/blob/main/docs/integrations/opencode.md" target="_blank" rel="noreferrer">OpenCode integration</a></li>
                     <li><a href="https://github.com/princepal9120/testgen/blob/main/docs/integrations/mcp.md" target="_blank" rel="noreferrer">MCP integration</a></li>
                 </ul>
+            </section>
+
+            <section id="schemas">
+                <h2>Schemas and Profiles</h2>
+                <p>JSON schemas give wrappers and MCP hosts stable output contracts. Provider profiles document outcome-based model choices.</p>
+                <div class="code-block">
+                    <pre><code>docs/schemas/
+docs/PROFILES.md
+docs/profiles/defaults.yaml</code></pre>
+                </div>
+            </section>
+
+            <section id="adapter-sdk">
+                <h2>Adapter SDK</h2>
+                <p>Contributors can add language support by implementing the adapter interface, parser strategy, fixture expectations, framework detection, prompt templates, and validation command behavior.</p>
             </section>
 
             <section id="supported-languages">

@@ -25,6 +25,8 @@ For Goal 5 cost-efficiency work, read these docs together:
 | Architecture | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Implementation-focused |
 | Agent and MCP usage | [`docs/integrations/README.md`](./integrations/README.md) | Shared contract and per-tool guides |
 | LLM-agent adoption roadmap | [`docs/LLM_AGENT_ADOPTION.md`](./LLM_AGENT_ADOPTION.md) | Prioritized enhancements for Cursor, Cline, Continue, Roo Code, Gemini CLI, MCP, and other LLM hosts |
+| JSON schemas | [`docs/schemas/README.md`](./schemas/README.md) | Agent-readable output contracts |
+| Provider profiles | [`docs/PROFILES.md`](./PROFILES.md) | Outcome-oriented provider presets |
 | Release and distribution | [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Install, upgrade, and packaging posture |
 | Contributor workflow | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Build, test, lint, PR expectations |
 | Testing approach | [`docs/TESTING_STRATEGY.md`](./TESTING_STRATEGY.md) | Contributor-facing verification strategy |
@@ -46,6 +48,8 @@ For Goal 5 cost-efficiency work, read these docs together:
 | [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Users integrating TestGen into repos or MCP clients | Install, upgrade, and release posture |
 | [`docs/LLM_AGENT_ADOPTION.md`](./LLM_AGENT_ADOPTION.md) | Users, maintainers, and contributors | Roadmap for making TestGen easier to use inside LLM coding tools |
 | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Maintainers | Package and runtime architecture overview |
+| [`docs/schemas/README.md`](./schemas/README.md) | Agent wrapper authors | JSON output schema contracts |
+| [`docs/PROFILES.md`](./PROFILES.md) | Users and maintainers | Provider profile direction and config examples |
 
 ### Contributor and maintenance docs
 
@@ -53,6 +57,7 @@ For Goal 5 cost-efficiency work, read these docs together:
 |----------|----------|---------|
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Contributors | Setup, workflow, and PR expectations |
 | [`docs/TESTING_STRATEGY.md`](./TESTING_STRATEGY.md) | Contributors | Testing approach for the codebase |
+| [`docs/contributing/ADAPTER_SDK.md`](./contributing/ADAPTER_SDK.md) | Contributors | Add or improve language adapters |
 | [`QUALITY.md`](../QUALITY.md) | Maintainers and contributors | Quality principles |
 | [`SECURITY.md`](../SECURITY.md) | Security reporters | Responsible disclosure |
 | [`SUPPORT.md`](../SUPPORT.md) | Users | Support channels |

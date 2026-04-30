@@ -1,0 +1,16 @@
+profiles:
+  cheap:
+    llm:
+      provider: gemini
+      model: gemini-2.5-flash
+      temperature: 0.2
+  quality:
+    llm:
+      provider: anthropic
+      model: claude-sonnet-4-6
+      temperature: 0.2
+  ci-safe:
+    generation:
+      dry_run: true
+      emit_patch: true
+      validate: false

@@ -33,7 +33,14 @@ export PATH="$PWD/bin:$PATH"
 
 ## Safe workflow
 
-### 1. Estimate cost first
+### 1. Check repo readiness first
+
+```bash
+testgen doctor --path=. --output-format json
+testgen capabilities --output-format json
+```
+
+### 2. Estimate cost
 
 Prefer the dedicated cost command for user-facing cost requests:
 
@@ -49,7 +56,7 @@ testgen cost --path=./src --provider=gemini --output-format json
 
 `testgen analyze --path=./src --cost-estimate --output-format json` remains supported for backward compatibility.
 
-### 2. Generate a reviewable patch
+### 3. Generate a reviewable patch
 
 For one file:
 
@@ -76,7 +83,7 @@ testgen generate --path ./src \
   --output-format json
 ```
 
-### 3. Write only after review
+### 4. Write only after review
 
 ```bash
 testgen generate --file ./src/utils.py --type=unit --validate --output-format json
@@ -142,6 +149,8 @@ Read the JSON envelope and look for:
 
 ## Common commands
 
+- `testgen doctor`: inspect repo readiness, framework markers, test directories, provider keys, and safe next commands.
+- `testgen capabilities`: expose an agent-readable manifest of commands, languages, frameworks, providers, and limitations.
 - `testgen languages`: list supported languages, extensions, frameworks, aliases, and validation commands. Use `--output-format json` for agent workflows.
 - `testgen cost`: direct offline cost estimate command.
 - `testgen generate`: generate test cases. Aliases: `testcase`, `testcases`, `tests`.

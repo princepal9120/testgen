@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestGen - Agent-native test generation skill</title>
+    <title>TestGen - Test generation layer for coding agents</title>
     <meta name="description"
-        content="TestGen is an agent-native test generation skill for Codex, Claude Code, OpenCode, and MCP. Install it into a repo, let your agent analyze first, match existing test style, then review patches before writing tests.">
+        content="TestGen is the test-generation layer for Codex, Claude Code, Cursor, Cline, Continue, Roo Code, Gemini CLI, OpenCode, and MCP. Agents inspect repos, detect frameworks, read capabilities, create review-first patches, and validate safely.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -36,17 +36,21 @@
         <div class="container">
             <div class="eyebrow">Agent-native test generation</div>
             <h1>
-                Install a skill.
-                <span class="highlight">Let your coding agent generate tests safely.</span>
+                The test-generation layer
+                <span class="highlight">for every coding agent.</span>
             </h1>
             <p class="hero-subtitle wide">
-                TestGen is a repo-local skill for Codex, Claude Code, OpenCode, and MCP clients. Your agent analyzes the codebase,
-                adapts to existing tests, estimates scope, creates review-first patches, and validates tests only when writing is allowed.
+                TestGen helps Codex, Claude Code, Cursor, Cline, Continue, Roo Code, Gemini CLI, OpenCode, and MCP hosts generate tests safely. It detects repo frameworks, exposes machine-readable capabilities, creates review-first patches, and validates with your project tooling.
             </p>
             <div class="agent-badges">
                 <span class="agent-badge">Codex</span>
                 <span class="agent-badge">Claude Code</span>
                 <span class="agent-badge">OpenCode</span>
+                <span class="agent-badge">Cursor</span>
+                <span class="agent-badge">Cline</span>
+                <span class="agent-badge">Continue</span>
+                <span class="agent-badge">Roo Code</span>
+                <span class="agent-badge">Gemini CLI</span>
                 <span class="agent-badge">MCP</span>
                 <span class="agent-badge">JS/TS</span>
                 <span class="agent-badge">Python</span>
@@ -69,8 +73,12 @@
                     <div class="command-line">Ask Codex: Use TestGen to analyze ./src and generate review-first unit tests.</div>
                     <div class="result-grid">
                         <div class="result-card">
-                            <div class="result-label">analyze</div>
-                            <div class="result-value">scope, language mix, cost estimate</div>
+                            <div class="result-label">doctor</div>
+                            <div class="result-value">repo readiness, frameworks, provider keys</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">capabilities</div>
+                            <div class="result-value">commands, schemas, language support</div>
                         </div>
                         <div class="result-card">
                             <div class="result-label">style match</div>
@@ -116,6 +124,37 @@
                     <div class="feature-icon">🔌</div>
                     <h3>MCP server</h3>
                     <p>Expose analyze, generate, and validate as MCP tools for hosts that prefer tool calls.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features integrations-section">
+        <div class="container">
+            <div class="section-heading">
+                <h2>Agents should inspect before they edit.</h2>
+                <p>TestGen gives LLM coding agents the commands, schemas, and repo context they need to stop guessing.</p>
+            </div>
+            <div class="integrations-grid">
+                <div class="integration-card">
+                    <div class="feature-icon">🩺</div>
+                    <h3>Repo doctor</h3>
+                    <p><code>testgen doctor</code> checks languages, frameworks, test folders, provider keys, ignored files, and suggests the safest first command.</p>
+                </div>
+                <div class="integration-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Capability manifest</h3>
+                    <p><code>testgen capabilities</code> tells agents which commands, flags, languages, frameworks, schemas, and limitations are available.</p>
+                </div>
+                <div class="integration-card">
+                    <div class="feature-icon">🧭</div>
+                    <h3>Framework detection</h3>
+                    <p>Detect Jest, Vitest, pytest, unittest, Go testing, JUnit, xUnit, PHPUnit, RSpec, GoogleTest, Kotest, and more.</p>
+                </div>
+                <div class="integration-card">
+                    <div class="feature-icon">{} </div>
+                    <h3>Agent-readable schemas</h3>
+                    <p>Stable JSON schemas make analyze, generate, patch, validate, capabilities, and error outputs reliable for wrappers and MCP hosts.</p>
                 </div>
             </div>
         </div>

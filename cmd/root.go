@@ -63,6 +63,10 @@ Examples:
   # Generate tests for entire directory recursively
   testgen generate --path=./src --recursive --type=unit,edge-cases
 
+  # Check repo readiness and agent capabilities
+  testgen doctor --path=. --output-format=json
+  testgen capabilities --output-format=json
+
   # Estimate cost before generation
   testgen cost --path=./src
 

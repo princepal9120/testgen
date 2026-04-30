@@ -6,6 +6,11 @@ TestGen is ready for repo-local use in:
 - Codex
 - Claude Code
 - OpenCode
+- Cursor
+- Cline
+- Continue
+- Roo Code
+- Gemini CLI
 - MCP-compatible clients via `testgen mcp`
 
 ## Install or upgrade the TestGen binary
@@ -52,6 +57,12 @@ Copy mode:
 
 ```bash
 ./scripts/install-agent-integrations.sh /path/to/target-repo copy
+```
+
+Remote installer with one target:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cursor
 ```
 
 Symlink mode:
