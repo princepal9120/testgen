@@ -26,6 +26,11 @@ Install one integration:
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent codex
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent claude
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent opencode
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cursor
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cline
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent continue
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent roo
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent gemini
 ```
 
 Install into another repo:
@@ -39,6 +44,11 @@ Installed files:
 - `.codex/skills/testgen/SKILL.md`
 - `.claude/commands/testgen.md`
 - `.opencode/commands/testgen.md`
+- `.cursor/rules/testgen.mdc`
+- `.clinerules/testgen.md`
+- `.continue/prompts/testgen.md`
+- `.roo/commands/testgen.md`
+- `GEMINI.md`
 
 ## Engine requirement
 
@@ -94,6 +104,8 @@ JSON payloads expose these core fields:
 Agents should run this before writing files:
 
 ```bash
+testgen doctor --path=. --output-format json
+testgen capabilities --output-format json
 testgen analyze --path=./src --cost-estimate --output-format json
 testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
@@ -110,6 +122,11 @@ testgen generate --path=./src --recursive --type=unit --validate --output-format
 - [Claude Code](./claude-code.md)
 - [OpenCode](./opencode.md)
 - [MCP](./mcp.md)
+- [Cursor](./cursor.md)
+- [Cline](./cline.md)
+- [Continue](./continue.md)
+- [Roo Code](./roo-code.md)
+- [Gemini CLI](./gemini-cli.md)
 
 ## Guidance for wrapper authors
 

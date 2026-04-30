@@ -8,6 +8,7 @@ If you are new to the project:
 1. Read [`README.md`](../README.md) for the product overview and quick start.
 2. Read [`docs/CLI_REFERENCE.md`](./CLI_REFERENCE.md) for commands and flags.
 3. Read [`docs/integrations/README.md`](./integrations/README.md) if you are using TestGen from an agent or MCP client.
+4. Read [`docs/LLM_AGENT_ADOPTION.md`](./LLM_AGENT_ADOPTION.md) if you want to improve TestGen for LLM tools and open-source adoption.
 
 ## Source of truth
 
@@ -23,6 +24,9 @@ For Goal 5 cost-efficiency work, read these docs together:
 | Commands and flags | [`docs/CLI_REFERENCE.md`](./CLI_REFERENCE.md) | Validate against `cmd/*.go` |
 | Architecture | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Implementation-focused |
 | Agent and MCP usage | [`docs/integrations/README.md`](./integrations/README.md) | Shared contract and per-tool guides |
+| LLM-agent adoption roadmap | [`docs/LLM_AGENT_ADOPTION.md`](./LLM_AGENT_ADOPTION.md) | Prioritized enhancements for Cursor, Cline, Continue, Roo Code, Gemini CLI, MCP, and other LLM hosts |
+| JSON schemas | [`docs/schemas/README.md`](./schemas/README.md) | Agent-readable output contracts |
+| Provider profiles | [`docs/PROFILES.md`](./PROFILES.md) | Outcome-oriented provider presets |
 | Release and distribution | [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Install, upgrade, and packaging posture |
 | Contributor workflow | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Build, test, lint, PR expectations |
 | Testing approach | [`docs/TESTING_STRATEGY.md`](./TESTING_STRATEGY.md) | Contributor-facing verification strategy |
@@ -42,7 +46,10 @@ For Goal 5 cost-efficiency work, read these docs together:
 | [`docs/integrations/opencode.md`](./integrations/opencode.md) | OpenCode users | OpenCode-specific setup |
 | [`docs/integrations/mcp.md`](./integrations/mcp.md) | MCP clients | MCP server usage |
 | [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md) | Users integrating TestGen into repos or MCP clients | Install, upgrade, and release posture |
+| [`docs/LLM_AGENT_ADOPTION.md`](./LLM_AGENT_ADOPTION.md) | Users, maintainers, and contributors | Roadmap for making TestGen easier to use inside LLM coding tools |
 | [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Maintainers | Package and runtime architecture overview |
+| [`docs/schemas/README.md`](./schemas/README.md) | Agent wrapper authors | JSON output schema contracts |
+| [`docs/PROFILES.md`](./PROFILES.md) | Users and maintainers | Provider profile direction and config examples |
 
 ### Contributor and maintenance docs
 
@@ -50,6 +57,7 @@ For Goal 5 cost-efficiency work, read these docs together:
 |----------|----------|---------|
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Contributors | Setup, workflow, and PR expectations |
 | [`docs/TESTING_STRATEGY.md`](./TESTING_STRATEGY.md) | Contributors | Testing approach for the codebase |
+| [`docs/contributing/ADAPTER_SDK.md`](./contributing/ADAPTER_SDK.md) | Contributors | Add or improve language adapters |
 | [`QUALITY.md`](../QUALITY.md) | Maintainers and contributors | Quality principles |
 | [`SECURITY.md`](../SECURITY.md) | Security reporters | Responsible disclosure |
 | [`SUPPORT.md`](../SUPPORT.md) | Users | Support channels |
@@ -68,5 +76,6 @@ For Goal 5 cost-efficiency work, read these docs together:
 - If the onboarding story changes, update [`README.md`](../README.md).
 - If architecture boundaries change, update [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md).
 - If an integration surface changes, update the relevant file under [`docs/integrations/`](./integrations/README.md).
+- If LLM-agent adoption strategy, tool targets, capability manifests, or agent install flows change, update [`docs/LLM_AGENT_ADOPTION.md`](./LLM_AGENT_ADOPTION.md).
 - If installation, upgrade, or distribution posture changes, update [`docs/release/AGENT_DISTRIBUTION.md`](./release/AGENT_DISTRIBUTION.md).
 - Do not present historical design documents as the current implementation source of truth unless they are fully synchronized first.

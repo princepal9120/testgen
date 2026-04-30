@@ -18,14 +18,15 @@
   <a href="#quick-start">Quick Start</a> &bull;
   <a href="#agent-skills">Agent Skills</a> &bull;
   <a href="#how-it-works">How It Works</a> &bull;
+  <a href="docs/LLM_AGENT_ADOPTION.md">LLM Adoption Roadmap</a> &bull;
   <a href="docs/integrations/README.md">Docs</a>
 </p>
 
 ---
 
-TestGen gives coding agents a production-safe test-generation skill.
+TestGen gives coding agents a production-safe test-generation layer.
 
-Install it into a repo, then ask Codex, Claude Code, OpenCode, or an MCP host to analyze the codebase and generate review-first tests. TestGen handles source scanning, existing-test style detection, cost-aware planning, generated test artifacts, patch output, and validation through one agent-friendly workflow.
+Install it into a repo, then ask Codex, Claude Code, OpenCode, Cursor, Cline, Continue, Roo Code, Gemini CLI, or an MCP host to analyze the codebase and generate review-first tests. TestGen handles source scanning, framework detection, capability discovery, existing-test style detection, cost-aware planning, generated test artifacts, patch output, and validation through one agent-friendly workflow.
 
 The public product is the **agent skill**. The `testgen` binary is the local engine that the skill calls behind the scenes.
 
@@ -41,9 +42,12 @@ Plain agent prompts are good for one-off test files. TestGen is for repeatable, 
 | Match the repo | Detects nearby test files and adapts to existing framework, fixtures, mocks, naming, and assertions |
 | Avoid blind edits | Agents inspect JSON results before touching files |
 | Plan cost before API calls | Offline code analysis and provider-aware cost estimates |
-| Work across stacks | JS/TS, Python, Go, Rust, and Java adapters |
+| Work across stacks | JS/TS, Python, Go, Rust, Java, C#, PHP, Ruby, C++, and Kotlin adapters |
 | Fit agent workflows | Codex skill, Claude command, OpenCode command, and MCP server |
+| Help LLM hosts discover capabilities | `testgen languages --output-format=json` and planned capability manifests |
 | Keep logic consistent | One shared engine across every agent integration |
+
+For the open-source roadmap that makes TestGen easier to use from LLM tools like Cursor, Cline, Continue, Roo Code, and Gemini CLI, see [`docs/LLM_AGENT_ADOPTION.md`](docs/LLM_AGENT_ADOPTION.md).
 
 ### Why not just ask Claude or Codex directly?
 
@@ -115,6 +119,16 @@ OpenCode only:
 curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent opencode
 ```
 
+Cursor, Cline, Continue, Roo Code, or Gemini CLI:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cursor
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent cline
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent continue
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent roo
+curl -fsSL https://raw.githubusercontent.com/princepal9120/testgen/main/scripts/install-agent-skill.sh | bash -s -- --agent gemini
+```
+
 Install into another repo:
 
 ```bash
@@ -126,6 +140,11 @@ Installed files:
 - `.codex/skills/testgen/SKILL.md`
 - `.claude/commands/testgen.md`
 - `.opencode/commands/testgen.md`
+- `.cursor/rules/testgen.mdc`
+- `.clinerules/testgen.md`
+- `.continue/prompts/testgen.md`
+- `.roo/commands/testgen.md`
+- `GEMINI.md`
 
 ### 3. Set one provider key
 
@@ -160,6 +179,8 @@ Then generate review-first patches folder by folder.
 The agent skill will run the safe flow:
 
 ```bash
+testgen doctor --path=. --output-format json
+testgen capabilities --output-format json
 testgen cost --path=./src --output-format json
 testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
@@ -167,6 +188,8 @@ testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --r
 Friendly command aliases and capability discovery are included for agent and human workflows:
 
 ```bash
+testgen doctor --path=. --output-format json
+testgen capabilities --output-format json
 testgen testcase --file=./src/utils.py --dry-run --emit-patch
 testgen comparison --path=./src
 testgen languages --output-format json

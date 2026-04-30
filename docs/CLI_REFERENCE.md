@@ -22,6 +22,56 @@ Complete reference for all TestGen commands and options.
 
 ---
 
+## `testgen doctor`
+
+Check whether a repository is ready for agent-native TestGen workflows.
+
+### Usage
+```bash
+testgen doctor [flags]
+```
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--path` | `-p` | Repository path to inspect | `.` |
+| `--recursive` | `-r` | Scan recursively | `true` |
+| `--output-format` | | Output format (`text`, `json`) | `text` |
+
+### Examples
+```bash
+testgen doctor --path=. --output-format=json
+```
+
+The JSON response includes detected languages, frameworks, existing test folders, native test command candidates, provider key status, warnings, and a safe first command.
+
+---
+
+## `testgen capabilities`
+
+Print an agent-readable manifest of supported commands, languages, providers, schemas, and safety behavior.
+
+### Usage
+```bash
+testgen capabilities [flags]
+```
+
+### Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--output-format` | Output format (`text`, `json`) | `text` |
+
+### Examples
+```bash
+testgen capabilities --output-format=json
+```
+
+Use this from LLM tools and wrappers before deciding which TestGen command to call.
+
+---
+
 ## `testgen generate`
 
 Generate tests for source files.

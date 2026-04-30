@@ -66,8 +66,9 @@ TestGen follows a layered architecture with a shared application service between
 
 ### `internal/adapters/`
 - `LanguageAdapter` interface
-- Language-specific implementations (Go, Python, JavaScript/TypeScript, Rust, Java)
+- Language-specific implementations for the supported language families
 - Parsing, prompts, formatting
+- Contributor guide: [`docs/contributing/ADAPTER_SDK.md`](./contributing/ADAPTER_SDK.md)
 
 ### `internal/llm/`
 - `Provider` interface

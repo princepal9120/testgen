@@ -16,7 +16,7 @@ Usage:
 
 Options:
   --target <path>       Target repo. Defaults to current directory.
-  --agent <name>        all, codex, claude, or opencode. Defaults to all.
+  --agent <name>        all, codex, claude, opencode, cursor, cline, continue, roo, or gemini. Defaults to all.
   --ref <git-ref>       Git ref to install from. Defaults to main.
   --mode <copy>         Reserved for compatibility. Only copy is supported for remote installs.
   -h, --help            Show help.
@@ -64,9 +64,9 @@ if [[ "$MODE" != "copy" ]]; then
 fi
 
 case "$AGENT" in
-  all|codex|claude|opencode) ;;
+  all|codex|claude|opencode|cursor|cline|continue|roo|gemini) ;;
   *)
-    echo "Unsupported agent: $AGENT. Use all, codex, claude, or opencode." >&2
+    echo "Unsupported agent: $AGENT. Use all, codex, claude, opencode, cursor, cline, continue, roo, or gemini." >&2
     exit 1
     ;;
 esac
@@ -96,6 +96,30 @@ fi
 
 if [[ "$AGENT" == "all" || "$AGENT" == "opencode" ]]; then
   install_file ".opencode/commands/testgen.md" "$TARGET/.opencode/commands/testgen.md"
+fi
+
+if [[ "$AGENT" == "all" || "$AGENT" == "cursor" ]]; then
+  install_file ".cursor/rules/testgen.mdc" "$TARGET/.cursor/rules/testgen.mdc"
+fi
+
+if [[ "$AGENT" == "all" || "$AGENT" == "cline" ]]; then
+  install_file ".clinerules/testgen.md" "$TARGET/.clinerules/testgen.md"
+fi
+
+if [[ "$AGENT" == "all" || "$AGENT" == "continue" ]]; then
+  install_file ".continue/prompts/testgen.md" "$TARGET/.continue/prompts/testgen.md"
+fi
+
+if [[ "$AGENT" == "all" || "$AGENT" == "roo" ]]; then
+  install_file ".roo/commands/testgen.md" "$TARGET/.roo/commands/testgen.md"
+fi
+
+if [[ "$AGENT" == "all" || "$AGENT" == "gemini" ]]; then
+  if [[ -e "$TARGET/GEMINI.md" ]]; then
+    echo "Skipping GEMINI.md because it already exists in target. Copy TestGen instructions manually if needed." >&2
+  else
+    install_file "GEMINI.md" "$TARGET/GEMINI.md"
+  fi
 fi
 
 cat <<MSG
