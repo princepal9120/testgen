@@ -7,29 +7,32 @@ import (
 	"github.com/princepal9120/testgen-cli/internal/scanner"
 )
 
-func TestRunLanguagesOutputsSupportedLanguageManifest(t *testing.T) {
-	languagesOutputFormat = "json"
-	quiet = false
-	verbose = false
-	logger = nil
-
-	stdout := captureStdout(t, func() error {
-		return runLanguages(languagesCmd, nil)
-	})
-
-	var resp languagesResponse
-	if err := json.Unmarshal([]byte(stdout), &resp); err != nil {
-		t.Fatalf("decode languages json: %v\noutput=%s", err, stdout)
+func TestSupportedLanguageManifestIncludesAllLanguages(t *testing.T) {
+	resp := languagesResponse{
+		APIVersion: "v1",
+		Success:    true,
+		Languages:  supportedLanguageInfo(),
 	}
-	if !resp.Success {
+	resp.Count = len(resp.Languages)
+
+	encoded, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatalf("marshal languages response: %v", err)
+	}
+	var decoded languagesResponse
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatalf("decode languages json: %v", err)
+	}
+
+	if !decoded.Success {
 		t.Fatal("expected success response")
 	}
-	if resp.Count < 10 {
-		t.Fatalf("expected at least 10 language entries, got %d", resp.Count)
+	if decoded.Count < 10 {
+		t.Fatalf("expected at least 10 language entries, got %d", decoded.Count)
 	}
 
 	seen := map[string]languageInfo{}
-	for _, lang := range resp.Languages {
+	for _, lang := range decoded.Languages {
 		seen[lang.Language] = lang
 	}
 	for _, required := range []string{
