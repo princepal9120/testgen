@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -13,6 +14,11 @@ const (
 	LangTypeScript = "typescript"
 	LangRust       = "rust"
 	LangJava       = "java"
+	LangCSharp     = "csharp"
+	LangPHP        = "php"
+	LangRuby       = "ruby"
+	LangCPP        = "cpp"
+	LangKotlin     = "kotlin"
 )
 
 // extensionMap maps file extensions to languages
@@ -25,6 +31,18 @@ var extensionMap = map[string]string{
 	".tsx":  LangTypeScript,
 	".rs":   LangRust,
 	".java": LangJava,
+	".cs":   LangCSharp,
+	".php":  LangPHP,
+	".rb":   LangRuby,
+	".cpp":  LangCPP,
+	".cc":   LangCPP,
+	".cxx":  LangCPP,
+	".c++":  LangCPP,
+	".hpp":  LangCPP,
+	".hh":   LangCPP,
+	".hxx":  LangCPP,
+	".kt":   LangKotlin,
+	".kts":  LangKotlin,
 }
 
 // DetectLanguage determines the programming language from a file path
@@ -55,6 +73,19 @@ func GetLanguagesForExtension(ext string) []string {
 	return nil
 }
 
+// GetExtensionsForLanguage returns sorted file extensions for a language.
+func GetExtensionsForLanguage(lang string) []string {
+	normalized := NormalizeLanguage(lang)
+	exts := make([]string, 0)
+	for ext, mappedLang := range extensionMap {
+		if mappedLang == normalized {
+			exts = append(exts, ext)
+		}
+	}
+	sort.Strings(exts)
+	return exts
+}
+
 // NormalizeLanguage converts language aliases to standard names
 func NormalizeLanguage(lang string) string {
 	lower := strings.ToLower(lang)
@@ -71,6 +102,16 @@ func NormalizeLanguage(lang string) string {
 		return LangRust
 	case "jdk", "openjdk", "jvm":
 		return LangJava
+	case "cs", "c#", "dotnet", ".net":
+		return LangCSharp
+	case "php8", "php7":
+		return LangPHP
+	case "rb", "rails":
+		return LangRuby
+	case "c++", "cc", "cxx", "cplusplus":
+		return LangCPP
+	case "kt", "kts":
+		return LangKotlin
 	default:
 		return lower
 	}

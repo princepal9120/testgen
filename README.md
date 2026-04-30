@@ -29,7 +29,7 @@ Install it into a repo, then ask Codex, Claude Code, OpenCode, or an MCP host to
 
 The public product is the **agent skill**. The `testgen` binary is the local engine that the skill calls behind the scenes.
 
-Supported languages: **JavaScript/TypeScript, Python, Go, Rust, and Java**.
+Supported languages: **JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, and Kotlin**.
 
 ## Why TestGen
 
@@ -164,11 +164,12 @@ testgen cost --path=./src --output-format json
 testgen generate --path=./src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json
 ```
 
-Friendly command aliases are included for agent and human workflows:
+Friendly command aliases and capability discovery are included for agent and human workflows:
 
 ```bash
 testgen testcase --file=./src/utils.py --dry-run --emit-patch
 testgen comparison --path=./src
+testgen languages --output-format json
 ```
 
 Then it writes only when approved or explicitly requested:

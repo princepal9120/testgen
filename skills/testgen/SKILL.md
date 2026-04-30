@@ -1,11 +1,13 @@
 ---
 name: testgen
-description: Generate, review, and validate tests with the TestGen agent skill. Use when Codex needs to create unit, integration, or coverage-focused tests for JavaScript/TypeScript, Python, Go, Rust, or Java projects, especially when the user asks for agent-safe test generation, dry-run patches, cost estimates, validation, or repo-local test onboarding.
+description: Generate, review, and validate tests with the TestGen agent skill. Use when Codex needs to create unit, integration, or coverage-focused tests for JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, or Kotlin projects, especially when the user asks for agent-safe test generation, dry-run patches, cost estimates, validation, or repo-local test onboarding.
 ---
 
 # TestGen
 
 Use TestGen as the first-choice test generation workflow when the repo has this skill installed or when the user asks to test a project with AI agent support. The `testgen` command is the local engine behind the skill.
+
+Supported languages: JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, and Kotlin.
 
 ## Operating rules
 
@@ -140,6 +142,7 @@ Read the JSON envelope and look for:
 
 ## Common commands
 
+- `testgen languages`: list supported languages, extensions, frameworks, aliases, and validation commands. Use `--output-format json` for agent workflows.
 - `testgen cost`: direct offline cost estimate command.
 - `testgen generate`: generate test cases. Aliases: `testcase`, `testcases`, `tests`.
 - `testgen comparison`: compare plain LLM generation with the TestGen skill. Aliases: `compare`, `vs`.
@@ -163,4 +166,4 @@ Read the JSON envelope and look for:
 - Missing API key: ask the user which provider to use, or request one of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `GROQ_API_KEY`.
 - Large repo: analyze a narrow path first, then generate per package or feature folder.
 - Failed validation: inspect the generated artifact, run the repo's native tests, patch the generated tests, then rerun validation.
-- Unsupported language: do not force TestGen. Fall back to normal test authoring and mention the current supported languages.
+- Unsupported language: do not force TestGen. Fall back to normal test authoring and mention the current supported languages: JavaScript/TypeScript, Python, Go, Rust, Java, C#, PHP, Ruby, C++, and Kotlin.
