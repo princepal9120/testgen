@@ -180,14 +180,6 @@ Then generate review-first patches folder by folder.</code></pre>
 testgen analyze --path=src --cost-estimate --output-format json
 testgen generate --path=src --recursive --type=unit --dry-run --emit-patch --report-usage --output-format json</code></pre>
                 </div>
-
-                <h3>Prince Portfolio — data and route confidence</h3>
-                <p>Use this flow for portfolio data modules, sections, and API route behavior when adding new project or OSS pages.</p>
-                <div class="code-block">
-                    <pre><code>testgen analyze --path=data --cost-estimate --output-format json
-testgen generate --path=data --recursive --type=unit --dry-run --emit-patch --output-format json
-testgen generate --path=app/api --recursive --type=unit --dry-run --emit-patch --output-format json</code></pre>
-                </div>
             </section>
 
             <section id="configuration">
